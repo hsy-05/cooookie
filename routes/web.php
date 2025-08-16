@@ -3,6 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\NewsCategoryController;
+use App\Http\Controllers\Admin\NewsController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,3 +32,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('languages', LanguageController::class);            // 語言管理
+    Route::resource('news_category', NewsCategoryController::class);  // 分類管理
+    Route::resource('news', NewsController::class);                    // 消息管理
+});

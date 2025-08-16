@@ -30,7 +30,7 @@ return [
     |
     */
 
-    'use_ico_only' => false,
+    'use_ico_only' => true,
     'use_full_favicon' => false,
 
     /*
@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
+    'logo' => '<b>XX有限公司</b>',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
@@ -152,12 +152,12 @@ return [
     |
     */
 
-    'layout_topnav' => null,
+    'layout_topnav' => null, // true 則為 TopNav (無側邊欄)
     'layout_boxed' => null,
     'layout_fixed_sidebar' => null,
     'layout_fixed_navbar' => null,
     'layout_fixed_footer' => null,
-    'layout_dark_mode' => null,
+    'layout_dark_mode' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -319,6 +319,29 @@ return [
             'text' => 'blog',
             'url' => 'admin/blog',
             'can' => 'manage-blog',
+        ],
+        [
+            'text' => '消息列表',
+            'icon' => 'fas fa-fw fa-newspaper',
+            'submenu' => [
+                [
+                    'text' => '最新消息',
+                    // 'route' => 'admin.news',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/news',
+                    // 'active' => ['admin', 'admin/*'] // 可用陣列 / 通配符
+                ],
+                [
+                    'text' => '消息分類',
+                    // 'route' => 'admin.news',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/news_category',
+                    // 'active' => ['admin', 'admin/*'] // 可用陣列 / 通配符
+                ],
+            ],
+        ],
+        [
+            'text' => '使用者管理',
+            'url'  => 'admin/users',
+            'icon' => 'fas fa-fw fa-users',
         ],
         [
             'text' => 'pages',
