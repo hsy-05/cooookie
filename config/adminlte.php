@@ -339,6 +339,11 @@ return [
             ],
         ],
         [
+            'text' => '語系設定',
+            'url'  => 'admin/languages',
+            'icon' => 'fa fa-cog',
+        ],
+        [
             'text' => '使用者管理',
             'url'  => 'admin/users',
             'icon' => 'fas fa-fw fa-users',

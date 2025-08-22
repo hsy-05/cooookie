@@ -57,16 +57,16 @@ class NewsCategoryController extends Controller
             ]);
 
             // desc 是前端傳過來的陣列 desc[lang_id][name,description,content]
-            foreach ($request->input('desc') as $langId => $d) {
+            foreach ($request->input('desc') as $langId => $desc) {
                 // 若 name 欄位為空，跳過
-                if (empty($d['name'])) continue;
+                if (empty($desc['name'])) continue;
 
                 NewsCategoryDesc::insert([
                     'cat_id' => $category->cat_id,
                     'lang_id' => (int)$langId,
-                    'name' => $d['name'],
-                    'description' => $d['description'] ?? null,
-                    'content' => $d['content'] ?? null,
+                    'name' => $desc['name'],
+                    'description' => $desc['description'] ?? null,
+                    'content' => $desc['content'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -100,8 +100,8 @@ class NewsCategoryController extends Controller
 
         // 轉成以 lang_id 為 key 的陣列便於 Blade 填值
         $descMap = [];
-        foreach ($news_category->descs as $d) {
-            $descMap[$d->lang_id] = $d;
+        foreach ($news_category->descs as $desc) {
+            $descMap[$desc->lang_id] = $desc;
         }
 
         return view('admin.news_category.edit', compact('news_category', 'parents', 'langs', 'descMap'));
@@ -131,9 +131,9 @@ class NewsCategoryController extends Controller
             ]);
 
             // upsert 每個語系
-            foreach ($request->input('desc') as $langId => $d) {
+            foreach ($request->input('desc') as $langId => $desc) {
                 // if name empty -> delete existing translation (可選)
-                if (empty($d['name'])) {
+                if (empty($desc['name'])) {
                     DB::table('news_category_desc')->where('cat_id', $news_category->cat_id)->where('lang_id', $langId)->delete();
                     continue;
                 }
@@ -142,9 +142,9 @@ class NewsCategoryController extends Controller
                 DB::table('news_category_desc')->updateOrInsert(
                     ['cat_id' => $news_category->cat_id, 'lang_id' => (int)$langId],
                     [
-                        'name' => $d['name'],
-                        'description' => $d['description'] ?? null,
-                        'content' => $d['content'] ?? null,
+                        'name' => $desc['name'],
+                        'description' => $desc['description'] ?? null,
+                        'content' => $desc['content'] ?? null,
                         'updated_at' => now(),
                         'created_at' => now(), // 若 updating 會忽略 created_at
                     ]

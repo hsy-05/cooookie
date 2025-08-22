@@ -64,14 +64,14 @@ class NewsController extends Controller
 
         // 建立 desc：前端應傳 desc[lang_id][title|content]
         if ($request->has('desc') && is_array($request->desc)) {
-            foreach ($request->desc as $lang_id => $d) {
+            foreach ($request->desc as $lang_id => $desc) {
                 // 若 title 為空則略過；若要強制每個語系必填可在驗證時加入 rules
-                if (!empty($d['title'])) {
+                if (!empty($desc['title'])) {
                     NewsDesc::create([
                         'news_id' => $news->news_id,
                         'lang_id' => $lang_id,
-                        'title' => $d['title'],
-                        'content' => $d['content'] ?? null,
+                        'title' => $desc['title'],
+                        'content' => $desc['content'] ?? null,
                     ]);
                 }
             }
@@ -93,12 +93,14 @@ class NewsController extends Controller
         $cats = NewsCategory::with('descs')->where('is_visible', 1)->get();
         $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
         $news->load('descs');
+        $isEdit = $news->exists;
+
         // 轉成以 lang_id 為 key 的陣列，便於 blade 填值
         $descMap = [];
-        foreach ($news->descs as $d) {
-            $descMap[$d->lang_id] = $d;
+        foreach ($news->descs as $desc) {
+            $descMap[$desc->lang_id] = $desc;
         }
-        return view('admin.news.edit', compact('news', 'cats', 'langs', 'descMap'));
+        return view('admin.news.form', compact('news', 'isEdit', 'cats', 'langs', 'descMap'));
     }
 
     // 更新
@@ -137,22 +139,22 @@ class NewsController extends Controller
 
         // 更新 desc：若存在則 update，否則 create；前端傳 desc[lang_id]
         if ($request->has('desc') && is_array($request->desc)) {
-            foreach ($request->desc as $lang_id => $d) {
+            foreach ($request->desc as $lang_id => $desc) {
                 $existing = NewsDesc::where('news_id', $news->news_id)
-                                    ->where('lang_id', $lang_id)
-                                    ->first();
+                    ->where('lang_id', $lang_id)
+                    ->first();
                 if ($existing) {
                     $existing->update([
-                        'title' => $d['title'] ?? '',
-                        'content' => $d['content'] ?? null,
+                        'title' => $desc['title'] ?? '',
+                        'content' => $desc['content'] ?? null,
                     ]);
                 } else {
-                    if (!empty($d['title'])) {
+                    if (!empty($desc['title'])) {
                         NewsDesc::create([
                             'news_id' => $news->news_id,
                             'lang_id' => $lang_id,
-                            'title' => $d['title'],
-                            'content' => $d['content'] ?? null,
+                            'title' => $desc['title'],
+                            'content' => $desc['content'] ?? null,
                         ]);
                     }
                 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2007-2024, CKSource Holding sp. z o.o. All rights reserved.
+For licensing, see LICENSE.html or https://ckeditor.com/sales/license/ckfinder
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,user-scalable=no"
+        />
+        <title>CKFinder 3 - File Browser</title>
+    </head>
+    <body>
+        <script src="ckfinder.js"></script>
+        <script>
+            // Fix zh langCode
+            var qLang = String(window.location.href).match(
+                /(zh(?:-(tw|cn))?)/i
+            );
+            var nLang = String(navigator.language).match(/(zh(?:-(tw|cn))?)/i);
+            if (qLang && nLang) {
+                var langCode = "zh-tw";
+                if (nLang[2]) {
+                    langCode = String(nLang[1]).toLowerCase();
+                }
+                if (qLang && qLang[2] && qLang[2] != nLang[2]) {
+                    langCode = String(qLang[1]).toLowerCase();
+                }
+
+                if (
+                    !qLang ||
+                    (qLang &&
+                        (!qLang[1] ||
+                            langCode != String(qLang[1]).toLowerCase()))
+                ) {
+                    window.location.replace(
+                        window.location.href.replace(
+                            /([?|&]?)(langCode=).*([&|$]?)/i,
+                            "$1$2" + langCode + "$3"
+                        )
+                    );
+                }
+            }
+
+            CKFinder.start();
+        </script>
+    </body>
+</html>
