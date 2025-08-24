@@ -2,6 +2,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Log;
 
 class ContentHelper
 {
@@ -13,6 +14,7 @@ class ContentHelper
      */
     public static function encodeSiteUrl(string $content)
     {
+        Log::info('[encodeSiteUrl] 被呼叫了');
         $siteUrl = URL::to('/') . '/';
         return str_replace($siteUrl, '[[SITE_URL]]', $content);
     }

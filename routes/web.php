@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\NewsCategoryController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\UploadController;
+use App\Helpers\ContentHelper;
 
 
 Route::get('/', function () {
@@ -41,5 +42,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('news', NewsController::class)->parameters([
         'news' => 'news' // 讓隱式綁定用 App\Models\News 的主鍵
     ]);
+
     Route::post('upload-image', [App\Http\Controllers\UploadController::class, 'uploadImage']);
 });

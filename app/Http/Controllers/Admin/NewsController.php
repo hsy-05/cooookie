@@ -10,6 +10,7 @@ use App\Models\NewsCategory;
 use App\Models\Language;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use App\Helpers\ContentHelper;
 
 class NewsController extends Controller
 {
@@ -71,7 +72,7 @@ class NewsController extends Controller
                         'news_id' => $news->news_id,
                         'lang_id' => $lang_id,
                         'title' => $desc['title'],
-                        'content' => $desc['content'] ?? null,
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
                     ]);
                 }
             }
@@ -98,6 +99,7 @@ class NewsController extends Controller
         // 轉成以 lang_id 為 key 的陣列，便於 blade 填值
         $descMap = [];
         foreach ($news->descs as $desc) {
+            $desc->content = ContentHelper::decodeSiteUrl($desc->content);
             $descMap[$desc->lang_id] = $desc;
         }
         return view('admin.news.form', compact('news', 'isEdit', 'cats', 'langs', 'descMap'));
@@ -118,7 +120,7 @@ class NewsController extends Controller
             $file = $request->file('image');
             $manager = new ImageManager(new Driver());
             $img = $manager->read($file)->coverDown(600, 400, 'center');
-            $filename = time() . $file->getClientOriginalExtension();
+            $filename = time() . '.' . $file->getClientOriginalExtension();
             $saveDir = storage_path('app/public/news');
             if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
             $img->save($saveDir . '/' . $filename);
@@ -146,7 +148,7 @@ class NewsController extends Controller
                 if ($existing) {
                     $existing->update([
                         'title' => $desc['title'] ?? '',
-                        'content' => $desc['content'] ?? null,
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
                     ]);
                 } else {
                     if (!empty($desc['title'])) {
@@ -154,7 +156,7 @@ class NewsController extends Controller
                             'news_id' => $news->news_id,
                             'lang_id' => $lang_id,
                             'title' => $desc['title'],
-                            'content' => $desc['content'] ?? null,
+                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
                         ]);
                     }
                 }
