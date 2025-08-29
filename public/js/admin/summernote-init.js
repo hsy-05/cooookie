@@ -43,7 +43,7 @@ $(document).ready(function () {
         callbacks: {
             onImageUpload: function (files) {
                 const editor = $(this);
-                uploadImage(files[0], editor);
+                // uploadImage(files[0], editor);
             },
         },
     });

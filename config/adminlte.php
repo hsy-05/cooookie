@@ -328,13 +328,13 @@ return [
                     'text' => '最新消息',
                     // 'route' => 'admin.news',   // 優先使用 route（如果你有命名路由）
                     'url' => 'admin/news',
-                    // 'active' => ['admin', 'admin/*'] // 可用陣列 / 通配符
+                    'active' => ['regex:@^admin/news($|/)@'], // 可用陣列 / 通配符，*代表匹配所有後綴
                 ],
                 [
                     'text' => '消息分類',
                     // 'route' => 'admin.news',   // 優先使用 route（如果你有命名路由）
                     'url' => 'admin/news_category',
-                    // 'active' => ['admin', 'admin/*'] // 可用陣列 / 通配符
+                    'active' => ['regex:@^admin/news_category($|/)@'], // 可用陣列 / 通配符
                 ],
             ],
         ],

@@ -17,8 +17,8 @@ class NewsCategoryController extends Controller
     public function index()
     {
         // 取出分類與其 translations
-        $categories = NewsCategory::with('descs')->orderBy('display_order', 'desc')->get();
-        return view('admin.news_category.index', compact('categories'));
+        $category = NewsCategory::with('descs')->orderBy('display_order', 'desc')->get();
+        return view('admin.news_category.index', compact('category'));
     }
 
     /**
@@ -29,7 +29,7 @@ class NewsCategoryController extends Controller
         // 取得可當父類的分類與啟用的語系
         $parents = NewsCategory::all();
         $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
-        return view('admin.news_category.create', compact('parents', 'langs'));
+        return view('admin.news_category.form', compact('parents', 'langs'));
     }
 
     /**
@@ -97,6 +97,7 @@ class NewsCategoryController extends Controller
         $parents = NewsCategory::where('cat_id', '!=', $news_category->cat_id)->get();
         $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
         $news_category->load('descs');
+        $isEdit = $news_category->exists;
 
         // 轉成以 lang_id 為 key 的陣列便於 Blade 填值
         $descMap = [];
@@ -104,7 +105,7 @@ class NewsCategoryController extends Controller
             $descMap[$desc->lang_id] = $desc;
         }
 
-        return view('admin.news_category.edit', compact('news_category', 'parents', 'langs', 'descMap'));
+        return view('admin.news_category.form', compact('news_category', 'isEdit', 'parents', 'langs', 'descMap'));
     }
 
     /**

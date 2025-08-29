@@ -12,14 +12,22 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Helpers\ContentHelper;
 
+define('PAGE_TITLE', '最新消息');
+
 class NewsController extends Controller
 {
     // 列表：載入 news 主表與所有 desc（可在 view 選語系顯示）
-    public function index()
+    public function index(Request $request)
     {
-        // 載入主表與其翻譯（descs）與分類
-        $newsList = News::with(['descs', 'category'])->orderBy('display_order', 'desc')->paginate(15);
+        // 加入每頁筆數參數，預設 8
+        $perPage = $request->input('per_page', 8);
+        // 資料查詢與關聯載入
+        $newsList = News::with(['descs', 'category'])
+            ->orderBy('display_order', 'desc')
+            ->paginate($perPage); // 套用每頁筆數
+
         $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+
         return view('admin.news.index', compact('newsList', 'langs'));
     }
 
@@ -28,7 +36,7 @@ class NewsController extends Controller
     {
         $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
         $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
-        return view('admin.news.create', compact('cats', 'langs'));
+        return view('admin.news.form', compact('cats', 'langs'));
     }
 
     // 儲存
@@ -78,7 +86,16 @@ class NewsController extends Controller
             }
         }
 
-        return redirect()->route('admin.news.index')->with('success', '消息新增完成');
+        ContentHelper::showMsg(
+            0,
+            '消息新增完成',
+            [
+                ['text' => '繼續新增', 'href' => route('admin.news.create')],
+                ['text' => '返回列表', 'href' => route('admin.news.index')],
+            ],
+            true
+        );
+        return redirect()->back();
     }
 
     // 顯示單筆（含所有語系翻譯）
@@ -163,7 +180,19 @@ class NewsController extends Controller
             }
         }
 
-        return redirect()->route('admin.news.index')->with('success', '消息更新完成');
+        // 儲存成功後
+        ContentHelper::showMsg(
+            0,
+            '編輯操作完成',
+            [
+                ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
+                ['text' => '返回列表', 'href' => route('admin.news.index')],
+            ],
+            true // 是否自動跳轉
+        );
+
+
+        return redirect()->back();
     }
 
     // 刪除

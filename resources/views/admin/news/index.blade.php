@@ -63,7 +63,7 @@
             <label for="per_page" class="mr-2">每頁筆數：</label>
             <select name="per_page" id="per_page" class="form-control"
                 onchange="document.getElementById('perPageForm').submit()">
-                @foreach ([5, 8, 15, 30] as $size)
+                @foreach ([2, 5, 8, 15, 30] as $size)
                     <option value="{{ $size }}" {{ request('per_page', 8) == $size ? 'selected' : '' }}>
                         {{ $size }}
                     </option>
