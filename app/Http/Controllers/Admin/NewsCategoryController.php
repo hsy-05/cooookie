@@ -28,7 +28,7 @@ class NewsCategoryController extends Controller
     {
         // 取得可當父類的分類與啟用的語系
         $parents = NewsCategory::all();
-        $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         return view('admin.news_category.form', compact('parents', 'langs'));
     }
 
@@ -95,7 +95,7 @@ class NewsCategoryController extends Controller
     public function edit(NewsCategory $news_category)
     {
         $parents = NewsCategory::where('cat_id', '!=', $news_category->cat_id)->get();
-        $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $news_category->load('descs');
         $isEdit = $news_category->exists;
 

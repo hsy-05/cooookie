@@ -12,8 +12,8 @@ class LanguageController extends Controller
     // 列表頁：顯示所有語系
     public function index()
     {
-        // 依 sort_order 排序顯示
-        $langs = Language::orderBy('sort_order', 'desc')->get();
+        // 依 display_order 排序顯示
+        $langs = Language::orderBy('display_order', 'desc')->get();
         return view('admin.languages.index', compact('langs'));
     }
 
@@ -33,7 +33,7 @@ class LanguageController extends Controller
             'code' => 'required|string|max:20',      // 例如 zh-TW
             'iso_code' => 'nullable|string|max:10',
             'region' => 'nullable|string|max:50',
-            'sort_order' => 'nullable|integer',
+            'display_order' => 'nullable|integer',
             'enabled' => 'nullable|boolean',
             'display_scope' => 'required|in:both,backend',
         ]);
@@ -45,7 +45,7 @@ class LanguageController extends Controller
             'code' => $data['code'],
             'iso_code' => $data['iso_code'] ?? null,
             'region' => $data['region'] ?? null,
-            'sort_order' => $data['sort_order'] ?? 0,
+            'display_order' => $data['display_order'] ?? 0,
             'enabled' => $data['enabled'] ?? 1,
             'display_scope' => $data['display_scope'],
         ]);
@@ -74,7 +74,7 @@ class LanguageController extends Controller
             'code' => 'required|string|max:20',
             'iso_code' => 'nullable|string|max:10',
             'region' => 'nullable|string|max:50',
-            'sort_order' => 'nullable|integer',
+            'display_order' => 'nullable|integer',
             'enabled' => 'nullable|boolean',
             'display_scope' => 'required|in:both,backend',
         ]);
@@ -85,7 +85,7 @@ class LanguageController extends Controller
             'code' => $data['code'],
             'iso_code' => $data['iso_code'] ?? null,
             'region' => $data['region'] ?? null,
-            'sort_order' => $data['sort_order'] ?? 0,
+            'display_order' => $data['display_order'] ?? 0,
             'enabled' => $data['enabled'] ?? 1,
             'display_scope' => $data['display_scope'],
         ]);

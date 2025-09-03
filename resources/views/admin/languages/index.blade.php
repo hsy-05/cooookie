@@ -24,7 +24,7 @@
             <td>{{ $l->lang_id }}</td>
             <td>{{ $l->name }} ({{ $l->alias }})</td>
             <td>{{ $l->code }}</td>
-            <td>{{ $l->sort_order }}</td>
+            <td>{{ $l->display_order }}</td>
             <td>{{ $l->enabled ? '是' : '否' }}</td>
             <td>{{ $l->display_scope }}</td>
             <td>

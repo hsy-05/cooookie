@@ -9,7 +9,7 @@
     <div class="form-group"><label>代碼（code）</label><input name="code" class="form-control" value="{{ $language->code }}" required></div>
     <div class="form-group"><label>ISO code</label><input name="iso_code" class="form-control" value="{{ $language->iso_code }}"></div>
     <div class="form-group"><label>區域</label><input name="region" class="form-control" value="{{ $language->region }}"></div>
-    <div class="form-group"><label>排序</label><input name="sort_order" type="number" class="form-control" value="{{ $language->sort_order }}"></div>
+    <div class="form-group"><label>排序</label><input name="display_order" type="number" class="form-control" value="{{ $language->display_order }}"></div>
     <div class="form-group"><label>啟用</label>
         <select name="enabled" class="form-control">
             <option value="1" {{ $language->enabled ? 'selected' : '' }}>啟用</option>

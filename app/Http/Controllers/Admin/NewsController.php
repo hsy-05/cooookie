@@ -24,9 +24,10 @@ class NewsController extends Controller
         // 資料查詢與關聯載入
         $newsList = News::with(['descs', 'category'])
             ->orderBy('display_order', 'desc')
+            ->orderBy('news_id', 'desc')
             ->paginate($perPage); // 套用每頁筆數
 
-        $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
 
         return view('admin.news.index', compact('newsList', 'langs'));
     }
@@ -35,7 +36,7 @@ class NewsController extends Controller
     public function create()
     {
         $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
-        $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         return view('admin.news.form', compact('cats', 'langs'));
     }
 
@@ -109,7 +110,7 @@ class NewsController extends Controller
     public function edit(News $news)
     {
         $cats = NewsCategory::with('descs')->where('is_visible', 1)->get();
-        $langs = Language::where('enabled', 1)->orderBy('sort_order', 'desc')->get();
+        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $news->load('descs');
         $isEdit = $news->exists;
 

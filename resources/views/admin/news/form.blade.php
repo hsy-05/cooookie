@@ -5,7 +5,7 @@
 @include('components.page_content_header')
 
 @section('content')
-    <x-message>
+    <x-page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
         <form action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
@@ -156,7 +156,7 @@
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>
         </form>
-    </x-message>
+    </x-page-message>
 
     <!-- 圖片預覽彈出視窗 -->
     @if (isset($isEdit))
@@ -171,7 +171,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <img src="{{ $UPLOAD_PATH }}/{{ $news->image }}" class="img-fluid" alt="封面圖片">
+                        <img src="{{ $UPLOAD_PATH . '/' . $news->image }}" class="img-fluid" alt="封面圖片">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>

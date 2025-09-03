@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\NewsCategoryController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\UploadController;
 use App\Helpers\ContentHelper;
+use App\Http\Controllers\Admin\AdvertController;
+use App\Http\Controllers\Admin\AdvertCategoryController;
 
 
 Route::get('/', function () {
@@ -42,6 +44,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('news', NewsController::class)->parameters([
         'news' => 'news' // 讓隱式綁定用 App\Models\News 的主鍵
     ]);
+
+    // 廣告分類 CRUD
+    Route::resource('advert_category', AdvertCategoryController::class)
+        ->parameters(['advert_category' => 'advert_category']); // 讓隱式綁定用 cat_id
+
+    // 廣告 CRUD（你先前已建立，放這裡備註）
+    Route::resource('advert', AdvertController::class)
+        ->parameters(['advert' => 'advert']);
 
     Route::post('upload-image', [App\Http\Controllers\UploadController::class, 'uploadImage']);
 });

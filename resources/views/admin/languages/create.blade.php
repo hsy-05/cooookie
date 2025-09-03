@@ -9,7 +9,7 @@
     <div class="form-group"><label>代碼（code）</label><input name="code" class="form-control" required></div>
     <div class="form-group"><label>ISO code</label><input name="iso_code" class="form-control"></div>
     <div class="form-group"><label>區域</label><input name="region" class="form-control"></div>
-    <div class="form-group"><label>排序</label><input name="sort_order" type="number" class="form-control" value="0"></div>
+    <div class="form-group"><label>排序</label><input name="display_order" type="number" class="form-control" value="0"></div>
     <div class="form-group"><label>啟用</label>
         <select name="enabled" class="form-control">
             <option value="1">啟用</option><option value="0">停用</option>

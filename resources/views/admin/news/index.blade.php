@@ -88,21 +88,3 @@
         {{ $newsList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
     </div>
 @stop
-
-@section('js')
-    <script>
-        {{-- Toast Success Message --}}
-        @if (session('success'))
-            document.addEventListener('DOMContentLoaded', function() {
-                $(document).Toasts('create', {
-                    position: 'bottomRight',
-                    class: 'bg-success',
-                    title: '成功',
-                    body: '{{ session('success') }}',
-                    autohide: true,
-                    delay: 3000
-                });
-            });
-        @endif
-    </script>
-@endsection

@@ -311,14 +311,32 @@ return [
         ],
 
         // Sidebar items:
-        [
-            'type' => 'sidebar-menu-search',
-            'text' => 'search',
-        ],
+        // [
+        //     'type' => 'sidebar-menu-search',
+        //     'text' => 'search',
+        // ],
         [
             'text' => 'blog',
             'url' => 'admin/blog',
             'can' => 'manage-blog',
+        ],
+        [
+            'text' => '廣告列表',
+            'icon' => 'fas fa-fw fa-newspaper',
+            'submenu' => [
+                [
+                    'text' => '廣告列表',
+                    // 'route' => 'admin.advert',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/advert',
+                    'active' => ['regex:@^admin/advert($|/)@'], // 可用陣列 / 通配符，*代表匹配所有後綴
+                ],
+                [
+                    'text' => '廣告分類',
+                    // 'route' => 'admin.advert_category',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/advert_category',
+                    'active' => ['regex:@^admin/advert_category($|/)@'], // 可用陣列 / 通配符
+                ],
+            ],
         ],
         [
             'text' => '消息列表',
@@ -339,11 +357,6 @@ return [
             ],
         ],
         [
-            'text' => '語系設定',
-            'url'  => 'admin/languages',
-            'icon' => 'fa fa-cog',
-        ],
-        [
             'text' => '使用者管理',
             'url'  => 'admin/users',
             'icon' => 'fas fa-fw fa-users',
@@ -356,6 +369,17 @@ return [
             'label_color' => 'success',
         ],
         ['header' => 'account_settings'],
+        [
+            'text' => '管理設定',
+            'icon' => 'fas fa-cog',
+            'submenu' => [
+                [
+                    'text' => '語系設定',
+                    'url'  => 'admin/languages',
+                    'active' => ['regex:@^admin/languages($|/)@'], // 可用陣列 / 通配符
+                ],
+            ],
+        ],
         [
             'text' => 'profile',
             'url' => 'admin/settings',
