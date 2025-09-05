@@ -23,12 +23,19 @@ class AdvertCategory extends Model
         'is_visible'     => 'boolean',
     ];
 
+    /** 多筆語系描述 */
     public function descs()
     {
         return $this->hasMany(AdvertCategoryDesc::class, 'cat_id');
     }
 
-    // 加一個便捷函數取名稱
+    /** 分類下的所有廣告 */
+    public function adverts()
+    {
+        return $this->hasMany(Advert::class, 'adv_id');
+    }
+
+    /** 便捷函式：取第一個語系名稱 */
     public function name()
     {
         return $this->descs()->first()->cat_name ?? null;

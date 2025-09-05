@@ -1,0 +1,10 @@
+/* public/css/frontend.css - 簡單前台樣式 */
+body { font-family: "Noto Sans TC", "Helvetica Neue", Arial, sans-serif; color:#333; }
+.site-header { border-bottom: 1px solid #eee; }
+.site-header .navbar-brand img { height:44px; }
+.media img { border-radius:4px; }
+.content img { max-width:100%; }
+.text-truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card { border-radius:8px; }
+.carousel .carousel-item img { height: 380px; object-fit: cover; } /* 可根據尺寸調整 */
+@media (max-width:767px) { .carousel .carousel-item img { height: 220px; } }

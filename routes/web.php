@@ -11,10 +11,25 @@ use App\Helpers\ContentHelper;
 use App\Http\Controllers\Admin\AdvertController;
 use App\Http\Controllers\Admin\AdvertCategoryController;
 
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
+
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+// 前台首頁
+Route::get('/', [HomeController::class, 'index'])->name('frontend.layouts.home');
+
+// 消息：列表與詳細頁
+Route::get('/news', [FrontendNewsController::class, 'index'])->name('news.index');
+Route::get('/news/{news}', [FrontendNewsController::class, 'show'])->name('news.show'); // 隱式綁定 news by PK
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -34,9 +49,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 });
 
 Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('languages', LanguageController::class);            // 語言管理
