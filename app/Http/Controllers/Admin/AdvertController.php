@@ -26,7 +26,7 @@ class AdvertController extends Controller
             ->orderBy('display_order', 'desc')
             ->orderBy('adv_id', 'desc')
             ->paginate($perPage); // 套用每頁筆數
-
+// dd($adverts);
         return view('admin.advert.index', compact('adverts'));
     }
 

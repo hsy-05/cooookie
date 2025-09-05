@@ -28,21 +28,20 @@ class AdvertCategoryController extends Controller
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $categoryList = AdvertCategory::with('descs')->get(); // 加這行載入所有選項
 
-        $defaultParams = [
-            'item_limit_num' => -1,
-            'fields' => [
-                'adv_img_url' => ['width' => 1920, 'height' => 960],
-                'adv_img_m_url' => ['width' => 800, 'height' => 960],
-                'adv_link_url' => new \stdClass(),
-            ],
-        ];
+        // $defaultParams = [
+        //     'item_limit_num' => -1,
+        //     'fields' => [
+        //         'adv_img_url' => ['width' => 1920, 'height' => 960],
+        //         'adv_img_m_url' => ['width' => 800, 'height' => 960],
+        //         'adv_link_url' => new \stdClass(),
+        //     ],
+        // ];
 
         return view('admin.advert_category.form', [
             'langs'           => $langs,
-            'isEdit'          => false,
             'advert_category' => new AdvertCategory([
                 'cat_func_scope' => ['adv_img_url', 'adv_img_m_url', 'adv_link_url'],
-                'cat_params'     => $defaultParams,
+                // 'cat_params'     => $defaultParams,
                 'is_visible'     => true,
                 'display_order'     => 0,
             ]),

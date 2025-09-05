@@ -105,7 +105,7 @@
                                 <div class="row">
                                     <!-- 電腦版圖片 -->
                                     <div class="col-md-6 mb-4 field field-adv_img_url">
-                                        <label>電腦版圖片</label>
+                                        <label>廣告圖-電腦版</label>
                                         <div class="input-group">
                                             <input type="file" name="adv_img_url" class="form-control">
                                             @if (isset($isEdit) && $advert->adv_img_url)
@@ -123,7 +123,7 @@
 
                                     <!-- 手機版圖片 -->
                                     <div class="col-md-6 mb-4 field field-adv_img_m_url">
-                                        <label>手機版圖片</label>
+                                        <label>廣告圖-手機版</label>
                                         <div class="input-group">
                                             <input type="file" name="adv_img_m_url" class="form-control">
                                             @if (isset($isEdit) && $advert->adv_img_m_url)
