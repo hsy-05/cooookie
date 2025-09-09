@@ -1,4 +1,3 @@
-{{-- 全站前台 Layout（簡潔版） --}}
 <!doctype html>
 <html lang="zh-Hant">
 
@@ -7,35 +6,35 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>@yield('title', '網站') - 公司名稱</title>
 
-    {{-- Bootstrap CDN（快速起手） --}}
     <link href="{{ asset('favicons/favicon.ico') }}" rel="icon">
-    <link href="{{ asset('favicons/favicon.ico') }}" rel="shortcut icon">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('css/frontend.css') }}"> {{-- 自訂樣式 --}}
+    <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
 </head>
 
 <body>
-    <header class="site-header bg-white shadow-sm">
-        <div class="container d-flex align-items-center py-3">
-            <a href="./" class="navbar-brand">
-                <img src="{{ asset('logo.png') }}" alt="Logo" style="height:44px;">
-            </a>
 
-            {{-- 主選單（可擴充） --}}
-            <nav class="ml-auto">
-                <a href="{{ route('news.index') }}" class="mx-2 text-dark">消息</a>
-                {{-- <a href="{{ route('advert.category', 'idx_banner') }}" class="mx-2 text-dark">廣告</a> --}}
+    {{-- Header --}}
+    <header class="site-header">
+        <div class="header-inner container d-flex align-items-center justify-content-between">
+            <a href="{{ url('/') }}" class="logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo">
+            </a>
+            <nav class="site-nav d-flex align-items-center">
+                <a href="{{ route('news.index') }}"
+                    class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
+                <a href="{{ url('/about') }}" class="nav-link">關於我們</a>
+                <a href="{{ url('/products') }}" class="nav-link">產品</a>
+                <a href="{{ url('/contact') }}" class="nav-link">聯絡我們</a>
             </nav>
         </div>
     </header>
 
-    <main class="py-4">
-        <div class="container">
-            {{-- 主要內容區塊，子頁會注入 --}}
-            @yield('content')
-        </div>
+    {{-- 主內容 --}}
+    <main class="main-content">
+        @yield('content')
     </main>
 
+    {{-- 頁尾 --}}
     <footer class="site-footer bg-light py-4 mt-5">
         <div class="container text-center text-muted small">
             © {{ date('Y') }} 公司名稱 - All rights reserved.
@@ -45,6 +44,20 @@
     {{-- JS --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var header = $('.site-header');
+            var headerHeight = header.outerHeight();
+
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > headerHeight) {
+                    header.addClass('scrolled');
+                } else {
+                    header.removeClass('scrolled');
+                }
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 

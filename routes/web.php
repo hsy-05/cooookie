@@ -22,9 +22,9 @@ use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-
 // 前台首頁
-Route::get('/', [HomeController::class, 'index'])->name('frontend.layouts.home');
+Route::get('/', [\App\Http\Controllers\Frontend\HomeController::class, 'index'])
+    ->name('frontend.layouts.home');
 
 // 消息：列表與詳細頁
 Route::get('/news', [FrontendNewsController::class, 'index'])->name('news.index');

@@ -32,7 +32,7 @@ class AdvertCategory extends Model
     /** 分類下的所有廣告 */
     public function adverts()
     {
-        return $this->hasMany(Advert::class, 'adv_id');
+        return $this->hasMany(Advert::class, 'cat_id');
     }
 
     /** 便捷函式：取第一個語系名稱 */

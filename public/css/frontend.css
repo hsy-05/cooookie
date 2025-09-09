@@ -1,10 +1,93 @@
-/* public/css/frontend.css - 簡單前台樣式 */
-body { font-family: "Noto Sans TC", "Helvetica Neue", Arial, sans-serif; color:#333; }
-.site-header { border-bottom: 1px solid #eee; }
-.site-header .navbar-brand img { height:44px; }
-.media img { border-radius:4px; }
-.content img { max-width:100%; }
-.text-truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.card { border-radius:8px; }
-.carousel .carousel-item img { height: 380px; object-fit: cover; } /* 可根據尺寸調整 */
-@media (max-width:767px) { .carousel .carousel-item img { height: 220px; } }
+:root {
+    /* 定義一些常用的 CSS 變數 */
+    --h-header: 80px; /* 設定頁首高度為 80px */
+    --transition: 0.3s; /* 設定過渡效果時間為 0.3 秒 */
+    --nav-color: #fff; /* 預設導航欄文字顏色為白色 */
+    --nav-hover: #ffc107; /* 當選單項目 hover 時的顏色為橙色 */
+    --nav-active: #ffc107; /* 當前選單項目的顏色 */
+    --nav-color-scrolled: #333; /* 滾動後導航欄文字顏色變為深灰色 */
+}
+
+/* 設定全頁樣式 */
+body {
+    margin: 0; /* 清除頁面邊距 */
+    font-family: "Noto Sans TC", "Helvetica Neue", Arial, sans-serif; /* 設定字體 */
+    color: #333; /* 設定文字顏色為深灰 */
+}
+
+/* Header 設定，初始為透明背景 */
+.site-header {
+    position: absolute; /* 頁首使用絕對定位 */
+    top: 0;
+    left: 0;
+    width: 100%; /* 頁首寬度占滿整個視窗 */
+    height: var(--h-header); /* 使用變數來設定頁首高度 */
+    background: transparent; /* 初始背景為透明 */
+    z-index: 999; /* 確保頁首位於最上層 */
+    transition: all var(--transition); /* 所有變化使用 0.3 秒過渡效果 */
+    border-bottom: 1px solid transparent; /* 頁首底部添加透明邊框 */
+}
+
+/* 滾動後頁首變為固定並且背景為白色 */
+.site-header.scrolled {
+    position: fixed; /* 頁首固定在頁面上方 */
+    background: #fff; /* 背景顏色變為白色 */
+    border-bottom: 1px solid #ddd; /* 設定底部邊框為灰色 */
+}
+
+/* banner 設定 */
+.banner-section {
+    background-image: url(../images/news_banner.png); /* 設定背景圖片 */
+    background-size: cover; /* 讓背景圖片覆蓋整個區塊 */
+    background-position: center; /* 背景圖片居中 */
+    height: 400px; /* 設定橫幅高度 */
+    position: relative; /* 為了能夠在下面加上半透明遮罩 */
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3); /* 半透明黑色遮罩 */
+    display: flex; /* 使用 flexbox */
+    justify-content: center; /* 水平方向居中 */
+    align-items: center; /* 垂直方向居中 */
+}
+
+.banner-text {
+    position: relative;
+    z-index: 1; /* 保證文字在遮罩層之上 */
+    color: #fff; /* 文字顏色設為白色 */
+    text-align: center; /* 文字居中對齊 */
+}
+
+.banner-text h2 {
+    font-size: 3rem; /* 標題字體大小 */
+    font-weight: bold; /* 使標題字體加粗 */
+}
+
+.banner-text p {
+    font-size: 1.2rem; /* 描述文字字體大小 */
+    font-weight: 300; /* 使描述文字顯得比較輕 */
+}
+
+/* 設定消息列表容器的最大寬度和左右邊距 */
+.news-list-container {
+    max-width: 1200px; /* 最大寬度 */
+    margin: 0 auto; /* 水平居中 */
+    padding-left: 20px; /* 左邊距 */
+    padding-right: 20px; /* 右邊距 */
+}
+
+/* 設定消息項目區塊的間距 */
+.media {
+    margin-bottom: 30px; /* 每條消息間距 */
+}
+
+/* 調整分頁的樣式 */
+.pagination {
+    margin-top: 30px; /* 分頁區塊上方間距 */
+    justify-content: center; /* 分頁項目居中 */
+}

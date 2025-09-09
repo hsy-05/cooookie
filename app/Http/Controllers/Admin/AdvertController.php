@@ -26,7 +26,7 @@ class AdvertController extends Controller
             ->orderBy('display_order', 'desc')
             ->orderBy('adv_id', 'desc')
             ->paginate($perPage); // 套用每頁筆數
-// dd($adverts);
+        // dd($adverts);
         return view('admin.advert.index', compact('adverts'));
     }
 
@@ -60,14 +60,14 @@ class AdvertController extends Controller
         $rules = ['cat_id' => 'required|exists:advert_category,cat_id'];
         // 動態加入圖片欄位驗證
         if (in_array('adv_img_url', $scope)) {
-            $rules['adv_img_url'] = 'required|image|mimes:jpg,jpeg,png|max:4096';
+            $rules['adv_img_url'] = 'nullable|image|mimes:jpg,jpeg,png|max:4096';
         }
         if (in_array('adv_img_m_url', $scope)) {
-            $rules['adv_img_m_url'] = 'required|image|mimes:jpg,jpeg,png|max:4096';
+            $rules['adv_img_m_url'] = 'nullable|image|mimes:jpg,jpeg,png|max:4096';
         }
         // 其他欄位視 scope 決定
         if (in_array('adv_link_url', $scope)) {
-            $rules['adv_link_url'] = 'required|string|max:1000';
+            $rules['adv_link_url'] = 'nullable|string|max:1000';
         }
 
         $validated = $request->validate($rules);
@@ -75,16 +75,19 @@ class AdvertController extends Controller
         $save = [
             'cat_id' => $validated['cat_id'],
             'display_order' => $request->display_order ?? 0,
-            'is_visible' => $request->is_visible ?? true,
-            'adv_link_url' => $validated['adv_link_url']
+            'is_visible' => $request->is_visible ?? true
         ];
+
+        if (!empty($validated['adv_link_url'])) {
+            $save['adv_link_url'] = $validated['adv_link_url'];
+        }
 
         $manager = new ImageManager(new Driver());
         $saveDir = storage_path('app/public/adv');
         if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
 
         // 處理 adv_img_url，並依 cat_params 限制尺寸
-        if (isset($validated['adv_img_url'])) {
+        if (isset($validated['adv_img_url']) && $request->hasFile('adv_img_url')) {
             $file = $request->file('adv_img_url');
             $img = $manager->read($file);
 
@@ -101,7 +104,7 @@ class AdvertController extends Controller
         }
 
         // 處理 adv_img_m_url 類似
-        if (isset($validated['adv_img_m_url'])) {
+        if (isset($validated['adv_img_m_url']) && $request->hasFile('adv_img_m_url')) {
             $file = $request->file('adv_img_m_url');
             $img = $manager->read($file);
 
