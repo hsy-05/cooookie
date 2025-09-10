@@ -1,7 +1,7 @@
 {{-- resources/views/admin/advert/form.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', PAGE_TITLE)
+@section('title', $pageTitle)
 
 @include('components.page_content_header')
 

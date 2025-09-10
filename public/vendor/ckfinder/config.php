@@ -11,7 +11,7 @@
 // 路徑設定（更彈性與清楚的方式）
 // -----------------------------
 
-// 1. CKFinder 實體所在的目錄，例如：C:/web/laravel-adminlte/public/vendor/ckfinder/
+// 1. CKFinder 實體所在的目錄，例如：C:/web/cooookie/public/vendor/ckfinder/
 $CKFINDER_PATH = str_replace('\\', '/', realpath(__DIR__));
 
 // 2. Laravel public 路徑（往上找到 public）
@@ -27,7 +27,7 @@ $UPLOAD_RELATIVE_PATH = 'storage/editor';
 $UPLOAD_ABSOLUTE_PATH = $PUBLIC_PATH . '/' . $UPLOAD_RELATIVE_PATH;
 
 // 6. 圖片網址對應（這是網站上圖片顯示的 URL）
-$BASE_URL = 'http://localhost:82/laravel-adminlte/public/' . $UPLOAD_RELATIVE_PATH . '/';
+$BASE_URL = 'http://localhost:82/cooookie/public/' . $UPLOAD_RELATIVE_PATH . '/';
 
 /*============================ PHP Error Reporting ====================================*/
 // https://ckeditor.com/docs/ckfinder/ckfinder3-php/debugging.html

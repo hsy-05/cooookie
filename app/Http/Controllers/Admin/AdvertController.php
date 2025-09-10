@@ -11,11 +11,12 @@ use App\Models\Language;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Helpers\ContentHelper;
+use App\Http\Controllers\Admin\BaseAdminController;
 
-define('PAGE_TITLE', '廣告');
-
-class AdvertController extends Controller
+class AdvertController extends BaseAdminController
 {
+    protected $pageTitle = '廣告';
+
     // 列表
     public function index(Request $request)
     {
@@ -27,7 +28,7 @@ class AdvertController extends Controller
             ->orderBy('adv_id', 'desc')
             ->paginate($perPage); // 套用每頁筆數
         // dd($adverts);
-        return view('admin.advert.index', compact('adverts'));
+        return $this->view('admin.advert.index', compact('adverts'));
     }
 
     // 顯示新增表單
@@ -38,7 +39,7 @@ class AdvertController extends Controller
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
 
         // 傳給 view：categories 是 collection，可直接 json_encode 使用
-        return view('admin.advert.form', [
+        return $this->view('admin.advert.form', [
             'advert' => new Advert(),
             'cats' => $categories,
             'langs' => $langs,
@@ -162,7 +163,7 @@ class AdvertController extends Controller
         foreach ($advert->descs as $desc) {
             $descMap[$desc->lang_id] = $desc;
         }
-        return view('admin.advert.form', compact('advert', 'isEdit', 'cats', 'langs', 'descMap'));
+        return $this->view('admin.advert.form', compact('advert', 'isEdit', 'cats', 'langs', 'descMap'));
     }
 
     // 更新

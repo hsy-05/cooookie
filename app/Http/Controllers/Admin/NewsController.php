@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\News;
-use App\Models\NewsDesc;
-use App\Models\NewsCategory;
-use App\Models\Language;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-use App\Helpers\ContentHelper;
+    use App\Http\Controllers\Controller;
+    use Illuminate\Http\Request;
+    use App\Models\News;
+    use App\Models\NewsDesc;
+    use App\Models\NewsCategory;
+    use App\Models\Language;
+    use Intervention\Image\ImageManager;
+    use Intervention\Image\Drivers\Gd\Driver;
+    use App\Helpers\ContentHelper;
+    use App\Http\Controllers\Admin\BaseAdminController;
 
-define('PAGE_TITLE', '最新消息');
+    class NewsController extends BaseAdminController
+    {
+        protected $pageTitle = '最新消息';
 
-class NewsController extends Controller
-{
     // 列表：載入 news 主表與所有 desc（可在 view 選語系顯示）
     public function index(Request $request)
     {
@@ -29,7 +30,7 @@ class NewsController extends Controller
 
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
 
-        return view('admin.news.index', compact('newsList', 'langs'));
+        return $this->view('admin.news.index', compact('newsList', 'langs'));
     }
 
     // 新增表單：需要分類與語系清單
@@ -37,7 +38,7 @@ class NewsController extends Controller
     {
         $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-        return view('admin.news.form', compact('cats', 'langs'));
+        return $this->view('admin.news.form', compact('cats', 'langs'));
     }
 
     // 儲存
@@ -103,7 +104,7 @@ class NewsController extends Controller
     /* public function show(News $news)
     {
         $news->load('descs', 'category.descs');
-        return view('admin.news.show', compact('news'));
+        return $this->view('admin.news.show', compact('news'));
     } */
 
     // 編輯表單
@@ -120,7 +121,7 @@ class NewsController extends Controller
             $desc->content = ContentHelper::decodeSiteUrl($desc->content);
             $descMap[$desc->lang_id] = $desc;
         }
-        return view('admin.news.form', compact('news', 'isEdit', 'cats', 'langs', 'descMap'));
+        return $this->view('admin.news.form', compact('news', 'isEdit', 'cats', 'langs', 'descMap'));
     }
 
     // 更新

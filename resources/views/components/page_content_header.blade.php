@@ -12,7 +12,7 @@
 @endphp
 
 @section('content_header')
-    <h1>{{ PAGE_TITLE }}
+    <h1>{{ $pageTitle }}
         <small class="hidden-480">
             <i class="ace-icon fa fa-angle-double-right"></i>
             {{ $actionlbl }}
@@ -29,7 +29,7 @@
             <a href="{{ route('admin.news.index') }}">消息管理</a>
         </li>
         <li class="breadcrumb-item active">
-            {{ PAGE_TITLE }}
+            {{ $pageTitle }}
         </li>
     </ol>
 @stop
