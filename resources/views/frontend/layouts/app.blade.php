@@ -6,30 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@yield('title', 'COOOOKIE') - 公司名稱</title>
 
-    {{-- 網站小圖示 --}}
-    <link href="{{ asset('favicons/favicon.ico') }}" rel="icon" />
-    {{-- Bootstrap & 前台樣式 --}}
+    {{-- 網站 icon --}}
+    <link rel="icon" href="{{ asset('favicons/favicon.ico') }}" />
+
+    {{-- Bootstrap --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+
+    {{-- Swiper --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+    {{-- Animate on Scroll --}}
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+
+    {{-- 自訂樣式 --}}
     <link rel="stylesheet" href="{{ asset('css/frontend.css') }}" />
 </head>
 
 <body>
-    {{-- Header --}}
+    {{-- 頁首：LOGO + 導覽列 --}}
     <header class="site-header">
-        <div class="header-inner">
-            {{-- Logo --}}
+        <div class="header-inner container">
             <a href="{{ url('/') }}" class="logo" aria-label="回首頁">
                 <img src="{{ asset('images/logo.png') }}" alt="COOOOKIE Logo" />
             </a>
 
-            {{-- 漢堡選單 --}}
             <div class="hamburger" id="hamburger" aria-label="開啟選單" aria-expanded="false" role="button" tabindex="0">
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
             </div>
 
-            {{-- 主選單 --}}
             <nav class="site-nav" id="site-nav" role="navigation" aria-label="主選單">
                 <a href="{{ route('news.index') }}" class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
                 <a href="{{ url('/about') }}" class="nav-link">關於我們</a>
@@ -39,26 +45,36 @@
         </div>
     </header>
 
-    {{-- 主內容 --}}
-    <main class="main-content">
-        {{-- Banner 區塊 --}}
-        @include('frontend.components.banner')
-
-        {{-- 其他內容 --}}
+    {{-- 主內容區域 --}}
+    <main class="main-content" data-aos="fade-up" data-aos-duration="800">
         @yield('content')
     </main>
 
-    {{-- Footer --}}
+    {{-- 頁尾 --}}
     <footer class="site-footer">
         <div class="container text-center small">
-            © {{ date('Y') }} COOOOKIE - All rights reserved.
+            <p class="mb-1">© {{ date('Y') }} COOOOKIE - All rights reserved.</p>
+            <p class="footer-links">
+                <a href="{{ url('/privacy') }}">隱私政策</a> |
+                <a href="{{ url('/terms') }}">使用條款</a>
+            </p>
         </div>
     </footer>
 
-    {{-- JS --}}
+    {{-- JS：基本依賴 --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    {{-- Swiper --}}
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    {{-- AOS 動畫庫 --}}
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init(); // 初始化 Animate on Scroll
+    </script>
+
+    {{-- 導覽與漢堡選單邏輯 --}}
     <script>
         $(function () {
             const header = $('.site-header');
@@ -66,21 +82,17 @@
             const hamburger = $('#hamburger');
             const headerHeight = header.outerHeight();
 
-            // 捲動時 header 背景改變
+            // 捲動時變背景
             $(window).on('scroll', function () {
-                if ($(this).scrollTop() > headerHeight) {
-                    header.addClass('scrolled');
-                } else {
-                    header.removeClass('scrolled');
-                }
+                header.toggleClass('scrolled', $(this).scrollTop() > headerHeight);
             });
 
-            // 手機漢堡選單開關
             function toggleMenu() {
                 hamburger.toggleClass('active');
                 nav.toggleClass('open');
                 hamburger.attr('aria-expanded', hamburger.hasClass('active'));
             }
+
             hamburger.on('click keypress', function (e) {
                 if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -88,7 +100,6 @@
                 }
             });
 
-            // 點擊選單關閉
             nav.find('.nav-link').on('click', function () {
                 if (hamburger.hasClass('active')) toggleMenu();
             });
@@ -97,4 +108,5 @@
 
     @stack('scripts')
 </body>
+
 </html>

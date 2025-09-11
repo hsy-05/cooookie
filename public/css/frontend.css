@@ -1,101 +1,362 @@
+/* =================== 字體引入 =================== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/adobe-fonts/source-han-serif@4.004/SubsetOTC/Serif/woff2/SourceHanSerifTC-Regular.woff2');
+
+/* =================== 基本變數設定 =================== */
 :root {
-    --main-brown: #5A2918;
-    --main-gold: #D19856;
-    --main-cream: #EDD7B3;
-    --main-light: #D59C60;
-    --header-height: 80px;
-    --transition-time: 0.3s;
+  --main-brown: #592A18;
+  --main-gold: #D9C35F;
+  --main-cream: #F8E9C0;
+  --main-light: #B4845C;
+  --header-height: 80px;
+  --transition-time: 0.3s;
+  --font-title: 'Source Han Serif TC', 'Playfair Display', serif;
+  --font-body: 'Source Han Serif TC', 'Playfair Display', serif;
 }
 
-/* Reset */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* =================== 全站 Reset =================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-    font-family: "Noto Sans TC", Arial, sans-serif;
-    background: #fdfcf9;
-    color: var(--main-brown);
-    padding-top: var(--header-height);
-    line-height: 1.6;
+  font-family: var(--font-body);
+  background: #fdfcf9;
+  color: var(--main-brown);
+  line-height: 1.6;
+  padding-top: var(--header-height);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Header */
+/* =================== Header =================== */
 .site-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: var(--header-height);
-    background: rgba(90, 41, 24, 0.9);
-    display: flex; align-items: center;
-    transition: background var(--transition-time);
-    z-index: 1000;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: rgba(89, 42, 24, 0.95);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  transition: background var(--transition-time);
+  font-family: var(--font-title);
+  font-weight: 700;
 }
-.site-header.scrolled { background: var(--main-cream); }
+
+.site-header.scrolled {
+  background: var(--main-cream);
+}
 
 .header-inner {
-    max-width: 1200px; margin: 0 auto; width: 100%;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.logo img { height: 50px; }
 
-/* Nav */
-.site-nav { display: flex; align-items: center; }
-.nav-link {
-    color: var(--main-cream);
-    margin-left: 20px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color var(--transition-time), border-color var(--transition-time);
-    border-bottom: 2px solid transparent;
-    padding: 4px 0;
+.logo img {
+  height: 50px;
 }
+
+/* =================== 主選單 =================== */
+.site-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--main-cream);
+  margin-left: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 0;
+  transition: color var(--transition-time), border-color var(--transition-time);
+  font-family: var(--font-title);
+}
+
 .nav-link:hover,
 .nav-link.active {
-    color: var(--main-gold);
-    border-bottom-color: var(--main-gold);
+  color: var(--main-gold);
+  border-bottom-color: var(--main-gold);
 }
-.site-header.scrolled .nav-link { color: var(--main-brown); }
 
-/* Hamburger (Mobile) */
-.hamburger { display: none; flex-direction: column; cursor: pointer; }
+.site-header.scrolled .nav-link {
+  color: var(--main-brown);
+}
+
+/* =================== 漢堡選單 (手機) =================== */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
 .hamburger-line {
-    width: 28px; height: 3px; background: var(--main-cream);
-    margin: 4px 0; transition: 0.3s;
+  width: 28px;
+  height: 3px;
+  background: var(--main-cream);
+  margin: 4px 0;
+  transition: 0.3s;
 }
-.hamburger.active .hamburger-line:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-.hamburger.active .hamburger-line:nth-child(2) { opacity: 0; }
-.hamburger.active .hamburger-line:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-/* Mobile Menu */
+.hamburger.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
 @media (max-width: 768px) {
-    .hamburger { display: flex; }
-    .site-nav {
-        position: fixed; top: var(--header-height); right: 0;
-        width: 240px; height: 100vh;
-        background: var(--main-brown);
-        flex-direction: column; padding: 20px;
-        transform: translateX(100%);
-        transition: transform 0.3s;
-    }
-    .site-nav.open { transform: translateX(0); }
-    .nav-link { color: var(--main-cream); margin: 10px 0; font-size: 1.2rem; }
-}
-
-/* Banner */
-#siteCarousel { width: 100vw; overflow: hidden; }
-.banner-img {
-    width: 100%; height: auto;
-    object-fit: cover; display: block;
-}
-.carousel-indicators li {
-    background: var(--main-cream);
-    border-radius: 50%; width: 12px; height: 12px;
-}
-.carousel-indicators .active { background: var(--main-gold); }
-
-/* Footer */
-.site-footer {
+  .hamburger {
+    display: flex;
+  }
+  .site-nav {
+    position: fixed;
+    top: var(--header-height);
+    right: 0;
+    width: 240px;
+    height: 100vh;
     background: var(--main-brown);
+    flex-direction: column;
+    padding: 20px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    font-family: var(--font-title);
+  }
+  .site-nav.open {
+    transform: translateX(0);
+  }
+  .nav-link {
     color: var(--main-cream);
-    padding: 20px 0;
-    font-size: 14px;
+    margin: 10px 0;
+    font-size: 1.2rem;
+  }
+}
+
+/* =================== Banner 區塊 =================== */
+.banner-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.banner-picture {
+  display: block;
+  height: 100vh;
+  width: 100%;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(89, 42, 24, 0.7));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.banner-inner {
+  text-align: center;
+  color: #fff;
+  max-width: 800px;
+  font-family: var(--font-title);
+}
+
+.banner-title {
+  font-size: 3rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.banner-sub {
+  font-size: 1.2rem;
+  margin-top: 10px;
+  font-weight: 400;
+}
+
+.banner-cta .btn-cta {
+  background: var(--main-gold);
+  color: #000;
+  padding: 10px 28px;
+  border-radius: 30px;
+  font-weight: bold;
+  margin-top: 20px;
+  transition: background 0.3s;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.banner-cta .btn-cta:hover {
+  background: var(--main-cream);
+}
+
+/* Swiper arrows & pagination */
+.swiper-button-prev,
+.swiper-button-next {
+  color: var(--main-cream);
+  font-size: 24px;
+}
+
+.swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.5;
+}
+.swiper-pagination-bullet-active {
+  background: var(--main-gold);
+  opacity: 1;
+}
+
+/* =================== 消息列表區塊 =================== */
+.news-list-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: var(--font-body);
+}
+
+.media-body h5 a {
+  color: var(--main-brown);
+  text-decoration: none;
+  font-family: var(--font-title);
+}
+.media-body h5 a:hover {
+  color: var(--main-light);
+  text-decoration: underline;
+}
+
+/* =================== Footer =================== */
+.site-footer {
+  background: var(--main-brown);
+  color: var(--main-cream);
+  padding: 20px 0;
+  font-size: 14px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+/* =================== 通用元素 =================== */
+.truncate-text {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news-thumb {
+  width: 200px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 0.25rem;
+}
+
+/* =================== AOS 動畫支援 =================== */
+[data-aos] {
+  transition-property: transform, opacity;
+  transition-duration: 1s;
+}
+
+/* ========== 餅乾特色區塊 ========== */
+.cookie-features-section {
+  background-color: #fefaf3;
+  padding: 80px 20px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--main-brown);
+  margin-bottom: 10px;
+  font-family: var(--font-title);
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: var(--main-light);
+  margin-bottom: 50px;
+  font-family: var(--font-body);
+}
+
+.feature-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.feature-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 30px 20px;
+  transition: transform 0.3s ease;
+  text-align: center;
+  height: 100%;
+  font-family: var(--font-body);
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+.feature-title {
+  font-size: 1.5rem;
+  color: var(--main-brown);
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-family: var(--font-title);
+}
+
+.feature-text {
+  font-size: 1rem;
+  color: #5f4339;
+  line-height: 1.5;
+  font-family: var(--font-body);
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+  .feature-card {
+    margin-bottom: 30px;
+  }
+  .section-title {
+    font-size: 2rem;
+  }
+  .feature-icon {
+    width: 64px;
+    height: 64px;
+  }
 }
