@@ -2,10 +2,10 @@
 
 @section('title', $pageTitle)
 
-@include('components.page_content_header')
+@include('components.frontend.page_content_header')
 
 @section('content')
-    <x-page-message>
+    <x-frontend.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
         <form action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
@@ -156,7 +156,7 @@
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>
         </form>
-    </x-page-message>
+    </x-frontend.page-message>
 
     <!-- 圖片預覽彈出視窗 -->
     @if (isset($isEdit))

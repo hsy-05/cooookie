@@ -1,93 +1,101 @@
 :root {
-    /* 定義一些常用的 CSS 變數 */
-    --h-header: 80px; /* 設定頁首高度為 80px */
-    --transition: 0.3s; /* 設定過渡效果時間為 0.3 秒 */
-    --nav-color: #fff; /* 預設導航欄文字顏色為白色 */
-    --nav-hover: #ffc107; /* 當選單項目 hover 時的顏色為橙色 */
-    --nav-active: #ffc107; /* 當前選單項目的顏色 */
-    --nav-color-scrolled: #333; /* 滾動後導航欄文字顏色變為深灰色 */
+    --main-brown: #5A2918;
+    --main-gold: #D19856;
+    --main-cream: #EDD7B3;
+    --main-light: #D59C60;
+    --header-height: 80px;
+    --transition-time: 0.3s;
 }
 
-/* 設定全頁樣式 */
+/* Reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    margin: 0; /* 清除頁面邊距 */
-    font-family: "Noto Sans TC", "Helvetica Neue", Arial, sans-serif; /* 設定字體 */
-    color: #333; /* 設定文字顏色為深灰 */
+    font-family: "Noto Sans TC", Arial, sans-serif;
+    background: #fdfcf9;
+    color: var(--main-brown);
+    padding-top: var(--header-height);
+    line-height: 1.6;
 }
 
-/* Header 設定，初始為透明背景 */
+/* Header */
 .site-header {
-    position: absolute; /* 頁首使用絕對定位 */
-    top: 0;
-    left: 0;
-    width: 100%; /* 頁首寬度占滿整個視窗 */
-    height: var(--h-header); /* 使用變數來設定頁首高度 */
-    background: transparent; /* 初始背景為透明 */
-    z-index: 999; /* 確保頁首位於最上層 */
-    transition: all var(--transition); /* 所有變化使用 0.3 秒過渡效果 */
-    border-bottom: 1px solid transparent; /* 頁首底部添加透明邊框 */
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-height);
+    background: rgba(90, 41, 24, 0.9);
+    display: flex; align-items: center;
+    transition: background var(--transition-time);
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.site-header.scrolled { background: var(--main-cream); }
+
+.header-inner {
+    max-width: 1200px; margin: 0 auto; width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px;
+}
+.logo img { height: 50px; }
+
+/* Nav */
+.site-nav { display: flex; align-items: center; }
+.nav-link {
+    color: var(--main-cream);
+    margin-left: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition-time), border-color var(--transition-time);
+    border-bottom: 2px solid transparent;
+    padding: 4px 0;
+}
+.nav-link:hover,
+.nav-link.active {
+    color: var(--main-gold);
+    border-bottom-color: var(--main-gold);
+}
+.site-header.scrolled .nav-link { color: var(--main-brown); }
+
+/* Hamburger (Mobile) */
+.hamburger { display: none; flex-direction: column; cursor: pointer; }
+.hamburger-line {
+    width: 28px; height: 3px; background: var(--main-cream);
+    margin: 4px 0; transition: 0.3s;
+}
+.hamburger.active .hamburger-line:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.active .hamburger-line:nth-child(2) { opacity: 0; }
+.hamburger.active .hamburger-line:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* Mobile Menu */
+@media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .site-nav {
+        position: fixed; top: var(--header-height); right: 0;
+        width: 240px; height: 100vh;
+        background: var(--main-brown);
+        flex-direction: column; padding: 20px;
+        transform: translateX(100%);
+        transition: transform 0.3s;
+    }
+    .site-nav.open { transform: translateX(0); }
+    .nav-link { color: var(--main-cream); margin: 10px 0; font-size: 1.2rem; }
 }
 
-/* 滾動後頁首變為固定並且背景為白色 */
-.site-header.scrolled {
-    position: fixed; /* 頁首固定在頁面上方 */
-    background: #fff; /* 背景顏色變為白色 */
-    border-bottom: 1px solid #ddd; /* 設定底部邊框為灰色 */
+/* Banner */
+#siteCarousel { width: 100vw; overflow: hidden; }
+.banner-img {
+    width: 100%; height: auto;
+    object-fit: cover; display: block;
 }
-
-/* banner 設定 */
-.banner-section {
-    background-image: url(../images/news_banner.png); /* 設定背景圖片 */
-    background-size: cover; /* 讓背景圖片覆蓋整個區塊 */
-    background-position: center; /* 背景圖片居中 */
-    height: 400px; /* 設定橫幅高度 */
-    position: relative; /* 為了能夠在下面加上半透明遮罩 */
+.carousel-indicators li {
+    background: var(--main-cream);
+    border-radius: 50%; width: 12px; height: 12px;
 }
+.carousel-indicators .active { background: var(--main-gold); }
 
-.banner-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.3); /* 半透明黑色遮罩 */
-    display: flex; /* 使用 flexbox */
-    justify-content: center; /* 水平方向居中 */
-    align-items: center; /* 垂直方向居中 */
-}
-
-.banner-text {
-    position: relative;
-    z-index: 1; /* 保證文字在遮罩層之上 */
-    color: #fff; /* 文字顏色設為白色 */
-    text-align: center; /* 文字居中對齊 */
-}
-
-.banner-text h2 {
-    font-size: 3rem; /* 標題字體大小 */
-    font-weight: bold; /* 使標題字體加粗 */
-}
-
-.banner-text p {
-    font-size: 1.2rem; /* 描述文字字體大小 */
-    font-weight: 300; /* 使描述文字顯得比較輕 */
-}
-
-/* 設定消息列表容器的最大寬度和左右邊距 */
-.news-list-container {
-    max-width: 1200px; /* 最大寬度 */
-    margin: 0 auto; /* 水平居中 */
-    padding-left: 20px; /* 左邊距 */
-    padding-right: 20px; /* 右邊距 */
-}
-
-/* 設定消息項目區塊的間距 */
-.media {
-    margin-bottom: 30px; /* 每條消息間距 */
-}
-
-/* 調整分頁的樣式 */
-.pagination {
-    margin-top: 30px; /* 分頁區塊上方間距 */
-    justify-content: center; /* 分頁項目居中 */
+/* Footer */
+.site-footer {
+    background: var(--main-brown);
+    color: var(--main-cream);
+    padding: 20px 0;
+    font-size: 14px;
 }
