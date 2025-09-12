@@ -360,3 +360,58 @@ body {
     height: 64px;
   }
 }
+
+/* ========== 餅乾特色區塊（新版） ========== */
+.cookie-featured {
+  background-color: #fefaf3;
+  padding: 80px 0;
+}
+
+.cookie-featured .feature-item {
+  margin-bottom: 80px;
+}
+
+.cookie-featured .feature-img img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.cookie-featured .feature-img img:hover {
+  transform: scale(1.05);
+}
+
+.cookie-featured .feature-text {
+  padding: 20px 40px;
+  text-align: center;
+}
+
+.cookie-featured .feature-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--main-brown);
+  margin-bottom: 15px;
+  font-family: var(--font-title);
+}
+
+.cookie-featured .feature-desc {
+  font-size: 1.1rem;
+  color: #5f4339;
+  line-height: 1.8;
+  font-family: var(--font-body);
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+  .cookie-featured .feature-text {
+    padding: 20px;
+  }
+  .cookie-featured .feature-title {
+    font-size: 1.6rem;
+  }
+  .cookie-featured .feature-desc {
+    font-size: 1rem;
+  }
+}
+

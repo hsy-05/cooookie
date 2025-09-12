@@ -188,9 +188,8 @@ class AdvertController extends BaseAdminController
             $rules['adv_img_m_url'] = $advert->adv_img_m_url ? 'nullable|image|mimes:jpg,jpeg,png|max:5120' : 'required|image|mimes:jpg,jpeg,png|max:5120';
         }
 
+        // 其他欄位視 scope 決定
         if (in_array('adv_link_url', $scope)) {
-            $rules['adv_link_url'] = 'required|string|max:1000';
-        } else {
             $rules['adv_link_url'] = 'nullable|string|max:1000';
         }
 

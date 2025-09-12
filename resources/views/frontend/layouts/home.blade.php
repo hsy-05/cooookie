@@ -27,52 +27,44 @@
         </div>
     </div>
 
-    {{-- 餅乾特色區塊 --}}
-    <section class="cookie-feature-section">
-        <div class="container text-center">
-            <h2 class="section-title" data-aos="fade-up">餅乾的特色</h2>
-            <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">
-                來自職人手作的堅持，每一口都值得細細品味。
-            </p>
+    {{-- 餅乾特色區塊（新版，左右圖文交錯） --}}
+    <section class="cookie-features-section">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <h2 class="section-title">餅乾特色</h2>
+                <p class="section-subtitle">每一塊餅乾，都是我們對品質與用心的堅持</p>
+            </div>
 
-            <div class="row feature-row justify-content-center">
-                {{-- Feature 1 --}}
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="{{ asset('images/feature_1.png') }}" alt="嚴選食材">
-                        </div>
-                        <h4 class="feature-title">嚴選食材</h4>
-                        <p class="feature-desc">
-                            每一樣原料皆由我們親自挑選，確保品質與風味的極致表現。
-                        </p>
-                    </div>
+            {{-- 特徵一：天然食材 --}}
+            <div class="row feature-block align-items-center mb-5" data-aos="fade-up">
+                <div class="col-md-6 feature-img">
+                    <img src="{{ asset('images/feature1.jpg') }}" alt="天然食材" class="img-fluid rounded shadow" />
                 </div>
-
-                {{-- Feature 2 --}}
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="{{ asset('images/feature_2.png') }}" alt="手工烘焙">
-                        </div>
-                        <h4 class="feature-title">手工烘焙</h4>
-                        <p class="feature-desc">
-                            堅持小批量手工製作，烘焙出香氣四溢、酥脆綿密的口感。
-                        </p>
-                    </div>
+                <div class="col-md-6 feature-text pl-md-5">
+                    <h3 class="feature-title">天然食材</h3>
+                    <p class="feature-desc">嚴選頂級小麥與新鮮奶油，堅持不用人工添加物，讓每一口都是純粹天然的好味道。</p>
                 </div>
+            </div>
 
-                {{-- Feature 3 --}}
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="{{ asset('images/feature_3.png') }}" alt="送禮首選">
-                        </div>
-                        <h4 class="feature-title">送禮首選</h4>
-                        <p class="feature-desc">
-                            高質感的包裝與口感，讓每一份餅乾都是最溫暖的心意。
-                        </p>
-                    </div>
+            {{-- 特徵二：手工製作（圖片反轉） --}}
+            <div class="row feature-block align-items-center mb-5 flex-md-row-reverse" data-aos="fade-up">
+                <div class="col-md-6 feature-img">
+                    <img src="{{ asset('images/feature2.jpg') }}" alt="手工製作" class="img-fluid rounded shadow" />
+                </div>
+                <div class="col-md-6 feature-text pr-md-5">
+                    <h3 class="feature-title">手工製作</h3>
+                    <p class="feature-desc">傳承老師傅的工法與細膩手藝，讓餅乾不只是零食，而是帶著溫度與靈魂的作品。</p>
+                </div>
+            </div>
+
+            {{-- 特徵三：多樣口味 --}}
+            <div class="row feature-block align-items-center mb-5" data-aos="fade-up">
+                <div class="col-md-6 feature-img">
+                    <img src="{{ asset('images/feature3.jpg') }}" alt="多樣口味" class="img-fluid rounded shadow" />
+                </div>
+                <div class="col-md-6 feature-text pl-md-5">
+                    <h3 class="feature-title">多樣口味</h3>
+                    <p class="feature-desc">經典奶油、抹茶、可可與限定創新口味，滿足每一種味蕾的期待。</p>
                 </div>
             </div>
         </div>
@@ -84,7 +76,7 @@
     <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
     <script>
         AOS.init({
-            duration: 800,
+            duration: 1000,
             easing: 'ease-out-cubic',
             once: true,
         });
