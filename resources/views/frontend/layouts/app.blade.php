@@ -25,25 +25,27 @@
 <body>
     {{-- 頁首：LOGO + 導覽列 --}}
     <header class="site-header">
-        <div class="header-inner container">
-            <a href="{{ url('/') }}" class="logo" aria-label="回首頁">
-                <img src="{{ asset('images/logo.png') }}" alt="COOOOKIE Logo" />
-            </a>
-
-            <div class="hamburger" id="hamburger" aria-label="開啟選單" aria-expanded="false" role="button" tabindex="0">
+        <div class="header-inner">
+            <div class="logo">
+                <a href="{{ url('/') }}">
+                    <img src="{{ asset('images/logo.png') }}" alt="COOOOKIE Logo" />
+                </a>
+            </div>
+            <nav class="site-nav" id="site-nav"> {{-- 新增 id="site-nav" 以便 JS 抓取 --}}
+                <a href="{{ route('news.index') }}"
+                    class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
+                <a href="{{ url('/products') }}" class="nav-link">產品</a>
+                <a href="{{ url('/about') }}" class="nav-link">關於我們</a>
+                <a href="{{ url('/contact') }}" class="nav-link">聯絡我們</a>
+            </nav>
+            <div class="hamburger" id="hamburger">
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
             </div>
-
-            <nav class="site-nav" id="site-nav" role="navigation" aria-label="主選單">
-                <a href="{{ route('news.index') }}" class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
-                <a href="{{ url('/about') }}" class="nav-link">關於我們</a>
-                <a href="{{ url('/products') }}" class="nav-link">產品</a>
-                <a href="{{ url('/contact') }}" class="nav-link">聯絡我們</a>
-            </nav>
         </div>
     </header>
+
 
     {{-- 主內容區域 --}}
     <main class="main-content" data-aos="fade-up" data-aos-duration="800">
@@ -76,36 +78,20 @@
 
     {{-- 導覽與漢堡選單邏輯 --}}
     <script>
-        $(function () {
-            const header = $('.site-header');
-            const nav = $('#site-nav');
-            const hamburger = $('#hamburger');
-            const headerHeight = header.outerHeight();
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger');
+            const nav = document.querySelector('.site-nav');
 
-            // 捲動時變背景
-            $(window).on('scroll', function () {
-                header.toggleClass('scrolled', $(this).scrollTop() > headerHeight);
-            });
-
-            function toggleMenu() {
-                hamburger.toggleClass('active');
-                nav.toggleClass('open');
-                hamburger.attr('aria-expanded', hamburger.hasClass('active'));
+            if (hamburger && nav) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    nav.classList.toggle('open');
+                });
             }
-
-            hamburger.on('click keypress', function (e) {
-                if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleMenu();
-                }
-            });
-
-            nav.find('.nav-link').on('click', function () {
-                if (hamburger.hasClass('active')) toggleMenu();
-            });
         });
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.1.1/gsap.min.js"></script>
     @stack('scripts')
 </body>
 
