@@ -1,11 +1,19 @@
 /* =================== 字體引入 =================== */
+<<<<<<< HEAD
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap");
 @import url("https://cdn.jsdelivr.net/gh/adobe-fonts/source-han-serif@4.004/SubsetOTC/Serif/woff2/SourceHanSerifTC-Regular.woff2");
 /* 新增裝飾性襯線字體，提升標題質感 */
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&display=swap");
+=======
+/* 引入 Playfair Display 與 思源宋體（透過 Google Fonts 與 CDN） */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/adobe-fonts/source-han-serif@4.004/SubsetOTC/Serif/woff2/SourceHanSerifTC-Regular.woff2');
+>>>>>>> 436802640eb8903b21e45439ca1e4fc114810ff6
 
 /* =================== 基本變數設定 =================== */
+/* 透過 CSS 變數定義網站主題色系、字體與動畫參數 */
 :root {
+<<<<<<< HEAD
     --main-brown: #582a19; /* 主要深棕色，品牌主色 */
     --main-gold: #d4c097; /* 柔和金色，輔助色 */
     --main-cream: #f8e9c0; /* 乳白色，背景及輔助色 */
@@ -16,17 +24,38 @@
     --font-title: "Cormorant Garamond", "Source Han Serif TC",
         "Playfair Display", serif; /* 標題字體 */
     --font-body: "Source Han Serif TC", "Playfair Display", serif; /* 內文字體 */
+=======
+    --main-brown: #592A18;
+    /* 主色：深棕色 */
+    --main-gold: #D9C35F;
+    /* 輔助點綴：金色 */
+    --main-cream: #F8E9C0;
+    /* 背景色：奶油色 */
+    --main-light: #B4845C;
+    /* 次要輔助色：淺棕 */
+    --header-height: 80px;
+    /* Header 固定高度（用於 padding-top 等） */
+    --transition-time: 0.3s;
+    /* 元素過渡動畫時間 */
+    --font-title: 'Source Han Serif TC', 'Playfair Display', serif;
+    /* 標題字型堆疊 */
+    --font-body: 'Source Han Serif TC', 'Playfair Display', serif;
+    /* 內文字型堆疊 */
+>>>>>>> 436802640eb8903b21e45439ca1e4fc114810ff6
 }
 
-/* =================== 全站 Reset =================== */
+/* =================== Reset 與基礎樣式 =================== */
+/* 全站重置預設邊距與填充，統一 box-sizing 為 border-box（方便計算寬高） */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* 頁面主體樣式設定 */
 body {
     font-family: var(--font-body);
+<<<<<<< HEAD
     background: #fdfcf9;
     color: var(--main-brown);
     line-height: 1.6;
@@ -688,6 +717,396 @@ body {
 }
 
 /* =================== Footer =================== */
+=======
+    /* 全站預設字體 */
+    background: #fdfcf9;
+    /* 全站背景色 */
+    color: var(--main-brown);
+    /* 主要文字顏色 */
+    line-height: 1.6;
+    /* 行高，提升可讀性 */
+    overflow-x: hidden;
+    /* 隱藏橫向滾動條（防止溢出） */
+    -webkit-font-smoothing: antialiased;
+    /* 提升文字平滑度（WebKit） */
+    -moz-osx-font-smoothing: grayscale;
+    /* 提升文字平滑度（Firefox on macOS） */
+}
+
+/* =================== Banner 區塊樣式 =================== */
+/* =================== Swiper Banner 區塊樣式 =================== */
+.banner-swiper-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    /* 滿螢幕高度 */
+    overflow: hidden;
+}
+
+.banner-swiper .swiper-wrapper,
+.banner-swiper .swiper-slide {
+    width: 100%;
+    height: 100%;
+}
+
+.banner-slide-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* 圖片填滿容器且保持比例 */
+    object-position: center;
+    /* 圖片置中對齊 */
+    display: block;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* 遮罩提升文字對比度，可依需要調整顏色與透明度 */
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(89, 42, 24, 0.7));
+    z-index: 1;
+}
+
+.banner-slide-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    /* 白字在遮罩上比較清楚 */
+    padding: 0 20px;
+    /* 手機邊緣避免太貼邊 */
+}
+
+.banner-slide-text h2 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 0;
+    /* 可加入字距、陰影等效果 */
+}
+
+.banner-slide-text p {
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+/* Swiper 箭頭樣式 */
+.banner-swiper-button-prev,
+.banner-swiper-button-next {
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+/* 滑鼠 hover 增強效果 */
+.banner-swiper-button-prev:hover,
+.banner-swiper-button-next:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* 分頁點樣式 */
+.banner-swiper-pagination {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+/* =================== 客製化 Swiper 按鈕樣式 =================== */
+/* =================== COOOOKIE 自訂上下頁按鈕 =================== */
+.carousel-aw {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 20;
+    animation: fadeInUp 0.8s ease both;
+}
+
+.carousel-aw .swiper-button-prev,
+.carousel-aw .swiper-button-next {
+    width: 44px;
+    height: 44px;
+    background-color: #E6D497; /* 奶油色 */
+    border-radius: 50%;
+    border: 3px solid #C08E58; /* 焦糖邊框 */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1), inset 0 -3px 0 #C08E58;
+    cursor: pointer;
+    color: #582A19;
+    font-size: 28px;
+    line-height: 44px;
+    text-align: center;
+    user-select: none;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    font-family: 'Georgia', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 用 CSS content 放符號 */
+.carousel-aw .swiper-button-prev::after {
+    content: "‹";  /* 左箭頭 */
+}
+
+.carousel-aw .swiper-button-next::after {
+    content: "›";  /* 右箭頭 */
+}
+
+.carousel-aw .swiper-button-prev:hover,
+.carousel-aw .swiper-button-next:hover {
+    background-color: #D42D5A;
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2), inset 0 -3px 0 #a32544;
+}
+
+.carousel-aw .swiper-button-prev:active,
+.carousel-aw .swiper-button-next:active {
+    transform: scale(0.95);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+    .carousel-aw .swiper-button-prev,
+    .carousel-aw .swiper-button-next {
+        width: 56px;
+        height: 56px;
+        font-size: 36px;
+    }
+}
+
+
+/* =================== Header 樣式 =================== */
+/* 網站頂部導覽列樣式 */
+.site-header {
+    position: absolute;
+    /* 初始為透明浮動 */
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    /* 垂直置中項目 */
+    z-index: 1000;
+    /* 優先於 Banner 遮罩 */
+    transition: background var(--transition-time),
+        box-shadow var(--transition-time),
+        position var(--transition-time),
+        color var(--transition-time);
+    font-family: var(--font-title);
+    font-weight: 700;
+}
+
+/* Header 捲動後變固定，套用背景與陰影 */
+.site-header.scrolled {
+    position: fixed;
+    /* 捲動後固定 */
+    background: var(--main-cream);
+    /* 奶油色背景 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    /* 輕微陰影 */
+}
+
+/* Header 內部容器寬度與排版設定 */
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    /* 左右對齊 LOGO 與選單 */
+    align-items: center;
+}
+
+/* LOGO 圖片大小設定 */
+.logo img {
+    height: 60px;
+}
+
+/* =================== 主選單樣式（桌機） =================== */
+.site-nav {
+    display: flex;
+    align-items: center;
+}
+
+/* 選單連結樣式（桌面版） */
+.nav-link {
+    color: var(--main-cream);
+    /* 初始為奶油色 */
+    /* margin-left: 20px; */
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    padding: 0 max(20px, 2vw);
+    transition: color var(--transition-time), border-color var(--transition-time);
+    font-family: var(--font-title);
+}
+
+/* 滑過或目前頁面選單加強提示 */
+.nav-link:hover,
+.nav-link.active {
+    color: var(--main-gold);
+    border-bottom-color: var(--main-gold);
+}
+
+/* 捲動後選單文字變深棕 */
+.site-header.scrolled .nav-link {
+    color: var(--main-brown);
+}
+
+.site-header.scrolled .nav-link:hover,
+.site-header.scrolled .nav-link.active {
+    color: var(--main-light);
+    border-bottom-color: var(--main-light);
+}
+
+/* =================== 漢堡選單樣式（手機） =================== */
+.hamburger {
+    display: none;
+    /* 預設隱藏（桌機不顯示） */
+    flex-direction: column;
+    cursor: pointer;
+    z-index: 1100;
+    /* 高於側邊選單 */
+}
+
+/* 三條線的樣式 */
+.hamburger-line {
+    width: 28px;
+    height: 3px;
+    background: var(--main-cream);
+    margin: 4px 0;
+    transition: background var(--transition-time), transform 0.3s;
+}
+
+/* 滾動後變成深棕色 */
+.site-header.scrolled .hamburger-line {
+    background: var(--main-brown);
+}
+
+/* =================== 手機選單樣式 =================== */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex;
+    }
+
+    .site-nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 80%;
+        max-width: 280px;
+        height: 100vh;
+        background: rgba(89, 42, 24, 0.98);
+        /* 深棕透明背景 */
+        flex-direction: column;
+        padding: 80px 30px 30px;
+        transform: translateX(100%);
+        /* 初始隱藏（右邊推出） */
+        transition: transform 0.3s ease-in-out;
+        font-family: var(--font-title);
+        z-index: 1001;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        /* 模糊背景，增添層次感 */
+    }
+
+    .site-nav.open {
+        transform: translateX(0);
+        /* 展開選單 */
+    }
+
+    .nav-link {
+        color: var(--main-cream);
+        margin: 16px 0;
+        font-size: 1.2rem;
+        text-align: left;
+        width: 100%;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link:hover {
+        color: var(--main-gold);
+        border-color: var(--main-gold);
+    }
+}
+
+/* =================== 防止內容被 Header 擋住 =================== */
+/* 設定 padding-top 與 header 高度一致，避免被固定的 header 蓋住 */
+.main-content {
+    padding-top: var(--header-height);
+}
+
+/* =================== Banner 文字樣式 =================== */
+.banner-inner {
+    text-align: center;
+    color: #fff;
+    max-width: 800px;
+    font-family: var(--font-title);
+    position: relative;
+    z-index: 3;
+    /* 位於遮罩之上 */
+}
+
+.banner-title {
+    font-size: 3rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.banner-sub {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    font-weight: 400;
+}
+
+/* CTA 按鈕樣式 */
+.banner-cta .btn-cta {
+    background: var(--main-gold);
+    color: #000;
+    padding: 10px 28px;
+    border-radius: 30px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background 0.3s;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.banner-cta .btn-cta:hover {
+    background: var(--main-cream);
+}
+
+/* =================== 輪播圖 =================== */
+.carousel-inner .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* =================== Footer 樣式 =================== */
+>>>>>>> 436802640eb8903b21e45439ca1e4fc114810ff6
 .site-footer {
     background: var(--main-brown);
     color: var(--main-cream);
@@ -697,12 +1116,16 @@ body {
     font-family: var(--font-body);
 }
 
-/* =================== 通用元素 =================== */
+/* =================== 通用樣式 =================== */
 .truncate-text {
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+<<<<<<< HEAD
+=======
+    /* 超出顯示省略號 */
+>>>>>>> 436802640eb8903b21e45439ca1e4fc114810ff6
 }
 
 .news-thumb {
@@ -718,6 +1141,7 @@ body {
     transition-duration: 1s;
 }
 
+<<<<<<< HEAD
 /* =================== 餅乾特色區塊 =================== */
 .cookie-features-section {
     background-color: #fefaf3;
@@ -1160,3 +1584,90 @@ body {
             transform: translateY(20px);
   }
 }
+=======
+/* =================== 餅乾特色區塊（新版長條版） =================== */
+.cookie-featured {
+    background-color: #fefaf3;
+    padding: 80px 0;
+}
+
+.cookie-featured .feature-item {
+    margin-bottom: 80px;
+}
+
+.cookie-featured .feature-img img {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.cookie-featured .feature-img img:hover {
+    transform: scale(1.05);
+}
+
+.cookie-featured .feature-text {
+    padding: 20px 40px;
+    text-align: center;
+}
+
+.cookie-featured .feature-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--main-brown);
+    margin-bottom: 15px;
+    font-family: var(--font-title);
+}
+
+.cookie-featured .feature-desc {
+    font-size: 1.1rem;
+    color: #5f4339;
+    line-height: 1.8;
+    font-family: var(--font-body);
+}
+
+@media (max-width: 768px) {
+    .cookie-featured .feature-text {
+        padding: 20px;
+    }
+
+    .cookie-featured .feature-title {
+        font-size: 1.6rem;
+    }
+
+    .cookie-featured .feature-desc {
+        font-size: 1rem;
+    }
+}
+
+/* =================== 消息列表區塊 =================== */
+.news-list-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: var(--font-body);
+}
+
+.media-body h5 a {
+    color: var(--main-brown);
+    text-decoration: none;
+    font-family: var(--font-title);
+}
+
+.media-body h5 a:hover {
+    color: var(--main-light);
+    text-decoration: underline;
+}
+
+.banner-wrapper {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .banner-wrapper {
+        height: 250px;
+    }
+}
+>>>>>>> 436802640eb8903b21e45439ca1e4fc114810ff6
