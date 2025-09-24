@@ -2,35 +2,49 @@
 
 namespace App\Http\Controllers\Admin;
 
-    use App\Http\Controllers\Controller;
-    use Illuminate\Http\Request;
-    use App\Models\News;
-    use App\Models\NewsDesc;
-    use App\Models\NewsCategory;
-    use App\Models\Language;
-    use Intervention\Image\ImageManager;
-    use Intervention\Image\Drivers\Gd\Driver;
-    use App\Helpers\ContentHelper;
-    use App\Http\Controllers\Admin\BaseAdminController;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\News;
+use App\Models\NewsDesc;
+use App\Models\NewsCategory;
+use App\Models\Language;
+use App\Helpers\ContentHelper;
+use App\Helpers\ImageHelper;
+use App\Http\Controllers\Admin\BaseAdminController;
+use Illuminate\Support\Facades\Storage;
 
-    class NewsController extends BaseAdminController
-    {
-        protected $pageTitle = '最新消息';
+class NewsController extends BaseAdminController
+{
+    protected $pageTitle = '最新消息';
 
     // 列表：載入 news 主表與所有 desc（可在 view 選語系顯示）
     public function index(Request $request)
     {
         // 加入每頁筆數參數，預設 8
         $perPage = $request->input('per_page', 8);
+        // 獲取搜尋關鍵字
+        $search = $request->input('search');
+
         // 資料查詢與關聯載入
         $newsList = News::with(['descs', 'category'])
             ->orderBy('display_order', 'desc')
-            ->orderBy('news_id', 'desc')
-            ->paginate($perPage); // 套用每頁筆數
+            ->orderBy('news_id', 'desc');
+
+        // 如果有搜尋關鍵字，則加入篩選條件
+        if ($search) {
+            $newsList->whereHas('descs', function ($query) use ($search) {
+                // 搜尋 NewsDesc 表中的 title 欄位
+                $query->where('title', 'like', '%' . $search . '%');
+            });
+        }
+
+        // 套用每頁筆數和分頁
+        $newsList = $newsList->paginate($perPage);
 
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
 
-        return $this->view('admin.news.index', compact('newsList', 'langs'));
+        // 將搜尋關鍵字也傳遞給視圖，以便在搜尋框中保留
+        return $this->view('admin.news.index', compact('newsList', 'langs', 'search'));
     }
 
     // 新增表單：需要分類與語系清單
@@ -56,13 +70,24 @@ namespace App\Http\Controllers\Admin;
         $imagePath = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($file)->coverDown(600, 400, 'center');
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $saveDir = storage_path('app/public/news');
-            if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
-            $img->save($saveDir . '/' . $filename);
-            $imagePath = 'news/' . $filename;
+            $saveDir = 'news'; // 儲存子目錄
+
+            try {
+                // 1. 處理圖片 (裁切/縮圖)
+                $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
+
+                // 2. 生成唯一檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename;
+
+                // 3. 儲存處理後的圖片
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
+                $imagePath = $fullPath;
+
+            } catch (\Exception $e) {
+                // 圖片處理或儲存失敗，可以記錄日誌或返回錯誤訊息
+                return redirect()->back()->withInput()->with('error', '圖片處理或儲存失敗: ' . $e->getMessage());
+            }
         }
 
         // 建立 news 主表
@@ -100,17 +125,10 @@ namespace App\Http\Controllers\Admin;
         return redirect()->back();
     }
 
-    // 顯示單筆（含所有語系翻譯）
-    /* public function show(News $news)
-    {
-        $news->load('descs', 'category.descs');
-        return $this->view('admin.news.show', compact('news'));
-    } */
-
     // 編輯表單
     public function edit(News $news)
     {
-        $cats = NewsCategory::with('descs')->where('is_visible', 1)->get();
+        $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $news->load('descs');
         $isEdit = $news->exists;
@@ -137,19 +155,26 @@ namespace App\Http\Controllers\Admin;
         // 圖片處理（若有新圖，存新圖並刪舊圖）
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($file)->coverDown(600, 400, 'center');
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $saveDir = storage_path('app/public/news');
-            if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
-            $img->save($saveDir . '/' . $filename);
+            $saveDir = 'news'; // 儲存子目錄
 
-            // 刪除舊圖
-            if ($news->image && file_exists(storage_path('app/public/' . $news->image))) {
-                @unlink(storage_path('app/public/' . $news->image));
+            try {
+                // 1. 刪除舊圖
+                ImageHelper::deleteImage($news->image, 'public');
+
+                // 2. 處理圖片 (裁切/縮圖)
+                $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
+
+                // 3. 生成唯一檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename;
+
+                // 4. 儲存處理後的圖片
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
+                $news->image = $fullPath;
+
+            } catch (\Exception $e) {
+                return redirect()->back()->withInput()->with('error', '圖片處理或儲存失敗: ' . $e->getMessage());
             }
-
-            $news->image = 'news/' . $filename;
         }
 
         // 更新主表
@@ -203,12 +228,12 @@ namespace App\Http\Controllers\Admin;
         // 刪除翻譯
         NewsDesc::where('news_id', $news->news_id)->delete();
 
-        // 刪除圖片
-        if ($news->image && file_exists(storage_path('app/public/' . $news->image))) {
-            @unlink(storage_path('app/public/' . $news->image));
-        }
+        // 刪除圖片 (使用 ImageHelper)
+        ImageHelper::deleteImage($news->image, 'public');
 
         $news->delete();
-        return redirect()->route('admin.news.index')->with('success', '消息已刪除');
+
+        // 修改：重定向並帶上 'form_success' session 訊息，以便前端 SweetAlert2 捕獲
+        return redirect()->route('admin.news.index')->with('form_success', '消息已刪除');
     }
 }

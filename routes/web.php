@@ -66,4 +66,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         ->parameters(['advert' => 'advert']);
 
     Route::post('upload-image', [App\Http\Controllers\UploadController::class, 'uploadImage']);
+    // 通用 AJAX 路由，用於切換布林值狀態
+    Route::post('toggle-boolean', [App\Http\Controllers\Admin\BaseAdminController::class, 'toggleBoolean'])->name('toggle.boolean');
 });

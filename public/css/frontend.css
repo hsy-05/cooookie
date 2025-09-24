@@ -200,61 +200,6 @@ body {
     color: #fff;
     background: rgba(0, 0, 0, 0.2); /* 半透明黑色遮罩，提升文字可讀性 */
     z-index: 10;
-    /* 新增：疊加幾何圖形效果 */
-    /* 偽元素用於疊加幾何圖形 */
-    &::before,
-    &::after {
-        content: "";
-        position: absolute;
-        z-index: 1; /* 在背景圖之上，文字之下 */
-        pointer-events: none; /* 不阻擋點擊事件 */
-    }
-
-    /* 左上角半透明色塊 */
-    &::before {
-        top: 0;
-        left: 0;
-        width: 30%;
-        height: 30%;
-        background: linear-gradient(
-            45deg,
-            rgba(var(--main-gold-rgb), 0.3),
-            transparent
-        );
-        transform: translate(-20%, -20%) rotate(15deg); /* 稍微移出視圖並旋轉 */
-        animation: slideInRotate 10s ease-in-out infinite alternate;
-    }
-
-    /* 右下角半透明色塊 */
-    &::after {
-        bottom: 0;
-        right: 0;
-        width: 40%;
-        height: 40%;
-        background: linear-gradient(
-            135deg,
-            transparent,
-            rgba(var(--main-pink-rgb), 0.3)
-        );
-        transform: translate(20%, 20%) rotate(-10deg); /* 稍微移出視圖並旋轉 */
-        animation: slideInRotate 12s ease-in-out infinite alternate reverse;
-    }
-}
-
-/* 動畫定義 */
-@keyframes slideInRotate {
-    0% {
-        transform: translate(-20%, -20%) rotate(15deg);
-        opacity: 0.7;
-    }
-    50% {
-        transform: translate(0%, 0%) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-20%, -20%) rotate(15deg);
-        opacity: 0.7;
-    }
 }
 
 .banner-text-container {
@@ -283,43 +228,20 @@ body {
 }
 
 /* =================== Swiper 輪播按鈕與分頁器 =================== */
-
-/* 前後按鈕基礎樣式 */
-.swiper-button-prev,
-.swiper-button-next {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%; /* 圓形按鈕 */
-    background: rgba(88, 42, 25, 0.6); /* 深棕色半透明背景 */
-    color: var(--main-cream); /* 乳白色箭頭 */
+/* Swiper 分頁按鈕垂直排列（右側置中） */
+.banner-swiper .swiper-pagination {
+    position: absolute;
+    top: 60%;
+    left: 40px;
+    transform: translateY(-50%);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    transition: background 0.3s ease, transform 0.3s ease;
-    user-select: none;
-    cursor: pointer;
-    box-shadow: 0 0 8px rgba(88, 42, 25, 0.4);
-    z-index: 20; /* 確保按鈕在輪播內容上方 */
-}
-
-/* 按鈕箭頭字體大小與粗細 */
-.swiper-button-prev::after,
-.swiper-button-next::after {
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-/* 按鈕懸停效果 */
-.swiper-button-prev:hover,
-.swiper-button-next:hover {
-    background: var(--main-pink); /* 品牌粉紅色 */
-    box-shadow: 0 0 15px var(--main-pink);
-    transform: scale(1.15);
+    flex-direction: column; /* 垂直排列 */
+    gap:20px; /* 每個 bullet 間距 */
+    z-index: 10; /* 確保不被蓋住 */
 }
 
 /* 分頁器基礎樣式 */
-.swiper-pagination-bullet {
+.banner-swiper .swiper-pagination-bullet {
     width: 12px;
     height: 12px;
     background: transparent;
@@ -328,17 +250,18 @@ body {
     transition: background 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
     cursor: pointer;
     box-shadow: 0 0 6px rgba(248, 233, 192, 0.5);
+    margin: 0;
 }
 
 /* 分頁器懸停效果 */
-.swiper-pagination-bullet:hover {
+.banner-swiper .swiper-pagination-bullet:hover {
     background: var(--main-pink);
     opacity: 1;
     transform: scale(1.3);
 }
 
 /* 當前激活分頁器 */
-.swiper-pagination-bullet-active {
+.banner-swiper .swiper-pagination-bullet-active {
     background: var(--main-pink);
     opacity: 1;
     transform: scale(1.5);

@@ -3,10 +3,10 @@
 
 @section('title', $pageTitle)
 
-@include('components.frontend.page_content_header')
+@include('components.admin.page_content_header')
 
 @section('content')
-    <x-frontend.page-message>
+    <x-admin.page-message>
         <form id="advertForm"
             action="{{ isset($isEdit) && $isEdit ? route('admin.advert.update', $advert->adv_id) : route('admin.advert.store') }}"
             method="POST" enctype="multipart/form-data">
@@ -187,7 +187,7 @@
                     </button>
                 </div>
         </form>
-    </x-frontend.page-message>
+    </x-admin.page-message>
 
     <!-- 共用 圖片預覽 Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">

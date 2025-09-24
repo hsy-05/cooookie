@@ -2,10 +2,10 @@
 
 @section('title', $pageTitle)
 
-@include('components.frontend.page_content_header')
+@include('components.admin.page_content_header')
 
 @section('content')
-    <x-frontend.page-message>
+    <x-admin.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
         <form action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
@@ -156,7 +156,7 @@
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>
         </form>
-    </x-frontend.page-message>
+    </x-admin.page-message>
 
     <!-- 圖片預覽彈出視窗 -->
     @if (isset($isEdit))
@@ -192,12 +192,9 @@
     <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
 
     <script>
-        // AJAX 預設帶 CSRF Token
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+
+        const BASE_URL = "{{ url('/') }}";
+        console.log('BASE_URL defined:', BASE_URL);  // 調試：檢查控制台
 
         {{-- 強制送出前同步 Summernote 內容 --}}
         $('form').on('submit', function() {

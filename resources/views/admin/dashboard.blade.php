@@ -2,10 +2,10 @@
 
 @extends('adminlte::page')
 
-@section('title', '管理後台')
+@section('title', '管理中心')
 
 @section('content_header')
-    <h1>後台首頁</h1>
+    <h1>管理中心</h1>
 @endsection
 
 @section('content')

@@ -8,10 +8,12 @@ use App\Models\Advert;
 use App\Models\AdvertDesc;
 use App\Models\AdvertCategory;
 use App\Models\Language;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+// use Intervention\Image\ImageManager; // 不再直接使用 Intervention Image Manager
+// use Intervention\Image\Drivers\Gd\Driver; // 不再直接使用 Intervention Image Driver
 use App\Helpers\ContentHelper;
+use App\Helpers\ImageHelper; // 引入 ImageHelper 處理圖片相關操作
 use App\Http\Controllers\Admin\BaseAdminController;
+use Illuminate\Support\Facades\Storage; // 引入 Storage Facade 用於刪除操作 (雖然 ImageHelper 已封裝，但保留以防萬一或未來擴展)
 
 class AdvertController extends BaseAdminController
 {
@@ -27,7 +29,7 @@ class AdvertController extends BaseAdminController
             ->orderBy('display_order', 'desc')
             ->orderBy('adv_id', 'desc')
             ->paginate($perPage); // 套用每頁筆數
-        // dd($adverts);
+
         return $this->view('admin.advert.index', compact('adverts'));
     }
 
@@ -83,43 +85,61 @@ class AdvertController extends BaseAdminController
             $save['adv_link_url'] = $validated['adv_link_url'];
         }
 
-        $manager = new ImageManager(new Driver());
-        $saveDir = storage_path('app/public/adv');
-        if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
+        // $manager = new ImageManager(new Driver()); // 不再直接使用 ImageManager
+        $saveDir = 'adv'; // 圖片儲存的子目錄，相對於 storage/app/public
 
         // 處理 adv_img_url，並依 cat_params 限制尺寸
         if (isset($validated['adv_img_url']) && $request->hasFile('adv_img_url')) {
             $file = $request->file('adv_img_url');
-            $img = $manager->read($file);
 
-            $desktopWidth = $fieldParams['adv_img_url']['width'] ?? null;
-            $desktopHeight = $fieldParams['adv_img_url']['height'] ?? null;
+            // 從分類參數中獲取桌面版圖片的目標寬高，若無則使用預設值
+            $desktopWidth = $fieldParams['adv_img_url']['width'] ?? 1200; // 預設寬度
+            $desktopHeight = $fieldParams['adv_img_url']['height'] ?? 600; // 預設高度
 
-            if ($desktopWidth && $desktopHeight) {
-                $img = $img->coverDown($desktopWidth, $desktopHeight, 'center');
+            try {
+                // 使用 ImageHelper 處理圖片：中心裁切至指定尺寸
+                $processedImage = ImageHelper::processImage($file, $desktopWidth, $desktopHeight, 'center_crop');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // 生成唯一的檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename; // 完整的儲存路徑 (例如: adv/12345_unique.jpg)
+
+                // 儲存處理後的圖片到 public 磁碟，品質 90，格式為 JPEG
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, $extension);
+
+                $save['adv_img_url'] = $fullPath; // 將儲存路徑存入資料庫
+            } catch (\Exception $e) {
+                // 圖片處理或儲存失敗，記錄錯誤並返回
+                return redirect()->back()->withInput()->with('error', '桌面版圖片處理或儲存失敗: ' . $e->getMessage());
             }
-
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $img->save($saveDir . '/' . $filename);
-            $save['adv_img_url'] = 'adv/' . $filename;
         }
 
-        // 處理 adv_img_m_url 類似
+        // 處理 adv_img_m_url (行動版圖片)，並依 cat_params 限制尺寸
         if (isset($validated['adv_img_m_url']) && $request->hasFile('adv_img_m_url')) {
             $file = $request->file('adv_img_m_url');
-            $img = $manager->read($file);
 
-            $desktopWidth = $fieldParams['adv_img_m_url']['width'] ?? null;
-            $desktopHeight = $fieldParams['adv_img_m_url']['height'] ?? null;
+            // 從分類參數中獲取行動版圖片的目標寬高，若無則使用預設值
+            $mobileWidth = $fieldParams['adv_img_m_url']['width'] ?? 600; // 預設寬度
+            $mobileHeight = $fieldParams['adv_img_m_url']['height'] ?? 300; // 預設高度
 
-            if ($desktopWidth && $desktopHeight) {
-                $img = $img->coverDown($desktopWidth, $desktopHeight, 'center');
+            try {
+                // 使用 ImageHelper 處理圖片：中心裁切至指定尺寸
+                $processedImage = ImageHelper::processImage($file, $mobileWidth, $mobileHeight, 'center_crop');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // 生成唯一的檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename; // 完整的儲存路徑
+
+                // 儲存處理後的圖片到 public 磁碟，品質 90，格式為 JPEG
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, $extension);
+
+                $save['adv_img_m_url'] = $fullPath; // 將儲存路徑存入資料庫
+            } catch (\Exception $e) {
+                // 圖片處理或儲存失敗，記錄錯誤並返回
+                return redirect()->back()->withInput()->with('error', '行動版圖片處理或儲存失敗: ' . $e->getMessage());
             }
-
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $img->save($saveDir . '/' . $filename);
-
-            $save['adv_img_m_url'] = 'adv/' . $filename;
         }
 
         $advert = Advert::create($save);
@@ -161,6 +181,8 @@ class AdvertController extends BaseAdminController
         // 轉成以 lang_id 為 key 的陣列，便於 blade 填值
         $descMap = [];
         foreach ($advert->descs as $desc) {
+            // 確保 $desc->content 不是 null，避免 ContentHelper::decodeSiteUrl 報錯
+            $desc->content = ContentHelper::decodeSiteUrl($desc->content ?? '');
             $descMap[$desc->lang_id] = $desc;
         }
         return $this->view('admin.advert.form', compact('advert', 'isEdit', 'cats', 'langs', 'descMap'));
@@ -169,6 +191,7 @@ class AdvertController extends BaseAdminController
     // 更新
     public function update(Request $request, Advert $advert)
     {
+        // 重新載入分類，以確保取得最新的 cat_params
         $category = AdvertCategory::findOrFail($request->cat_id ?? $advert->cat_id);
         $scope = (array) ($category->cat_func_scope ?? []);
         $catParams = (array) ($category->cat_params ?? []);
@@ -180,12 +203,13 @@ class AdvertController extends BaseAdminController
             'is_visible' => 'nullable|boolean',
         ];
 
+        // 圖片驗證規則，如果已有圖片則允許為空 (不更新)，否則必須上傳
         if (in_array('adv_img_url', $scope)) {
-            $rules['adv_img_url'] = $advert->adv_img_url ? 'nullable|image|mimes:jpg,jpeg,png|max:5120' : 'required|image|mimes:jpg,jpeg,png|max:5120';
+            $rules['adv_img_url'] = $advert->adv_img_url ? 'nullable|image|mimes:jpg,jpeg,png|max:5120' : 'nullable|image|mimes:jpg,jpeg,png|max:5120';
         }
 
         if (in_array('adv_img_m_url', $scope)) {
-            $rules['adv_img_m_url'] = $advert->adv_img_m_url ? 'nullable|image|mimes:jpg,jpeg,png|max:5120' : 'required|image|mimes:jpg,jpeg,png|max:5120';
+            $rules['adv_img_m_url'] = $advert->adv_img_m_url ? 'nullable|image|mimes:jpg,jpeg,png|max:5120' : 'nullable|image|mimes:jpg,jpeg,png|max:5120';
         }
 
         // 其他欄位視 scope 決定
@@ -199,54 +223,67 @@ class AdvertController extends BaseAdminController
         $advert->display_order = $validated['display_order'] ?? 0;
         $advert->is_visible = $validated['is_visible'] ?? $advert->is_visible;
 
-        $manager = new ImageManager(new Driver());
-        $saveDir = storage_path('app/public/adv');
-        if (!file_exists($saveDir)) mkdir($saveDir, 0755, true);
+        // $manager = new ImageManager(new Driver()); // 不再直接使用 ImageManager
+        $saveDir = 'adv'; // 圖片儲存的子目錄
 
-        // 圖片處理（若有新圖，存新圖並刪舊圖）
+        // 處理 adv_img_url (桌面版圖片)
         if ($request->hasFile('adv_img_url')) {
             $file = $request->file('adv_img_url');
-            $img = $manager->read($file);
 
-            $desktopWidth = $fieldParams['adv_img_url']['width'] ?? null;
-            $desktopHeight = $fieldParams['adv_img_url']['height'] ?? null;
+            // 從分類參數中獲取桌面版圖片的目標寬高，若無則使用預設值
+            $desktopWidth = $fieldParams['adv_img_url']['width'] ?? 1200;
+            $desktopHeight = $fieldParams['adv_img_url']['height'] ?? 600;
 
-            if ($desktopWidth && $desktopHeight) {
-                $img = $img->coverDown($desktopWidth, $desktopHeight, 'center');
+            try {
+                // 刪除舊的桌面版圖片檔案
+                ImageHelper::deleteImage($advert->adv_img_url, 'public');
+
+                // 使用 ImageHelper 處理圖片：中心裁切至指定尺寸
+                $processedImage = ImageHelper::processImage($file, $desktopWidth, $desktopHeight, 'center_crop');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // 生成唯一的檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename;
+
+                // 儲存處理後的圖片
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, $extension);
+
+                $advert->adv_img_url = $fullPath; // 更新資料庫中的圖片路徑
+            } catch (\Exception $e) {
+                // 圖片處理或儲存失敗，記錄錯誤並返回
+                return redirect()->back()->withInput()->with('error', '桌面版圖片處理或儲存失敗: ' . $e->getMessage());
             }
-
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $img->save($saveDir . '/' . $filename);
-
-            // 刪除舊圖
-            if ($advert->adv_img_url && file_exists(storage_path('app/public/' . $advert->adv_img_url))) {
-                @unlink(storage_path('app/public/' . $advert->adv_img_url));
-            }
-
-            $advert->adv_img_url = 'adv/' . $filename;
         }
 
-        // 圖片處理（若有新圖，存新圖並刪舊圖）
+        // 處理 adv_img_m_url (行動版圖片)
         if ($request->hasFile('adv_img_m_url')) {
             $file = $request->file('adv_img_m_url');
-            $img = $manager->read($file);
 
-            $mobileWidth = $fieldParams['adv_img_m_url']['width'] ?? null;
-            $mobileHeight = $fieldParams['adv_img_m_url']['height'] ?? null;
+            // 從分類參數中獲取行動版圖片的目標寬高，若無則使用預設值
+            $mobileWidth = $fieldParams['adv_img_m_url']['width'] ?? 600;
+            $mobileHeight = $fieldParams['adv_img_m_url']['height'] ?? 300;
 
-            if ($mobileWidth && $mobileHeight) {
-                $img = $img->coverDown($mobileWidth, $mobileHeight, 'center');
+            try {
+                // 刪除舊的行動版圖片檔案
+                ImageHelper::deleteImage($advert->adv_img_m_url, 'public');
+
+                // 使用 ImageHelper 處理圖片：中心裁切至指定尺寸
+                $processedImage = ImageHelper::processImage($file, $mobileWidth, $mobileHeight, 'center_crop');
+                $extension = strtolower($file->getClientOriginalExtension());
+
+                // 生成唯一的檔名
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = $saveDir . '/' . $filename;
+
+                // 儲存處理後的圖片
+                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, $extension);
+
+                $advert->adv_img_m_url = $fullPath; // 更新資料庫中的圖片路徑
+            } catch (\Exception $e) {
+                // 圖片處理或儲存失敗，記錄錯誤並返回
+                return redirect()->back()->withInput()->with('error', '行動版圖片處理或儲存失敗: ' . $e->getMessage());
             }
-
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $img->save($saveDir . '/' . $filename);
-
-            // 刪除舊圖
-            if ($advert->adv_img_m_url && file_exists(storage_path('app/public/' . $advert->adv_img_m_url))) {
-                @unlink(storage_path('app/public/' . $advert->adv_img_m_url));
-            }
-
-            $advert->adv_img_m_url = 'adv/' . $filename;
         }
 
         if (isset($validated['adv_link_url'])) {
@@ -292,13 +329,11 @@ class AdvertController extends BaseAdminController
     // 刪除
     public function destroy(Advert $advert)
     {
-        if ($advert->adv_img_url && file_exists(storage_path('app/public/' . $advert->adv_img_url))) {
-            @unlink(storage_path('app/public/' . $advert->adv_img_url));
-        }
+        // 刪除桌面版圖片檔案
+        ImageHelper::deleteImage($advert->adv_img_url, 'public');
 
-        if ($advert->adv_img_m_url && file_exists(storage_path('app/public/' . $advert->adv_img_m_url))) {
-            @unlink(storage_path('app/public/' . $advert->adv_img_m_url));
-        }
+        // 刪除行動版圖片檔案
+        ImageHelper::deleteImage($advert->adv_img_m_url, 'public');
 
         $advert->delete();
 
