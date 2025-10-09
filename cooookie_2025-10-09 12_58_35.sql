@@ -28,13 +28,16 @@ CREATE TABLE IF NOT EXISTS `advert` (
   PRIMARY KEY (`adv_id`),
   KEY `advert_cat_id_foreign` (`cat_id`),
   CONSTRAINT `advert_cat_id_foreign` FOREIGN KEY (`cat_id`) REFERENCES `advert_category` (`cat_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 正在傾印表格  cooookie.advert 的資料：~3 rows (近似值)
+-- 正在傾印表格  cooookie.advert 的資料：~6 rows (近似值)
 INSERT INTO `advert` (`adv_id`, `cat_id`, `adv_img_url`, `adv_img_m_url`, `adv_link_url`, `display_order`, `is_visible`, `created_at`, `updated_at`) VALUES
-	(5, 2, NULL, NULL, 'https://www.youtube.com/', 0, 1, '2025-09-02 10:52:19', '2025-09-02 11:01:02'),
-	(6, 1, 'adv/1757619287.jpg', 'adv/1757619288.jpg', 'https://www.youtube.com/watch?v=_8Myg8xUOMo&list=RD_8Myg8xUOMo&start_radio=1', 0, 1, '2025-09-02 11:02:27', '2025-09-11 11:34:48'),
-	(11, 1, 'adv/1757618983.jpg', 'adv/1757618984.jpg', NULL, 0, 1, '2025-09-11 11:29:44', '2025-09-11 11:29:44');
+	(5, 4, 'adv/1758140020_68cb1674c246a.jpg', NULL, 'https://www.youtube.com/', 0, 1, '2025-09-02 10:52:19', '2025-09-17 12:13:40'),
+	(6, 1, 'adv/1757926123.jpg', 'adv/1757927435.jpg', 'https://www.youtube.com/watch?v=_8Myg8xUOMo&list=RD_8Myg8xUOMo&start_radio=1', 0, 1, '2025-09-02 11:02:27', '2025-09-15 01:10:35'),
+	(11, 1, 'adv/1757926077.jpg', 'adv/1757927465.jpg', NULL, 0, 1, '2025-09-11 11:29:44', '2025-09-15 01:11:05'),
+	(12, 4, 'adv/1758140087_68cb16b72a737.jpg', NULL, NULL, 0, 1, '2025-09-14 23:52:47', '2025-09-20 11:26:00'),
+	(13, 1, 'adv/1758011729.jpg', 'adv/1758011730.jpg', NULL, 0, 1, '2025-09-16 00:35:30', '2025-09-20 11:25:59'),
+	(14, 4, 'adv/1758274196_68cd2294cd471.png', NULL, NULL, 0, 1, '2025-09-19 00:50:53', '2025-09-20 11:53:46');
 
 -- 傾印  資料表 cooookie.advert_category 結構
 CREATE TABLE IF NOT EXISTS `advert_category` (
@@ -52,9 +55,9 @@ CREATE TABLE IF NOT EXISTS `advert_category` (
 
 -- 正在傾印表格  cooookie.advert_category 的資料：~2 rows (近似值)
 INSERT INTO `advert_category` (`cat_id`, `cat_code`, `cat_func_scope`, `cat_params`, `display_order`, `is_visible`, `created_at`, `updated_at`) VALUES
-	(1, 'idx_banner', '["adv_img_url","adv_img_m_url","adv_link_url"]', '{"item_limit_num":-1,"fields":{"adv_img_url":{"width":1920,"height":600},"adv_img_m_url":{"width":720,"height":400},"adv_link_url":[]}}', 0, 1, '2025-08-31 11:55:33', '2025-09-08 10:39:46'),
+	(1, 'idx_banner', '["adv_img_url","adv_img_m_url","adv_link_url"]', '{"item_limit_num":-1,"fields":{"adv_img_url":{"width":1920,"height":900},"adv_img_m_url":{"width":375,"height":750},"adv_link_url":[]}}', 0, 1, '2025-08-31 11:55:33', '2025-09-15 00:47:10'),
 	(2, 'idx_block1', '["adv_link_url"]', '{}', 0, 1, '2025-08-31 12:02:22', '2025-08-31 12:02:22'),
-	(4, 'idx_block2', '["adv_img_url"]', '{"item_limit_num":-1,"fields":{"adv_img_url":{"width":1920,"height":960}}}', 0, 1, '2025-09-03 12:06:45', '2025-09-03 12:06:45');
+	(4, 'idx_block2', '["adv_img_url"]', '{"item_limit_num":-1,"fields":{"adv_img_url":{"width":450,"height":350}}}', 0, 1, '2025-09-03 12:06:45', '2025-09-17 11:34:42');
 
 -- 傾印  資料表 cooookie.advert_category_desc 結構
 CREATE TABLE IF NOT EXISTS `advert_category_desc` (
@@ -72,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `advert_category_desc` (
 -- 正在傾印表格  cooookie.advert_category_desc 的資料：~2 rows (近似值)
 INSERT INTO `advert_category_desc` (`id`, `cat_id`, `lang_id`, `cat_name`, `created_at`, `updated_at`) VALUES
 	(1, 1, 1, '首頁-橫幅廣告', '2025-08-31 11:55:33', '2025-08-31 11:55:33'),
-	(3, 4, 1, '首頁-橫幅廣告22', '2025-09-03 12:06:45', '2025-09-03 12:06:45');
+	(3, 4, 1, '首頁-餅乾特色', '2025-09-03 12:06:45', '2025-09-17 11:15:27');
 
 -- 傾印  資料表 cooookie.advert_desc 結構
 CREATE TABLE IF NOT EXISTS `advert_desc` (
@@ -87,13 +90,16 @@ CREATE TABLE IF NOT EXISTS `advert_desc` (
   PRIMARY KEY (`id`),
   KEY `advert_desc_adv_id_foreign` (`adv_id`),
   CONSTRAINT `advert_desc_adv_id_foreign` FOREIGN KEY (`adv_id`) REFERENCES `advert` (`adv_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 正在傾印表格  cooookie.advert_desc 的資料：~3 rows (近似值)
+-- 正在傾印表格  cooookie.advert_desc 的資料：~6 rows (近似值)
 INSERT INTO `advert_desc` (`id`, `adv_id`, `lang_id`, `adv_name`, `adv_subname`, `adv_brief`, `created_at`, `updated_at`) VALUES
-	(3, 5, '1', '廣告111', NULL, NULL, '2025-09-02 10:52:19', '2025-09-02 10:52:19'),
+	(3, 5, '1', '餅乾特色-廣告2', NULL, NULL, '2025-09-02 10:52:19', '2025-09-14 23:51:41'),
 	(4, 6, '1', '廣告222', NULL, NULL, '2025-09-02 11:02:27', '2025-09-02 11:02:27'),
-	(9, 11, '1', '廣告5', NULL, NULL, '2025-09-11 11:29:44', '2025-09-11 11:34:32');
+	(9, 11, '1', '廣告5', NULL, NULL, '2025-09-11 11:29:44', '2025-09-11 11:34:32'),
+	(10, 12, '1', '廣告222--------------', NULL, NULL, '2025-09-14 23:52:47', '2025-09-14 23:52:47'),
+	(11, 13, '1', '橫幅3', NULL, NULL, '2025-09-16 00:35:30', '2025-09-16 00:35:30'),
+	(12, 14, '1', '餅乾特色-廣告3', NULL, NULL, '2025-09-19 00:50:54', '2025-09-19 00:50:54');
 
 -- 傾印  資料表 cooookie.cache 結構
 CREATE TABLE IF NOT EXISTS `cache` (
@@ -103,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `cache` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 正在傾印表格  cooookie.cache 的資料：~1 rows (近似值)
+-- 正在傾印表格  cooookie.cache 的資料：~0 rows (近似值)
 
 -- 傾印  資料表 cooookie.cache_locks 結構
 CREATE TABLE IF NOT EXISTS `cache_locks` (
@@ -188,9 +194,9 @@ CREATE TABLE IF NOT EXISTS `migrations` (
   `migration` varchar(255) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 正在傾印表格  cooookie.migrations 的資料：~14 rows (近似值)
+-- 正在傾印表格  cooookie.migrations 的資料：~17 rows (近似值)
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(1, '0001_01_01_000000_create_users_table', 1),
 	(2, '0001_01_01_000001_create_cache_table', 1),
@@ -206,7 +212,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(12, '2025_08_31_194544_create_advert_category_tables', 7),
 	(13, '2025_09_02_192102_rename_sort_order_to_display_order_in_advert_table', 8),
 	(15, '2025_09_02_193425_rename_sort_order_to_display_order_in_advert_category_table', 9),
-	(16, '2025_09_02_194433_rename_sort_order_to_display_order_in_languages_table', 10);
+	(16, '2025_09_02_194433_rename_sort_order_to_display_order_in_languages_table', 10),
+	(22, '2025_09_28_090811_create_product_category_table', 11),
+	(23, '2025_09_28_090900_create_product_category_desc_table', 11);
 
 -- 傾印  資料表 cooookie.news 結構
 CREATE TABLE IF NOT EXISTS `news` (
@@ -219,14 +227,14 @@ CREATE TABLE IF NOT EXISTS `news` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`news_id`) USING BTREE,
   KEY `cat_id` (`cat_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 正在傾印表格  cooookie.news 的資料：~4 rows (近似值)
 INSERT INTO `news` (`news_id`, `cat_id`, `image`, `is_visible`, `display_order`, `created_at`, `updated_at`) VALUES
-	(1, 2, 'news/1756716029.jpg', 1, 1, '2025-08-13 11:35:04', '2025-09-01 00:40:29'),
+	(1, 2, 'news/1758224092_68cc5edc5ca09.jpg', 1, 1, '2025-08-13 11:35:04', '2025-09-20 11:36:30'),
 	(2, 2, 'news/1755549470.jpg', 1, 0, '2025-08-18 12:37:51', '2025-08-18 12:37:51'),
-	(3, 1, 'news/1755974322.jpg', 1, 0, '2025-08-20 00:28:02', '2025-08-23 10:38:42'),
-	(4, 2, 'news/1755681095jpg', 1, 0, '2025-08-20 01:07:05', '2025-08-20 01:11:35');
+	(3, 1, 'news/1755974322.jpg', 1, 0, '2025-08-20 00:28:02', '2025-09-20 12:02:30'),
+	(7, 3, NULL, 1, 0, '2025-09-20 12:05:21', '2025-09-20 12:05:21');
 
 -- 傾印  資料表 cooookie.news_category 結構
 CREATE TABLE IF NOT EXISTS `news_category` (
@@ -249,28 +257,6 @@ INSERT INTO `news_category` (`cat_id`, `parent_id`, `parent_ids`, `super_id`, `i
 	(3, NULL, NULL, NULL, 1, 0, '2025-08-25 10:33:01', '2025-08-25 10:33:01'),
 	(4, NULL, NULL, NULL, 0, 999, '2025-08-26 00:31:31', '2025-08-26 00:31:31');
 
--- 傾印  資料表 cooookie.news_category_desc 結構
-CREATE TABLE IF NOT EXISTS `news_category_desc` (
-  `cat_id` bigint(20) unsigned NOT NULL COMMENT '參照 news_category.cat_id',
-  `lang_id` bigint(20) unsigned NOT NULL COMMENT 'language.lang_id',
-  `name` varchar(255) NOT NULL COMMENT '分類名稱（各語系）',
-  `description` varchar(255) DEFAULT '' COMMENT '簡述（各語系）',
-  `content` text DEFAULT NULL COMMENT '內文（各語系），可使用 CKEditor 編輯',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`cat_id`,`lang_id`),
-  KEY `news_category_desc_cat_id_index` (`cat_id`),
-  KEY `news_category_desc_lang_id_index` (`lang_id`),
-  CONSTRAINT `news_category_desc_cat_id_foreign` FOREIGN KEY (`cat_id`) REFERENCES `news_category` (`cat_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- 正在傾印表格  cooookie.news_category_desc 的資料：~4 rows (近似值)
-INSERT INTO `news_category_desc` (`cat_id`, `lang_id`, `name`, `description`, `content`, `created_at`, `updated_at`) VALUES
-	(1, 1, '分類名稱1', NULL, '<h1><strong>sss</strong></h1>', '2025-08-13 10:15:18', '2025-08-13 10:15:18'),
-	(2, 1, '子分類名稱1', '簡述 (description)', NULL, '2025-08-14 10:24:56', '2025-08-14 10:24:56'),
-	(3, 1, '分類名稱2', NULL, NULL, '2025-08-25 10:33:01', '2025-08-25 10:33:01'),
-	(4, 1, '分類名稱３', NULL, '<p><br></p>', '2025-08-26 01:01:40', '2025-08-26 01:01:40');
-
 -- 傾印  資料表 cooookie.news_desc 結構
 CREATE TABLE IF NOT EXISTS `news_desc` (
   `news_id` bigint(20) unsigned NOT NULL COMMENT 'news.id',
@@ -286,10 +272,10 @@ CREATE TABLE IF NOT EXISTS `news_desc` (
 
 -- 正在傾印表格  cooookie.news_desc 的資料：~4 rows (近似值)
 INSERT INTO `news_desc` (`news_id`, `lang_id`, `title`, `content`, `created_at`, `updated_at`) VALUES
-	(1, 1, '標題1', '<p>123123</p><p><b><span style="font-size: 36px; background-color: rgb(255, 156, 0);"><font color="#cee7f7">123123123</font></span></b></p><p><b><span style="font-size: 36px; background-color: rgb(255, 156, 0);"><font color="#cee7f7"><br></font></span></b></p>', '2025-08-13 11:35:04', '2025-08-26 01:15:52'),
+	(1, 1, '標題1', '<p></p><p>1<span style="font-size: 1rem;">23123</span></p><p><b><span style="font-size: 36px; background-color: rgb(255, 156, 0);"><font color="#cee7f7">123123123</font></span></b></p><p><font color="#cee7f7"><span style="font-size: 36px; background-color: rgb(255, 156, 0);"><b>ddddddddddd</b></span></font></p><p><img style="width: 200px; float: right;" src="[[SITE_URL]]storage/uploads/17585745017162.png" class="note-float-right"></p>', '2025-08-13 11:35:04', '2025-09-22 23:18:54'),
 	(2, 1, '標題2', '<p><img style="width: 25%; float: right;" src="http://localhost:82/laravel-adminlte/public/storage/uploads/XEVjLcwj8HWPc14o4IOClprZ44qhn9vvttLM9cAH.jpg" class="note-float-right"><br></p>', '2025-08-18 12:37:51', '2025-08-18 13:38:40'),
 	(3, 1, '標題3', '<p><img style="width: 10%;" src="[[SITE_URL]]storage/uploads/4FFC5VrucUQD4pUwWIfcTzHiY6yG3oFuR5It63xn.jpg"><br></p>', '2025-08-20 00:28:02', '2025-08-24 09:51:33'),
-	(4, 1, '標題4', '<h1><span style="background-color: rgb(0, 49, 99);"><font color="#ffe79c"><b>111</b></font></span></h1>', '2025-08-20 01:07:05', '2025-08-20 01:07:05');
+	(7, 1, 'CCCCCC', '<p><br></p>', '2025-09-20 12:05:22', '2025-09-20 12:05:22');
 
 -- 傾印  資料表 cooookie.password_reset_tokens 結構
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
@@ -300,6 +286,43 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 正在傾印表格  cooookie.password_reset_tokens 的資料：~0 rows (近似值)
+
+-- 傾印  資料表 cooookie.product_category 結構
+CREATE TABLE IF NOT EXISTS `product_category` (
+  `cat_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '上層分類 cat_id',
+  `parent_ids` varchar(255) DEFAULT NULL COMMENT '上層 ID 串, 例如: 1,3,5',
+  `super_id` bigint(20) unsigned DEFAULT NULL COMMENT '最上層分類 cat_id',
+  `is_visible` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否顯示',
+  `display_order` int(11) NOT NULL DEFAULT 0 COMMENT '顯示排序，數字大者優先',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`cat_id`),
+  KEY `product_category_parent_id_index` (`parent_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 正在傾印表格  cooookie.product_category 的資料：~1 rows (近似值)
+INSERT INTO `product_category` (`cat_id`, `parent_id`, `parent_ids`, `super_id`, `is_visible`, `display_order`, `created_at`, `updated_at`) VALUES
+	(1, NULL, NULL, NULL, 1, 0, '2025-09-30 01:17:31', '2025-09-30 01:17:31');
+
+-- 傾印  資料表 cooookie.product_category_desc 結構
+CREATE TABLE IF NOT EXISTS `product_category_desc` (
+  `cat_id` bigint(20) unsigned NOT NULL COMMENT '參照 product_category.cat_id',
+  `lang_id` bigint(20) unsigned NOT NULL COMMENT 'language.lang_id',
+  `name` varchar(255) NOT NULL COMMENT '分類名稱（各語系）',
+  `description` varchar(255) DEFAULT NULL COMMENT '簡述（各語系）',
+  `content` longtext DEFAULT NULL COMMENT '內文（各語系），可使用 CKEditor 編輯',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`cat_id`,`lang_id`),
+  KEY `product_category_desc_cat_id_index` (`cat_id`),
+  KEY `product_category_desc_lang_id_index` (`lang_id`),
+  CONSTRAINT `product_category_desc_cat_id_foreign` FOREIGN KEY (`cat_id`) REFERENCES `product_category` (`cat_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 正在傾印表格  cooookie.product_category_desc 的資料：~1 rows (近似值)
+INSERT INTO `product_category_desc` (`cat_id`, `lang_id`, `name`, `description`, `content`, `created_at`, `updated_at`) VALUES
+	(1, 1, '產品分類1', '簡述 (description)ccccccccccccccccccc', '<p><br></p>', '2025-09-30 01:17:31', '2025-09-30 01:17:31');
 
 -- 傾印  資料表 cooookie.sessions 結構
 CREATE TABLE IF NOT EXISTS `sessions` (
@@ -314,10 +337,17 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   KEY `sessions_last_activity_index` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 正在傾印表格  cooookie.sessions 的資料：~2 rows (近似值)
+-- 正在傾印表格  cooookie.sessions 的資料：~9 rows (近似值)
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-	('65vva6DjsRmjZVb58nb2OfNNAWEbuDClYCHd0e5K', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiNm1ySXlKbE5FZHg2akFRSFppNGxkd2EwNmR6Z0JaN1lUaGlyWER3TSI7czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czo0MToiaHR0cDovL2xvY2FsaG9zdDo4Mi9jb29vb2tpZS9hZG1pbi9hZHZlcnQiO31zOjk6Il9wcmV2aW91cyI7YToxOntzOjM6InVybCI7czozNDoiaHR0cDovL2xvY2FsaG9zdDo4Mi9jb29vb2tpZS9sb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1757658801),
-	('v7zsnflxVDDyUoHU9ubPZuCUGTISZp58STM3iBj6', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiN2x5VkhaTXBxaDJVemhkQ2VaYkU1Sk1SNXB3RUNWWm1mTXM1UEx1RCI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjE6e3M6MzoidXJsIjtzOjI4OiJodHRwOi8vbG9jYWxob3N0OjgyL2Nvb29va2llIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjQ6ImF1dGgiO2E6MTp7czoyMToicGFzc3dvcmRfY29uZmlybWVkX2F0IjtpOjE3NTc2MTIwMTU7fX0=', 1757620471);
+	('CiBVaYE8CP3AilthttGXlJt70FsLXvxvTXZxHZiX', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiMXd6WHdUQ0MxUjNWYUlCRlk0SnNqUEdSSDlDSDA5Zm5kb1FsdkhiciI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941595),
+	('fvwXPPzOALgbi0QyW5V7mNHcVnpZe0QxAEBb2s0Y', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoic256S3ZtdlNSUUVCa3NpRUthc25PaTJqUFlnMWJDS05SWDAyQU1ybiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941596),
+	('I6GpUe1HVICmydOiXjvdtsUyNHfaPl4d9zuXmk4R', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiYUs2aXZ5cGNRY1l1UFFRb2J3ZW9OUWZJZHduUm1JR2VoSjE2MjBXRSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941596),
+	('kb8UXd7eOoIKk4YYHEpCrtjgDPd6VR1KxtwWHaz1', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiZktHbUEyampvcU8wUENpRjNlNkozQzRkZE9SNGp6Yk0zd3A3OGtuQSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6NDoiYXV0aCI7YToxOntzOjIxOiJwYXNzd29yZF9jb25maXJtZWRfYXQiO2k6MTc1OTg1Njk4Nzt9fQ==', 1759868594),
+	('QNAeXBjtotE2N8S6iqITiZolCOODMLa6D1FGCuCv', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoicm81WXNsdXFHNDZkMUc5SU9OQjNKTGJKa2VBRFV4QkhIY3E1VGdhayI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjg6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941595),
+	('qzWABovqJ0n2MIhXbXlvi8a2nB0bH51yQcPQhOVt', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiS3ZXUnpzRVB5aDBwdmpGeWlQSDljZW5ueVpPRHFYcEM1cTFHdmk0SCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvbG9naW4iO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941596),
+	('RyCYLunBaJJE6DHtsXRYUf2fpKdaC91ClKaEQV2o', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiNG02eHZzVkJFZ1M2SVN0eEdIU3doSVJ1b0pDYVR3MnRhbGZGTmxqMiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941595),
+	('swS7TVuJWPKLkcOmYPeq1jCXLQCWrUHD0kekzjXW', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoicnNreXJMTkZ0Y0VqUURnaWJZNWQ5V2xVWHlGOUNvQnZ3M3hZMm1YMCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759953469),
+	('v3VHMD8ZpyYHCDjWKLjG8l3mMNyiq8cVINfcOI6g', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSjdXdWdPQUVkTTRzSTk3Z0h5ZTI3TkZMSWczclpLeThHU3Rva2lDNiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly9sb2NhbGhvc3Q6ODIvY29vb29raWUvYWJvdXQiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1759941595);
 
 -- 傾印  資料表 cooookie.users 結構
 CREATE TABLE IF NOT EXISTS `users` (
@@ -335,7 +365,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- 正在傾印表格  cooookie.users 的資料：~0 rows (近似值)
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-	(1, 'test', 'test@mail', NULL, '$2y$12$IabkbMW5RW24QgkkTDxOI.XVs0DfPbNXScb5CXxTzNk3HiAR7EKpG', 'YsMt2r7VJK6Im0pZnrdBH5eJQZuGNFVwn96q5NvP1Py6AEYiNUUmnj8CU0do', '2025-07-21 02:16:20', '2025-07-21 02:16:20');
+	(1, 'test', 'test@mail', NULL, '$2y$12$IabkbMW5RW24QgkkTDxOI.XVs0DfPbNXScb5CXxTzNk3HiAR7EKpG', 'OmXZKsRgncBodrkSoOVFwG6aMLsNHdMLhDyPuQZ3sGf3254udsdEFXFpI6PH', '2025-07-21 02:16:20', '2025-07-21 02:16:20');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

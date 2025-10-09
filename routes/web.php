@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\NewsCategoryController;
+use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\UploadController;
 use App\Helpers\ContentHelper;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Admin\AdvertCategoryController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
 
+use App\Http\Controllers\Frontend\AboutController;
 
 
 // Route::get('/', function () {
@@ -29,6 +31,10 @@ Route::get('/', [\App\Http\Controllers\Frontend\HomeController::class, 'index'])
 // 消息：列表與詳細頁
 Route::get('/news', [FrontendNewsController::class, 'index'])->name('news.index');
 Route::get('/news/{news}', [FrontendNewsController::class, 'show'])->name('news.show'); // 隱式綁定 news by PK
+
+Route::get('/about', function () {
+    return view('frontend.about');
+})->name('about');
 
 
 Route::get('/dashboard', function () {
@@ -56,6 +62,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('news', NewsController::class)->parameters([
         'news' => 'news' // 讓隱式綁定用 App\Models\News 的主鍵
     ]);
+
+    Route::resource('product_category', ProductCategoryController::class);  // 分類管理
 
     // 廣告分類 CRUD
     Route::resource('advert_category', AdvertCategoryController::class)

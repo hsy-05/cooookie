@@ -357,6 +357,24 @@ return [
             ],
         ],
         [
+            'text' => '產品列表',
+            'icon' => 'fas fa-fw fa-newspaper',
+            'submenu' => [
+                [
+                    'text' => '產品',
+                    // 'route' => 'admin.product',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/product',
+                    'active' => ['regex:@^admin/product($|/)@'], // 可用陣列 / 通配符，*代表匹配所有後綴
+                ],
+                [
+                    'text' => '產品分類',
+                    // 'route' => 'admin.product',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/product_category',
+                    'active' => ['regex:@^admin/product_category($|/)@'], // 可用陣列 / 通配符
+                ],
+            ],
+        ],
+        [
             'text' => '使用者管理',
             'url'  => 'admin/users',
             'icon' => 'fas fa-fw fa-users',

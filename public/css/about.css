@@ -1,0 +1,326 @@
+/*
+ * about.css - 關於我們頁面專屬樣式
+ * 用途：定義 about.blade.php 中的元素樣式，包含視覺設計、RWD、基本 transition 以支援 GSAP 動畫。
+ * 結構：按區塊分組 (Hero, Dividers, Intro, Values, Vision, Tasting)，最後加媒體查詢。
+ * 顏色方案：溫暖主題 - #f8f4f0 (米色背景), #ff69b4 (粉紅 accent), #333 (文字)。
+ * 字體：依賴 Google Fonts Pacifico (handwrite)，系統 sans-serif fallback。
+ * 性能：使用 transform/transition 避免 reflow；background-attachment: fixed for parallax fallback。
+ * 職場技巧：模組化 CSS (per section)，易維護；用 :hover 提供無 JS fallback。
+ */
+.main-content {
+    color: #333; /* 主要文字色 */
+    line-height: 1.6;
+    background-color: #f8f4f0; /* 米色 bg */
+    background-image: url("../images/paper-texture.jpg"); /* 烘焙紙紋，假設有圖 */
+    background-repeat: repeat;
+}
+/* Hero Section Styles */
+/* 用途：頂部橫幅設計，大標題 + 背景插畫 + 粒子浮動，創造沉浸感。高度固定 530px，RWD 調整。 */
+.about-hero-section {
+    position: relative;
+    height: 530px; /* 固定高度，匹配圖片尺寸 */
+    overflow: hidden; /* 防止粒子或 bg 溢出 */
+    background-color: #f8f4f0; /* 米色 fallback */
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover; /* 覆蓋全區 */
+    background-position: center;
+    will-change: transform; /* 優化 GSAP parallax 性能 */
+}
+
+.hero-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 不擋互動 */
+}
+
+.hero-particle {
+    position: absolute;
+    width: 10px; /* 小粒子大小，可替換成餅乾碎屑圖 */
+    height: 10px;
+    background-color: #ff69b4; /* 粉紅光點 */
+    border-radius: 50%; /* 圓形 */
+    opacity: 0.5; /* 半透明 */
+    will-change: transform; /* 優化 GSAP 浮動 */
+    /* 隨機位置範例，GSAP 會 override */
+    top: calc(50% + var(--random-y, 0px));
+    left: calc(50% + var(--random-x, 0px));
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* 柔焦遮罩，增加文字可讀性 */
+    mix-blend-mode: multiply; /* 融合背景 */
+}
+
+.hero-content {
+    position: relative; /* 在 overlay 上層 */
+    z-index: 1;
+    padding-top: 150px; /* 垂直居中調整 */
+    color: #fff; /* 白文字對比 */
+}
+
+.hero-title {
+    font-size: 4rem; /* 大標題 */
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 陰影增加立體感 */
+}
+
+.hero-title:hover {
+    transform: scale(1.05); /* 輕微放大 fallback */
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+.hero-cta .btn-explore {
+    background-color: #ff69b4; /* 粉紅按鈕 */
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s; /* ripple 輔助 */
+}
+
+.hero-cta .btn-explore:hover {
+    background-color: #e94e9a; /* 深粉紅 */
+    transform: translateY(-3px); /* 上浮效果 */
+}
+
+/* Section Dividers Styles */
+/* 波浪過渡背景區塊 */
+.section-divider.bg13-divider {
+    position: relative;
+    height: 120px; /* 預設高度，可依據設計圖微調 */
+    margin: -60px 0; /* 向上壓一半高度，與上面區塊部分重疊 */
+    overflow: hidden;
+    z-index: 1;
+
+    background-image: url("../images/wave-divider1-n.png");
+    background-repeat: no-repeat;
+    background-position: center bottom; /* 底部對齊 */
+    background-size: cover; /* 或 contain 視設計圖比例 */
+}
+
+/* 響應式斷點調整 */
+@media (max-width: 1200px) {
+    .section-divider.bg13-divider {
+        height: 100px;
+        margin: -50px 0;
+    }
+}
+@media (max-width: 768px) {
+    .section-divider.bg13-divider {
+        height: 80px;
+        margin: -40px 0;
+    }
+}
+@media (max-width: 480px) {
+    .section-divider.bg13-divider {
+        height: 60px;
+        margin: -30px 0;
+    }
+}
+
+.wave-divider path {
+    fill: #f8f4f0; /* 米色，漸變到下一區顏色 */
+}
+
+.bite-divider path {
+    fill: #fff; /* 白，模擬咬痕 */
+    stroke: #ff69b4; /* 邊緣粉紅 */
+    stroke-width: 2px;
+}
+
+/* Brand Story (Intro) Section Styles */
+/* 用途：左右排列，圖片 + 文字；紙紋背景；hover 互動增加設計感。 */
+.about-intro-section {
+    padding: 80px 0; /* 垂直間距 */
+    /* background-color: #f8f4f0; 米色 bg
+    background-repeat: repeat; */
+}
+
+.image-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px; /* 圓角 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 陰影 */
+    transition: transform 0.5s ease; /* GSAP parallax 輔助 */
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease; /* hover 放大 */
+}
+
+.image-wrapper:hover img {
+    transform: scale(1.05); /* 放大 fallback */
+}
+
+.text-content {
+    padding: 20px;
+}
+
+.section-heading {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Our Values Section Styles */
+/* 用途：橫向 Timeline 排列，模擬流程；icon hover 變色/放大；黏性 bg wave。 */
+.about-values-section {
+    padding: 80px 0;
+    background-color: #fff; /* 白 bg 對比 */
+    position: relative; /* for bg-wave */
+}
+
+.values-bg-wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("../images/wave-bg.png"); /* 裝飾波浪圖 */
+    opacity: 0.1; /* 淡化 */
+    background-size: cover;
+}
+
+.feature-timeline {
+    display: flex;
+    flex-wrap: nowrap; /* 橫向不換行 */
+    overflow-x: auto; /* 桌面 scroll，RWD 垂直 */
+    gap: 30px; /* 項目間距 */
+    padding: 20px 0;
+}
+
+.feature-item {
+    flex: 0 0 300px; /* 固定寬度 */
+    background-color: #f8f4f0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease; /* hover 上浮 */
+}
+
+.feature-item:hover {
+    transform: translateY(-10px); /* 上浮效果 */
+}
+
+.feature-icon {
+    font-size: 3rem; /* 大 icon */
+    color: #ff69b4;
+    margin-bottom: 10px;
+    transition: color 0.3s, transform 0.3s; /* GSAP 輔助 */
+}
+
+.feature-title {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.feature-desc {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Brand Vision Section Styles */
+/* 用途：全版背景 + 手寫 SVG + CTA；滾動模糊效果基底。 */
+.about-vision-section {
+    padding: 80px 0;
+    color: #fff; /* 白文字 */
+    position: relative;
+    background-attachment: fixed; /* parallax fallback */
+    background-position: center;
+    will-change: transform, filter; /* 優化 GSAP 縮小/模糊 */
+}
+
+.handwritten-svg {
+    display: block;
+    margin: 20px auto;
+    width: 400px;
+    height: 100px;
+}
+
+.vision-cta .btn-contact {
+    background-color: #ff69b4;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.vision-cta .btn-contact:hover {
+    background-color: #e94e9a;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.5); /* 光暈 ripple */
+}
+
+/* Media Queries for RWD */
+/* 用途：響應式設計，手機垂直堆疊，減小字體/間距，關閉複雜動畫以節省性能。 */
+@media (max-width: 768px) {
+    .about-hero-section {
+        height: 530px; /* 維持，但 bg 調整 */
+        background-image: url("../images/about-banner.jpg"); /* 手機版圖 */
+    }
+
+    .hero-title {
+        font-size: 3rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .feature-timeline {
+        flex-direction: column; /* 垂直堆疊 */
+        overflow-x: hidden;
+    }
+
+    .feature-item {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .row.align-items-center {
+        flex-direction: column; /* 左右變上下 */
+    }
+
+    .col-md-6 {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .section-divider {
+        height: 50px; /* 減小 */
+        margin: -25px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .section-heading {
+        font-size: 2rem;
+    }
+
+    /* 減弱粒子：隱藏部分以節省性能 */
+    .hero-particle:nth-child(n + 4) {
+        display: none;
+    }
+}

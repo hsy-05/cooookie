@@ -88,6 +88,8 @@
 
 {{-- AOS 動畫初始化 --}}
 @push('scripts')
+    {{-- GSAP 動畫庫 --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.1.1/gsap.min.js"></script>
     <script>
         AOS.init({
             duration: 1000, // 動畫持續時間
