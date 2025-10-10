@@ -21,7 +21,7 @@
     --}}
     <div class="about-hero-section" id="hero-section">
         {{-- 背景圖容器，用於 Parallax --}}
-        <div class="hero-bg" style="background-image: url('{{ asset('images/about-banner.jpg') }}');"></div>
+        <div class="hero-bg"></div>
         {{-- 輕量粒子效果容器 (餅乾碎屑或光點，GSAP 動畫控制) --}}
         <div class="hero-particles">
             <div class="hero-particle" data-gsap="particle"></div>
@@ -69,7 +69,7 @@
                     <div class="image-wrapper" data-gsap="parallax-image">
                         <picture>
                             <source srcset="{{ asset('images/about-intro-1.webp') }}" type="image/webp">
-                            <img src="{{ asset('images/about-intro-1.jpg') }}" alt="品牌故事圖片" loading="lazy" width="800"
+                            <img src="{{ asset('images/about-intro-1.png') }}" alt="品牌故事圖片" loading="lazy" width="800"
                                 height="600">
                         </picture>
                     </div>
@@ -167,8 +167,7 @@
         互動與動畫：背景滾動縮小/模糊 (GSAP ScrollTrigger)；手寫文字 stroke 逐步寫出；CTA hover ripple (GSAP scale/opacity)。
         為何這樣：情感結尾，互動增加停留時間；RWD：背景 cover。
     --}}
-    <section class="about-vision-section" id="vision-section"
-        style="background-image: url('{{ asset('images/vision-bg.jpg') }}'); background-size: cover;">
+    <section class="about-vision-section" id="vision-section">
         <div class="container">
             <div class="row align-items-center flex-md-row-reverse">
                 <div class="col-md-6">
@@ -389,44 +388,49 @@
                 });
 
                 // 黏性滾動：pin 整個 section，橫向 scroll (如果桌面)
-                if (window.innerWidth > 768) {
-                    ScrollTrigger.create({
-                        trigger: '#values-section',
-                        pin: true,
-                        start: 'top top',
-                        end: '+=200%', // 延長 pin 時間，讓橫向流程
-                        scrub: true
-                    });
-                }
+                // if (window.innerWidth > 768) {
+                //     ScrollTrigger.create({
+                //         trigger: '#values-section',
+                //         pin: true,
+                //         start: 'top top',
+                //         end: '+=100%',
+                //         scrub: true,
+                //         // prevent snapping back
+                //         pinSpacing: true
+                //     });
+                // }
             }
 
             // 模組 4: 品牌願景 動畫
             function initVisionAnimations() {
-                // 背景滾動縮小/模糊
-                gsap.to('#vision-section', {
-                    scale: 0.95,
-                    filter: 'blur(5px)',
-                    ease: 'none',
+                // 區塊從模糊變清晰
+                gsap.fromTo('#vision-section', {
+                    filter: 'blur(8px)',
+                    opacity: 0.6
+                }, {
+                    filter: 'blur(0px)',
+                    opacity: 1,
+                    duration: 0.5,
+                    ease: 'power2.out',
                     scrollTrigger: {
                         trigger: '#vision-section',
-                        scrub: true,
-                        start: 'top bottom',
-                        end: 'bottom top'
+                        start: 'top 80%',
+                        toggleActions: 'play none none reverse'
                     }
                 });
 
-                // 手寫文字路徑動畫：stroke-dashoffset 從 1000 到 0
+                // 手寫路徑動畫
                 gsap.to('#handwrite-path', {
                     strokeDashoffset: 0,
                     duration: 3,
                     ease: 'power1.inOut',
                     scrollTrigger: {
                         trigger: '.handwritten-svg',
-                        start: 'top 80%'
+                        start: 'top 80%',
                     }
                 });
 
-                // CTA ripple
+                // CTA Ripple
                 const cta = document.querySelector('.btn-contact');
                 cta.addEventListener('mouseenter', () => {
                     gsap.to(cta, {
