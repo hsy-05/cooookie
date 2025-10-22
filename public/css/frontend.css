@@ -59,8 +59,9 @@
     --main-pink: #d42d5a; /* 品牌粉紅色，強調色 */
     --h-header: 75px; /* 頁首高度 */
     --transition-time: 0.3s; /* 動畫過渡時間 */
-    --font-title: "Cormorant Garamond", "Source Han Serif TC",
-        "Playfair Display", serif; /* 標題字體 */
+    /* --font-title: "Cormorant Garamond", "Source Han Serif TC",
+        "Playfair Display", serif; 標題字體 */
+    --font-family: "NaniFont";
     --font-body: "NaniFont", "Noto Sans TC", sans-serif; /* 內文字體 */
     --font-weight: 400; /* 使用 SemiBold */
     --gap: 25px;
@@ -68,6 +69,7 @@
     --gap-leave: calc(
         (100vw - min((100% + var(--gap) * 2), var(--w-container))) * 0.5
     );
+    --h-header: 80px; /* ✅ 定義標準 Header 高度 */
 }
 
 @media (max-width: 991px) {
@@ -458,7 +460,6 @@ body {
 /* 主要標題 */
 .section-title {
     font-size: 2.8rem; /* 放大標題字體 */
-    font-weight: 700;
     color: var(--main-brown);
     margin-bottom: 10px;
     font-family: var(--font-title);
@@ -682,8 +683,7 @@ body {
     color: var(--main-cream); /* 標題顏色使用乳白色 */
     font-family: var(--font-title); /* 標題字體 */
     font-size: 2.8rem; /* 標題字體大小，稍微放大 */
-    font-weight: 700; /* 粗體 */
-    letter-spacing: 1.5px; /* 字距加大 */
+    letter-spacing: 10.8px; /* 字距加大 */
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9); /* 強化陰影 */
 }
 

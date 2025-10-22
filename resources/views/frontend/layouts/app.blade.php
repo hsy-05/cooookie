@@ -33,7 +33,7 @@
             <nav class="site-nav" id="site-nav">
                 <a href="{{ url('/about') }}"
                     class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">關於我們</a>
-                <a href="#" class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
+                <a href="{{ url('/news') }}" class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a>
                 <a href="{{ url('/products') }}" class="nav-link">產品</a>
                 <a href="{{ url('/contact') }}" class="nav-link">聯絡我們</a>
             </nav>
