@@ -1,299 +1,535 @@
-/* ==========================================================
- * File: public/css/about.css
- * Author: 專業網頁程式設計師 ChatGPT
- * Purpose: 關於我們頁面樣式（含品牌故事、我們的堅持、品牌願景）
- * Style Concept: 高質感 × 紙質底紋 × 柔光流線 × GSAP 平滑滾動整合
- * ========================================================== */
+/* about.css (2025 Professional Agency Style) */
 
-/* ===============================
-   全頁背景與主體結構
-   =============================== */
-.main-content {
-    position: relative; /* 讓此元素成為定位容器，供 ::before 絕對定位時參考 */
-    color: #333; /* 設定主要文字顏色為深灰色，比純黑柔和，提升閱讀舒適度 */
-    line-height: 1.6; /* 行距設定，讓文字段落更易閱讀、有呼吸感 */
-    background-color: #f8f4f0; /* 設定米色底色，作為紙張背景的基底色 */
-    background-image: linear-gradient(
-        180deg,
-        #f8f4f0 0%,
-        #f1ece6 100%
-    ); /* 加入由上至下的淡色漸層，模擬紙張的自然光影變化 */
+/* =========================================
+   1. Design System & Variables
+   ========================================= */
+:root {
+    /* 📐 佈局與間距 */
+    --container-width: 1440px;
+    --gutter: 24px;
+    --radius-sm: 8px;
+    --radius-lg: 32px;
+    --radius-pill: 100px;
+    /* 有機不規則圓角 (Organic Shapes) */
+    --radius-blob: 40% 60% 70% 30% / 40% 50% 60% 50%;
+
+    /* 🎢 動畫曲線 */
+    --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+    --shadow-soft: 0 20px 40px rgba(44, 36, 32, 0.08); /* 柔和的高級陰影 */
 }
 
-.main-content::before {
-    content: ""; /* 生成一個偽元素（空內容），作為額外的背景層 */
-    position: absolute; /* 絕對定位，讓偽元素能覆蓋在 main-content 上方 */
-    inset: 0; /* 等同 top:0; right:0; bottom:0; left:0; 完全覆蓋父層範圍 */
-    background-image: url("../images/paper-texture.jpg"); /* 使用皺紋紙圖片作為質感層 */
-    /* background-size: cover; 讓圖片自動等比例放大填滿整個區塊，不留邊緣 */
-    background-position: center; /* 將背景圖片置中，確保紋理分布均勻 */
-    background-repeat: auto; /* 不重複圖片，避免出現接縫或拼接痕跡 */
-    opacity: 0.45; /* 控制紙紋透明度，數值越低紙感越柔和 */
-    mix-blend-mode: multiply; /* 將紙紋與底色以「相乘模式」混合，產生自然陰影與質感 */
-    pointer-events: none; /* 停用滑鼠事件，確保偽元素不影響文字點擊或選取 */
+/* =========================================
+   2. Reset & Base Styles
+   ========================================= */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
-/* ===============================
-   Hero 區塊（保留原設計）
-   =============================== */
-.about-hero-section {
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: var(--c-bg);
+    color: var(--c-dark);
+    line-height: 1.7;
+    overflow-x: hidden; /* 防止橫向滾動 */
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    color: var(--c-dark);
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: 0.3s;
+}
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* 容器 (對齊的基礎) */
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
     position: relative;
-    aspect-ratio: 1920/530;
+}
+
+/* 💎 高級感細節：全域噪點紋理 (Texture) */
+.global-noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+}
+
+/* Utility Classes */
+.text-italic {
+    font-style: italic;
+    color: var(--c-primary);
+    font-family: var(--font-serif);
+}
+.section {
+    padding: clamp(80px, 10vw, 150px) 0;
+} /* 響應式 Padding */
+
+/* =========================================
+   3. HERO Section (雜誌級排版)
+   ========================================= */
+.hero {
+    position: relative;
+    min-height: 90svh; /* 使用 svh 避免手機版跳動 */
+    display: flex;
+    align-items: center;
+    padding-top: 80px;
     overflow: hidden;
-    background-color: #f8f4f0;
 }
 
-.hero-bg {
+.hero__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 左文右圖 */
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+}
+
+/* 文字區域 */
+.hero__content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero__meta {
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-left: 50px;
+    position: relative;
+}
+.hero__meta::before {
+    content: "";
     position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-image: url("../images/about-banner.jpg");
-    will-change: transform;
+    left: 0;
+    top: 50%;
+    width: 40px;
+    height: 1px;
+    background: var(--c-dark);
 }
 
-.hero-overlay {
+.hero__title {
+    font-size: clamp(3.5rem, 6vw, 6.5rem); /* 巨型字體 */
+    letter-spacing: -0.02em;
+    margin-bottom: 30px;
+    color: var(--c-dark);
+}
+
+/* 文字遮罩效果 */
+.line-mask {
+    display: block;
+    overflow: hidden;
+}
+
+.hero__desc {
+    font-size: 1.15rem;
+    color: var(--c-text-gray);
+    max-width: 480px;
+    margin-bottom: 50px;
+    line-height: 1.8;
+}
+
+/* 磁吸按鈕樣式 */
+.hero__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    position: relative;
+    padding: 10px 0;
+}
+.btn-circle {
+    width: 12px;
+    height: 12px;
+    background: var(--c-primary);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+.hero__btn:hover .btn-circle {
+    transform: scale(1.5);
+}
+
+/* 圖片區域 */
+.hero__visual {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.hero__img-mask {
+    width: 100%;
+    height: 75vh;
+    max-height: 800px;
+    overflow: hidden;
+    /* 2025 風格：有機不對稱切角 */
+    border-radius: 200px 200px 0 0;
+    box-shadow: var(--shadow-soft); /* 高級陰影 */
+}
+
+.hero__img {
+    width: 100%;
+    height: 120%; /* 為了視差預留 */
+    object-fit: cover;
+}
+
+/* 裝飾 SVG */
+.hero__deco {
+    position: absolute;
+    bottom: -40px;
+    left: -40px;
+    width: 140px;
+    height: 140px;
+    z-index: 3;
+}
+.hero__deco text {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* =========================================
+   5. Story Section (Z-Pattern Layout)
+   ========================================= */
+.story__grid {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.story__visual {
+    position: relative;
+}
+
+.img-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+}
+.img-frame img {
+    transition: transform 1.2s var(--ease-smooth);
+}
+.story__visual:hover img {
+    transform: scale(1.05);
+}
+
+/* 區塊標題設計 */
+.section-subtitle {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--c-primary);
+    margin-bottom: 15px;
+}
+.section-title {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+}
+.section-line {
+    width: 0;
+    height: 2px;
+    background: var(--c-primary);
+    margin: 30px 0;
+}
+
+.story__text p {
+    font-size: 1.1rem;
+    margin-bottom: 24px;
+    text-align: justify;
+    color: var(--c-text-gray);
+}
+
+.story__quote {
+    margin-top: 40px;
+    padding: 30px;
+    background: #fff;
+    border-left: 4px solid var(--c-primary);
+    font-size: 1.2rem;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--c-dark);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* =========================================
+   6. Parallax Banner
+   ========================================= */
+.parallax-banner {
+    position: relative;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #fff;
+    text-align: center;
+    background-size: cover;
+    background-position: 50% 50%; /* 初始位置 */
+    background-attachment: fixed; /* 讓背景固定，實現經典視差 */
+}
+.parallax-banner__overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.3);
-    mix-blend-mode: multiply;
+    z-index: 1;
 }
-
-.hero-content {
+.parallax-banner__content {
     position: relative;
     z-index: 2;
-    padding-top: 120px;
-    text-align: center;
-    color: #fff;
 }
-
-.hero-title {
-    font-size: 3.8rem;
+.parallax-title {
+    color: #fff;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: 20px;
+}
+.parallax-subtitle {
+    font-size: 1.2rem;
     letter-spacing: 1px;
-    text-shadow: 2px 3px 5px rgba(0, 0, 0, 0.4);
+    opacity: 0.9;
 }
 
-.hero-subtitle {
-    font-size: 1.4rem;
-    margin-top: 10px;
-}
-
-.btn-explore {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 12px 35px;
-    border-radius: 30px;
-    background: #fff;
-    color: #582a19;
-    font-weight: 600;
-    text-decoration: none;
-    transition: 0.3s ease;
-}
-
-.btn-explore:hover {
-    background: #582a19;
-    color: #fff;
-}
-
-/* ===============================
-   品牌故事
-   =============================== */
-.about-intro-section {
-    position: relative;
-    padding: 60px 0;
-    z-index: 0;
-    /* background-color: #f9f6f2; 奶茶色背景 */
-}
-
-/* .container 白色半透明遮罩背景 */
-.about-intro-section .container {
-    position: relative;
-    z-index: 1;
-    padding: 70px 60px;
-    border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-    overflow: hidden; /* 保證圓角遮罩生效 */
-}
-
-/* 偽元素遮罩在 container 背後 */
-.about-intro-section .container::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.4);
-    z-index: 0;
-    pointer-events: none;
-    border-radius: inherit;
-}
-
-/* 保持內容在遮罩上層 */
-.about-intro-section .container > * {
-    position: relative;
-    z-index: 1;
-}
-
-.about-intro-section .image-wrapper img {
-    width: 100%;
-    border-radius: 25px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.about-intro-section .text-content {
-    padding: 20px 30px;
-}
-
-.section-heading {
-    font-size: 2.6rem;
-    color: #582a19;
-    margin-bottom: 15px;
-}
-
-.section-subheading {
-    color: #777;
-    font-size: 1rem;
-    margin-bottom: 30px;
-}
-
-/* ===============================
-   我們的堅持（重新設計版）
-   =============================== */
-.about-values-section {
-    position: relative;
-    background: linear-gradient(to bottom right, #fdfaf7, #ffffff);
-    padding: 60px 0;
-    overflow: hidden;
-}
-
-.values-bg {
-    position: absolute;
-    inset: 0;
-    background: url("../images/values-bg.jpg") center/cover no-repeat;
-    opacity: 0.25;
-    filter: blur(8px);
-    z-index: 1;
-}
-
-.values-container {
-    position: relative;
-    z-index: 2;
+/* =========================================
+   7. Values & Ingredients
+   ========================================= */
+.center {
     text-align: center;
+    margin: 0 auto 60px;
+    max-width: 600px;
 }
 
-.values-scroll {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    flex-wrap: wrap;
+.values__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+.value-card {
+    padding: 40px 30px;
+    text-align: center;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03); /* 極淡陰影 */
+    transition: transform 0.4s ease;
+}
+.value-card:hover {
+    transform: translateY(-10px);
+}
+.value-num {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: rgba(176, 137, 104, 0.2);
+    margin-bottom: 10px;
+}
+.value-deco-line {
+    width: 40px;
+    height: 3px;
+    background: var(--c-primary);
+    margin: 20px auto 0;
+}
+
+/* =========================================
+   7. Ingredients (新區塊: 嚴選食材)
+   ========================================= */
+.section-ingredients {
+    background: var(--c-light); padding: var(--section-spacing) 0;
+    position: relative; overflow: hidden;
+}
+
+.ing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
     margin-top: 60px;
 }
 
-/* 新卡片風格 - 柔光反射 */
-.value-card {
-    flex: 0 0 320px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(15px) saturate(130%);
-    border-radius: 25px;
-    padding: 45px 30px;
+.ing-card { text-align: center; }
+.ing-img-box {
+    width: 100%; aspect-ratio: 1/1;
+    border-radius: 50%; /* 圓形 */
+    overflow: hidden; margin-bottom: 25px;
+    position: relative; border: 1px solid rgba(0,0,0,0.05);
+}
+.ing-img-box img {
+    width: 100%; height: 100%; transition: transform 0.6s var(--ease-out);
+}
+.ing-card:hover img { transform: scale(1.1); }
+
+.ing-title { font-size: 1.5rem; margin-bottom: 10px; color: var(--c-primary-dark); }
+.ing-desc { font-size: 0.95rem; color: #777; line-height: 1.6; }
+
+
+/* =========================================
+   8. CTA Section
+   ========================================= */
+.cta-section {
+    padding: 100px 0;
+}
+.cta-box {
     text-align: center;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    transform: translateY(50px);
-    opacity: 0;
-    transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 80px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.cta-title {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+.cta-actions {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
 }
 
-.value-item.visible .value-card {
-    transform: translateY(0);
-    opacity: 1;
+.btn-primary,
+.btn-outline {
+    padding: 18px 48px;
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    transition: 0.3s;
+    font-size: 1.1rem;
 }
-
-.value-card:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
-}
-
-.value-icon img {
-    width: 90px;
-    margin-bottom: 20px;
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.1));
-}
-
-.value-text h3 {
-    font-size: 1.4rem;
-    color: #582a19;
-    margin-bottom: 10px;
-}
-
-.value-text p {
-    font-size: 1rem;
-    color: #444;
-    line-height: 1.6;
-}
-
-/* ===============================
-   品牌願景
-   =============================== */
-.about-vision-section {
-    position: relative;
-    background: url("../images/vision-bg.jpg") center/cover no-repeat;
-    padding: 120px 0;
+.btn-primary {
+    background: var(--c-dark);
     color: #fff;
-    text-align: center;
+    border: 1px solid var(--c-dark);
+}
+.btn-primary:hover {
+    background: var(--c-primary);
+    border-color: var(--c-primary);
+}
+.btn-outline {
+    border: 1px solid var(--c-dark);
+    color: var(--c-dark);
+}
+.btn-outline:hover {
+    background: var(--c-dark);
+    color: #fff;
 }
 
-.about-vision-section::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(88, 42, 25, 0.45);
-}
 
-/* ===============================
-   響應式設計（RWD）
-   =============================== */
-@media (max-width: 992px) {
-    .hero-title {
-        font-size: 2.8rem;
+/* =========================================
+   9. RWD (Responsive Design)
+   ========================================= */
+/* Tablet & Small Desktop (Max 1024px) */
+@media (max-width: 1024px) {
+    .hero__layout {
+        grid-template-columns: 1fr;
+        gap: 50px;
     }
-    .values-scroll {
-        flex-direction: column;
-        align-items: center;
+    .hero__content {
+        order: 2;
+        padding: 0;
+        text-align: center;
     }
-    .value-card {
-        width: 80%;
+    .hero__meta {
+        padding-left: 0;
+    }
+    .hero__meta::before {
+        display: none;
+    }
+    .hero__visual {
+        height: 50vh;
+        order: 1;
+    }
+    .hero__img-mask {
+        border-radius: 0 0 100px 100px;
+        height: 100%;
+    }
+
+    .story__grid {
+        grid-template-columns: 1fr;
+    }
+    .story__visual {
+        order: -1;
         margin-bottom: 40px;
     }
-    .about-hero-section {
-        position: relative;
-        aspect-ratio: 800/530;
-        overflow: hidden;
-        background-color: #f8f4f0;
+
+    .ingredients__layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
     }
 }
 
-@media (max-width: 576px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-    .value-icon img {
-        width: 80px;
-    }
-}
-
-/* 響應式設計：手機版排版調整為上下排列 */
+/* Mobile (Max 768px) */
 @media (max-width: 768px) {
-    .about-intro-section .row {
+    .section {
+        padding: 80px 0;
+    }
+    .hero__title {
+        font-size: 3rem;
+    }
+    .values__grid,
+    .ingredients__gallery {
+        grid-template-columns: 1fr;
+    }
+    .cta-actions {
         flex-direction: column;
     }
-
-    .about-intro-section .image-wrapper {
-        margin-bottom: 30px;
+    .parallax-title {
+        font-size: 2.2rem;
     }
+    .hero__deco {
+        display: none;
+    } /* 手機版隱藏裝飾以節省空間 */
+}
 
-    .about-intro-section .text-content {
-        padding: 0 15px;
-    }
+/* 麵包屑 */
+.breadcrumb {
+    padding: 20px 0;
+    font-size: 0.9rem;
+    color: #888;
+    border-bottom: 1px solid #eee;
+}
+.breadcrumb ol {
+    display: flex;
+    gap: 10px;
+}
+.breadcrumb li + li::before {
+    content: "/";
+    margin-right: 10px;
 }
