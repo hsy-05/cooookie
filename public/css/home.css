@@ -1,0 +1,299 @@
+/* =========================================
+   5. Hero Slider
+   ========================================= */
+.hero-slider {
+    position: relative; width: 100%; height: 100vh; min-height: 700px; overflow: hidden;
+}
+.swiper-slide { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+.banner-bg-img {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; transform: scale(1.1); transition: transform 8s ease-out;
+}
+.swiper-slide-active .banner-bg-img { transform: scale(1); }
+
+.banner-content-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+}
+.banner-text-container {
+    text-align: center; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.banner-main-title {
+    font-size: clamp(4rem, 10vw, 8rem); font-weight: 600; letter-spacing: -0.02em;
+    font-family: var(--font-serif);color: var(--c-light);
+    margin-bottom: 20px; opacity: 0; transform: translateY(50px);
+}
+.banner-sub-title {
+    font-size: 1.2rem; letter-spacing: 0.2em; text-transform: uppercase;
+    opacity: 0; transform: translateY(30px);
+}
+.swiper-pagination-bullet {
+    width: 40px; height: 3px; background: #fff; border-radius: 0; opacity: 0.4; transition: 0.3s;
+}
+.swiper-pagination-bullet-active { opacity: 1; height: 4px; }
+
+
+@media (max-width: 768px) {
+    .banner-main-title { font-size: 3.5rem; }
+}
+
+/* =========================================
+   3. Intro Section: 品牌理念
+   ========================================= */
+.section-intro { padding: var(--section-spacing) 0; position: relative; }
+.intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center; }
+.intro-img-wrap {
+    position: relative; border-radius: 200px 200px 0 0; overflow: hidden;
+    box-shadow: 30px 30px 0 var(--c-light);
+}
+.intro-img { width: 100%; height: auto; display: block; transform: scale(1.2); }
+.intro-text { padding-right: 20px; position: relative; z-index: 2; }
+.intro-desc { color: #666; font-size: 1.1rem; margin-bottom: 40px; text-align: justify; }
+
+
+/* --------------  RWD  -------------- */
+@media (max-width: 1024px) {
+    .intro-grid { grid-template-columns: 1fr; gap: 50px; }
+    .intro-img-wrap { order: -1; }
+}
+
+
+/* =========================================
+   9. Latest News (Swiper Slider - Magazine Style)
+   ========================================= */
+.section-news {
+    padding: var(--section-spacing) 0;
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--c-bg) 0%, var(--c-light) 100%);
+}
+
+.news-swiper {
+    padding-bottom: 40px; overflow: visible;
+}
+
+/* 新聞卡片設計 */
+.news-card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--c-surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%; /* 確保同高 */
+    transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+    position: relative;
+}
+
+.news-img-box {
+    position: relative; height: 240px; overflow: hidden;
+}
+
+.news-img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.8s var(--ease-smooth);
+}
+
+/* 日期標籤 (浮動) */
+.news-date {
+    position: absolute; top: 15px; left: 15px;
+    background: var(--c-surface); padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem; font-weight: 700; color: var(--c-primary);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.news-content {
+    padding: 30px; display: flex; flex-direction: column;
+}
+
+.news-title {
+    font-size: 1.35rem; margin-bottom: 15px; line-height: 1.4;
+    font-family: var(--font-serif); color: var(--c-secondary);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    transition: color 0.3s;
+}
+
+.news-excerpt {
+    font-size: 0.95rem; color: #666; margin-bottom: 25px; line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* 閱讀更多 (箭頭互動) */
+.news-btn {
+    margin-top: auto; display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.9rem; font-weight: 600; color: var(--c-primary);
+    transition: gap 0.3s ease;
+}
+.news-btn svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+
+/* Hover Effects */
+.news-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+.news-card:hover .news-img { transform: scale(1.1); }
+.news-card:hover .news-title { color: var(--c-primary); }
+.news-card:hover .news-btn { gap: 12px; }
+.news-card:hover .news-btn svg { transform: translateX(3px); }
+
+/* 新聞區專屬導航按鈕 (置右下或與標題並排，這裡採置中) */
+.news-nav {
+    display: flex; justify-content: center; gap: 20px; margin-top: 40px;
+}
+
+
+/* 裝飾元素定位 */
+.deco-shape--news-1 { top: 15%; right: 8%; width: 200px; height: 200px; }
+.deco-shape--news-2 { bottom: 10%; left: 5%; width: 180px; height: 180px; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+.deco-shape--news-3 { top: 60%; right: 20%; width: 120px; height: 120px; }
+
+/* 響應式調整 */
+@media (max-width: 1024px) {
+    .news-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .news-swiper { padding-right: 40px; }
+}
+
+@media (max-width: 768px) {
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .news-img-box {
+        height: 220px;
+    }
+
+    /* 隱藏部分裝飾避免擁擠 */
+    .deco-shape--news-2 {
+        display: none;
+    }
+}
+
+/* =========================================
+   7. Product Categories (Swiper Slider - Luxury Style)
+   ========================================= */
+
+/* 產品分類區域 */
+.section-categories {
+    padding: var(--section-spacing) 0; /* 設定上下內邊距，使用自定義變數(--section-spacing)，方便統一調整 */
+    background: linear-gradient(to bottom, var(--c-bg) 0%, var(--c-light) 100%); /* 背景設為漸變色，從 --c-bg 顏色到 --c-light 顏色 */
+    position: relative; /* 設定相對定位，這樣子元素可以使用絕對定位 */
+    overflow: hidden; /* 隱藏超出容器範圍的內容，保持整潔 */
+}
+
+/* Swiper 容器內的分類項目 */
+.category-swiper {
+    padding: 20px 20px 60px 20px; /* 設定 Swiper 容器的內邊距，上、左、右邊距為 20px，下邊距為 60px，給下方預留陰影空間 */
+    overflow: visible; /* 讓陰影效果不會被裁切，保持陰影完整 */
+}
+
+/* 卡片設計 - 高級櫥窗感 */
+.cat-card {
+    display: block; /* 設定為區塊元素，確保每個卡片都在新行顯示 */
+    position: relative; /* 設定相對定位，便於內部元素（如圖片）進行絕對定位 */
+    background: transparent; /* 設定背景為透明，保留其他樣式 */
+    transition: transform 0.4s var(--ease-out); /* 設定變形過渡效果，0.4秒內完成 */
+}
+
+/* 卡片圖片區域 */
+.cat-img-box {
+    position: relative; /* 設定為相對定位，便於內部元素的定位 */
+    width: 100%; /* 設定圖片區域寬度為 100%（容器寬度） */
+    aspect-ratio: 4/3; /* 設定圖片區域的長寬比為 4:3，這是一種常見的長方形比例 */
+    border-radius: var(--radius-arch); /* 設定圓角，使用自定義變數(--radius-arch)，使得圖片區域上下圓拱形 */
+    overflow: hidden; /* 隱藏超出容器範圍的圖片部分，保持卡片整潔 */
+    margin-bottom: 20px; /* 設定圖片和文字區域之間的間距，增加層次感 */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); /* 設定輕微的陰影效果，模擬高級感 */
+    transition: box-shadow 0.4s ease; /* 設定陰影變化的過渡效果 */
+}
+
+/* 圖片的顯示樣式 */
+.cat-img {
+    width: 100%; /* 設定圖片寬度為 100%（容器寬度） */
+    height: 100%; /* 設定圖片高度為 100%（容器高度） */
+    object-fit: cover; /* 使圖片在容器內保持比例，並且填滿容器，避免拉伸變形 */
+    transition: transform 0.8s var(--ease-smooth); /* 設定圖片的放大過渡效果，時間 0.8秒 */
+}
+
+/* 懸停效果：圖片放大 + 陰影加深 */
+.cat-card:hover .cat-img-box {
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12); /* 當卡片懸停時，陰影加深，提升立體感 */
+}
+
+.cat-card:hover .cat-img {
+    transform: scale(1.1); /* 當卡片懸停時，圖片放大 1.1 倍，突出顯示 */
+}
+
+/* 資訊區域：標題與副標題 */
+.cat-info {
+    text-align: center; /* 設定文字置中 */
+    position: relative; /* 設定為相對定位，便於內部元素的定位 */
+}
+
+/* 卡片標題 */
+.cat-title {
+    font-size: 1.6rem; /* 設定標題字型大小為 1.6rem，保持可讀性 */
+    margin-bottom: 5px; /* 設定標題和副標題之間的間距 */
+    color: var(--c-secondary); /* 設定標題文字顏色，使用自定義變數(--c-secondary) */
+    font-family: var(--font-serif); /* 設定字型為 serif，增強傳統高級感 */
+    letter-spacing: 0.02em; /* 設定字母間距，增加字體的空氣感 */
+    transition: color 0.3s; /* 設定顏色過渡效果，懸停時顏色變化 */
+}
+
+/* 卡片副標題 */
+.cat-subtitle {
+    font-size: 0.9rem; /* 設定副標題字型大小為 0.9rem，較小的字體 */
+    color: #888; /* 設定副標題顏色為淺灰色，保持簡潔 */
+    text-transform: uppercase; /* 將副標題文字轉換為大寫，提升現代感 */
+    letter-spacing: 1px; /* 設定字母間距，增強文字的可讀性 */
+    font-family: var(--font-sans); /* 設定字型為 sans-serif，更現代化 */
+}
+
+/* Hover：標題顏色變化 */
+.cat-card:hover .cat-title {
+    color: var(--c-primary); /* 當卡片懸停時，標題顏色變為主色(--c-primary)，突出顯示 */
+}
+
+/* 分類區專屬導航按鈕 (置中對齊) */
+.category-nav {
+    display: flex; /* 使用 Flexbox 佈局，讓元素排列更靈活 */
+    justify-content: center; /* 讓導航按鈕在水平方向上置中 */
+    gap: 20px; /* 設定導航按鈕之間的間距 */
+    margin-top: 40px; /* 設定導航區的上邊距，與其他區域保持距離 */
+}
+
+/* =========================================
+   Process Section: 製作工藝
+   ========================================= */
+.section-process { padding: var(--section-spacing) 0; overflow: hidden; position: relative;
+    background:  var(--c-light); }
+.process-steps {
+    display: flex; justify-content: space-between; position: relative; max-width: 1200px; margin: 0 auto; z-index: 2;
+}
+.process-line {
+    position: absolute; top: 30px; left: 0; width: 100%; height: 1px; background: #e0e0e0; z-index: 0;
+}
+.process-line-fill {
+    position: absolute; top: 30px; left: 0; height: 1px; background: var(--c-primary);
+    width: 0; z-index: 0; transition: width 1.5s ease-out;
+}
+.process-step { position: relative; z-index: 1; flex: 1; text-align: center; padding: 0 20px; opacity: 0; transform: translateY(30px); }
+.step-icon-box {
+    width: 60px; height: 60px; margin: 0 auto 30px; background: var(--c-bg);
+    border: 1px solid var(--c-primary); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: var(--c-primary); transition: 0.4s;
+}
+.process-step:hover .step-icon-box { background: var(--c-primary); color: #fff; transform: scale(1.1); }
+.step-title { font-size: 1.2rem; margin-bottom: 10px; }
+.step-desc { font-size: 0.9rem; color: #777; }
+
+
+/* --------------  RWD  -------------- */
+@media (max-width: 768px) {
+    .process-step { flex-direction: column !important; display: flex; align-items: center; justify-content: center;  }
+    .process-steps { flex-direction: column; gap: 40px; }
+    .process-line, .process-line-fill { display: none; }
+    .step-icon-box { margin-bottom: 15px; }
+}

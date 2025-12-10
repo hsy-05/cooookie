@@ -1,45 +1,98 @@
 @extends('frontend.layouts.app')
 
-@section('title', $desc->title ?? '消息內文')
+@section('title', '春季限定：櫻花鹽漬奶油餅乾｜最新消息')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/news.css') }}">
+@endpush
 
 @section('content')
-  <div class="news-list-container"> {{-- 使用相同的容器樣式 --}}
-    <div class="row">
-      <div class="col-md-8">
-        <h2 class="mb-3" data-aos="fade-right">{{ $desc->title ?? '' }}</h2>
-        <p class="text-muted mb-4" data-aos="fade-right" data-aos-delay="100">{{ $news->created_at->format('Y-m-d') }}</p>
 
-        @if($news->image)
-          <img src="{{ asset('storage/' . $news->image) }}" class="img-fluid mb-4 rounded" alt="{{ $desc->title }}" data-aos="zoom-in">
-        @endif
-
-        <article class="content" data-aos="fade-up">
-          {{-- 假設 content 包含 HTML（從 DB 來），直接輸出 --}}
-          {!! $desc->content ?? '' !!}
-        </article>
-
-        <div class="mt-5" data-aos="fade-up" data-aos-delay="200">
-          <a href="{{ route('news.index') }}" class="btn btn-outline-secondary">返回列表</a>
-        </div>
-      </div>
-
-      <aside class="col-md-4 news-sidebar mt-4 mt-md-0"> {{-- 使用 news-sidebar 樣式 --}}
-        @php
-          $recent = \App\Models\News::where('is_visible',1)->latest()->limit(5)->get();
-        @endphp
-        <div class="card">
-          <div class="card-body">
-            <h6 class="card-title">最新消息</h6>
-            @foreach($recent as $r)
-              @php $rd = $r->descs->firstWhere('lang_id',$desc->lang_id) ?: $r->descs->first(); @endphp
-              <div class="mb-2" data-aos="fade-left" data-aos-delay="{{ $loop->index * 100 }}">
-                <a href="{{ route('news.show',$r->news_id) }}">{{ $rd->title ?? '' }}</a>
-                <div class="text-muted small">{{ $r->created_at->format('Y-m-d') }}</div>
-              </div>
-            @endforeach
-          </div>
-        </div>
-      </aside>
+{{-- ▬▬▬ 1. 橫幅 ▬▬▬ --}}
+<section class="page-banner">
+    <div class="banner-img-wrap">
+        <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?q=80&w=1920"
+             alt="News Banner" class="banner-img js-parallax-img">
     </div>
-  </div>
+    <div class="banner-txt">
+        <h1 class="banner-title js-fade-up">最新消息</h1>
+        <p class="banner-subtitle js-fade-up">NEWS DETAIL</p>
+    </div>
+</section>
+
+{{-- ▬▬▬ 2. 麵包屑 ▬▬▬ --}}
+<nav class="breadcrumb container js-fade-up">
+    <a href="/">首頁</a>
+    <span>›</span>
+    <a href="{{ url('/news') }}">最新消息</a>
+    <span>›</span>
+    <span>春季限定：櫻花鹽漬奶油餅乾</span>
+</nav>
+
+{{-- ▬▬▬ 3. 文章內容 ▬▬▬ --}}
+<article class="article-section">
+    <div class="container article-container">
+
+        <header class="article-header js-fade-up">
+            <div class="article-meta">
+                <span class="meta-cat">新品上市</span>
+                <span class="meta-date">2025.03.15</span>
+            </div>
+            <h1 class="article-title">春季限定：櫻花鹽漬奶油餅乾，浪漫登場</h1>
+        </header>
+
+        {{-- Summernote 內容 --}}
+        <div class="editor-content js-fade-up">
+            <p>當時序進入三月，微風中開始帶有淡淡的花香...</p>
+            <p>我們嚴選日本神奈川縣的八重櫻，搭配法國伊思尼奶油...</p>
+
+            <img src="https://images.unsplash.com/photo-1525151497928-85aa9c792131?q=80&w=1000"
+                 alt="櫻花餅乾製作過程">
+
+            <h3>職人手作的堅持</h3>
+            <p>每一朵櫻花都由師傅親手挑選、清洗...</p>
+
+            <ul>
+                <li><strong>食材：</strong>日本八重櫻、伊思尼奶油、鑽石麵粉。</li>
+                <li><strong>保存：</strong>常溫 21 天。</li>
+                <li><strong>販售期間：</strong>即日起至 4/30。</li>
+            </ul>
+        </div>
+
+        {{-- 上下篇 --}}
+        <div class="article-nav js-fade-up">
+            <div class="nav-item prev">
+                <span class="nav-label">PREVIOUS</span>
+                <a href="#">台北信義新天地快閃店</a>
+            </div>
+            <div class="nav-item next">
+                <span class="nav-label">NEXT</span>
+                <a href="#">無其他文章</a>
+            </div>
+        </div>
+
+        <a href="{{ url('/news') }}" class="back-list-btn js-fade-up">返回列表</a>
+    </div>
+</article>
+
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to(".js-parallax-img", {
+        yPercent: 20, ease: "none",
+        scrollTrigger: { trigger: ".page-banner", start: "top top", end: "bottom top", scrub: true }
+    });
+
+    gsap.utils.toArray('.js-fade-up').forEach(el => {
+        gsap.fromTo(el, { y: 30, opacity: 0 }, {
+            y: 0, opacity: 1, duration: 0.8, ease: "power2.out",
+            scrollTrigger: { trigger: el, start: "top 85%" }
+        });
+    });
+});
+</script>
+@endpush

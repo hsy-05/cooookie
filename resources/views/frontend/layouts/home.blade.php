@@ -2,6 +2,10 @@
 
 @section('title', '首頁')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+@endpush
+
 @section('content')
 
     {{-- 1. Hero Section: 輪播 + 視差文字 --}}
@@ -127,7 +131,10 @@
 
     {{-- 5. Product Category : 產品系列 --}}
     <section class="section-categories">
-        <div class="deco-shape deco-shape--blob js-rotate-anim" style="top: 10%; left: -5%; width: 300px; height: 300px;"></div>
+        {{-- 裝飾元素 - 符合整體設計語系 --}}
+        <div class="deco-shape deco-shape--prod-1 js-float-anim"></div>
+        <div class="deco-shape deco-shape--prod-2 js-rotate-anim"></div>
+        <div class="deco-shape deco-shape--prod-3 js-float-anim"></div>
         <div class="container">
             <div class="section-header">
                 <span class="section-tag js-fade-up">EXPLORE COLLECTIONS</span>
