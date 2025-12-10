@@ -91,6 +91,7 @@
 
         {{-- ▬ 分頁 ▬ --}}
         <div class="pagination-wrap js-fade-up">
+            <a href="#" class="page-btn">&larr;</a>
             <a href="#" class="page-btn active">1</a>
             <a href="#" class="page-btn">2</a>
             <a href="#" class="page-btn">3</a>

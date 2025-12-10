@@ -8,6 +8,7 @@ use App\Models\News;
 use App\Models\NewsDesc;
 use App\Models\NewsCategory;
 use App\Models\Language;
+use Illuminate\Support\Facades\DB;
 use App\Helpers\ContentHelper;
 use App\Helpers\ImageHelper;
 use App\Http\Controllers\Admin\BaseAdminController;
@@ -83,7 +84,6 @@ class NewsController extends BaseAdminController
                 // 3. 儲存處理後的圖片
                 ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
                 $imagePath = $fullPath;
-
             } catch (\Exception $e) {
                 // 圖片處理或儲存失敗，可以記錄日誌或返回錯誤訊息
                 return redirect()->back()->withInput()->with('error', '圖片處理或儲存失敗: ' . $e->getMessage());
@@ -150,77 +150,84 @@ class NewsController extends BaseAdminController
             'is_visible' => 'nullable|boolean',
             'display_order' => 'nullable|integer',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'desc' => 'nullable|array',
         ]);
 
-        // 圖片處理（若有新圖，存新圖並刪舊圖）
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $saveDir = 'news'; // 儲存子目錄
+        DB::beginTransaction();
+        try {
+            // 圖片處理
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $saveDir = 'news';
 
-            try {
-                // 1. 刪除舊圖
-                ImageHelper::deleteImage($news->image, 'public');
-
-                // 2. 處理圖片 (裁切/縮圖)
-                $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
-
-                // 3. 生成唯一檔名
-                $filename = ImageHelper::generateUniqueFilename($file);
-                $fullPath = $saveDir . '/' . $filename;
-
-                // 4. 儲存處理後的圖片
-                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
-                $news->image = $fullPath;
-
-            } catch (\Exception $e) {
-                return redirect()->back()->withInput()->with('error', '圖片處理或儲存失敗: ' . $e->getMessage());
-            }
-        }
-
-        // 更新主表
-        $news->cat_id = $request->cat_id;
-        $news->is_visible = $request->is_visible ?? true;
-        $news->display_order = $request->display_order ?? 0;
-        $news->save();
-
-        // 更新 desc：若存在則 update，否則 create；前端傳 desc[lang_id]
-        if ($request->has('desc') && is_array($request->desc)) {
-            foreach ($request->desc as $lang_id => $desc) {
-                $existing = NewsDesc::where('news_id', $news->news_id)
-                    ->where('lang_id', $lang_id)
-                    ->first();
-                if ($existing) {
-                    $existing->update([
-                        'title' => $desc['title'] ?? '',
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
-                    ]);
-                } else {
-                    if (!empty($desc['title'])) {
-                        NewsDesc::create([
-                            'news_id' => $news->news_id,
-                            'lang_id' => $lang_id,
-                            'title' => $desc['title'],
-                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
-                        ]);
-                    }
+                try {
+                    ImageHelper::deleteImage($news->image, 'public');
+                    $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
+                    $filename = ImageHelper::generateUniqueFilename($file);
+                    $fullPath = $saveDir . '/' . $filename;
+                    ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
+                    $news->image = $fullPath;
+                } catch (\Throwable $e) {
+                    return redirect()->back()->withInput()->with('error', '圖片處理失敗: ' . $e->getMessage());
                 }
             }
+
+            // 更新主表
+            $news->update([
+                'cat_id' => $request->cat_id,
+                'is_visible' => $request->is_visible ?? true,
+                'display_order' => $request->display_order ?? 0,
+            ]);
+
+            // 更新 desc
+            if ($request->filled('desc')) {
+                foreach ($request->desc as $lang_id => $desc) {
+                    if (empty($desc['title'])) {
+                        DB::table('news_desc')->where('news_id', $news->news_id)->where('lang_id', $lang_id)->delete();
+                        continue;
+                    }
+
+                    DB::table('news_desc')->updateOrInsert(
+                        ['news_id' => $news->news_id, 'lang_id' => $lang_id],
+                        [
+                            'title' => $desc['title'],
+                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                            'updated_at' => now(),
+                            'created_at' => now(),
+                        ]
+                    );
+                }
+            }
+
+            DB::commit();
+
+            ContentHelper::showMsg(
+                0,
+                '編輯操作完成',
+                [
+                    ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
+                    ['text' => '返回列表', 'href' => route('admin.news.index')],
+                ],
+                true
+            );
+
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            ContentHelper::showMsg(
+                1, // 1 = 錯誤訊息
+                '更新失敗：' . $e->getMessage(),
+                [
+                    ['text' => '返回編輯', 'href' => route('admin.news.edit', $news->news_id)],
+                    ['text' => '返回列表', 'href' => route('admin.news.index')],
+                ],
+                false // 失敗不自動跳轉，讓使用者選擇
+            );
+
+            return redirect()->back()->withInput();
         }
-
-        // 儲存成功後
-        ContentHelper::showMsg(
-            0,
-            '編輯操作完成',
-            [
-                ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
-                ['text' => '返回列表', 'href' => route('admin.news.index')],
-            ],
-            true // 是否自動跳轉
-        );
-
-
-        return redirect()->back();
     }
+
 
     // 刪除
     public function destroy(News $news)

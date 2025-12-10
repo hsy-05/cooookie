@@ -8,6 +8,7 @@ use App\Models\NewsCategory;
 use App\Models\NewsCategoryDesc;
 use App\Models\Language;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ContentHelper;
 
 class NewsCategoryController extends Controller
 {
@@ -109,10 +110,11 @@ class NewsCategoryController extends Controller
     }
 
     /**
-     * 更新：包含 upsert 多語系 desc（使用 updateOrInsert，因 desc 表沒有 id）
+     * 更新
      */
     public function update(Request $request, NewsCategory $news_category)
     {
+        // 1️⃣ 驗證輸入
         $request->validate([
             'parent_id' => 'nullable|exists:news_category,cat_id',
             'is_visible' => 'nullable|boolean',
@@ -120,9 +122,11 @@ class NewsCategoryController extends Controller
             'desc' => 'required|array',
         ]);
 
+        // 2️⃣ 開啟資料庫交易
         DB::beginTransaction();
+
         try {
-            // 更新主表
+            // 3️⃣ 更新主表
             $news_category->update([
                 'parent_id' => $request->parent_id ?: null,
                 'parent_ids' => $news_category->parent_ids, // 若要 rebuild 可自行實作
@@ -131,34 +135,68 @@ class NewsCategoryController extends Controller
                 'display_order' => $request->display_order ?? 0,
             ]);
 
-            // upsert 每個語系
+            // 4️⃣ 更新或插入每個語系的描述
             foreach ($request->input('desc') as $langId => $desc) {
-                // if name empty -> delete existing translation (可選)
+
+                // 若名稱為空，刪除現有翻譯
                 if (empty($desc['name'])) {
-                    DB::table('news_category_desc')->where('cat_id', $news_category->cat_id)->where('lang_id', $langId)->delete();
+                    DB::table('news_category_desc')
+                        ->where('cat_id', $news_category->cat_id)
+                        ->where('lang_id', $langId)
+                        ->delete();
                     continue;
                 }
 
-                // updateOrInsert: 若存在 (cat_id, lang_id) 則更新，否則插入
+                // updateOrInsert: 若存在則更新，否則插入
                 DB::table('news_category_desc')->updateOrInsert(
-                    ['cat_id' => $news_category->cat_id, 'lang_id' => (int)$langId],
+                    [
+                        'cat_id' => $news_category->cat_id,
+                        'lang_id' => (int)$langId
+                    ],
                     [
                         'name' => $desc['name'],
                         'description' => $desc['description'] ?? null,
                         'content' => $desc['content'] ?? null,
                         'updated_at' => now(),
-                        'created_at' => now(), // 若 updating 會忽略 created_at
+                        'created_at' => now(), // 若更新則忽略 created_at
                     ]
                 );
             }
 
+            // 5️⃣ 提交交易，變更正式寫入資料庫
             DB::commit();
-            return redirect()->route('admin.news_category.index')->with('success', '分類更新成功');
+
+            // 6️⃣ 顯示成功訊息
+            ContentHelper::showMsg(
+                0, // 0 = 成功訊息
+                '編輯操作完成',
+                [
+                    ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $news_category->cat_id)],
+                    ['text' => '返回列表', 'href' => route('admin.news_category.index')],
+                ],
+                true // 自動跳轉
+            );
+
+            return redirect()->back();
         } catch (\Throwable $e) {
+            // 7️⃣ 發生錯誤 → 回滾交易，撤銷所有變更
             DB::rollBack();
-            return back()->withInput()->with('error', '更新失敗：' . $e->getMessage());
+
+            // 8️⃣ 顯示錯誤訊息
+            ContentHelper::showMsg(
+                1, // 1 = 錯誤訊息
+                '更新失敗：' . $e->getMessage(),
+                [
+                    ['text' => '返回編輯', 'href' => route('admin.news_category.edit', $news_category->cat_id)],
+                    ['text' => '返回列表', 'href' => route('admin.news_category.index')],
+                ],
+                false // 不自動跳轉，讓使用者選擇
+            );
+
+            return redirect()->back()->withInput();
         }
     }
+
 
     /**
      * 刪除：同時刪除 news_category_desc（因外鍵 cascade 已處理）
