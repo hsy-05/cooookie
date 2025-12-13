@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', '消息管理')
+@section('title', '產品管理')
 
 @section('content_header')
-    <h1>消息管理</h1>
+    <h1>產品管理</h1>
 @stop
 
 @section('content')
@@ -11,14 +11,14 @@
     <x-admin.page-message>
         <div class="d-flex justify-content-between align-items-center mb-3">
             {{-- 搜尋表單 --}}
-            <form action="{{ route('admin.news.index') }}" method="GET" class="form-inline">
+            <form action="{{ route('admin.product.index') }}" method="GET" class="form-inline">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" placeholder="搜尋標題..." value="{{ $search ?? '' }}">
                     <div class="input-group-append">
                         <button class="btn btn-success" type="submit">搜尋</button>
                         {{-- 如果有搜尋關鍵字，顯示清除按鈕 --}}
                         @if ($search)
-                            <a href="{{ route('admin.news.index', request()->except('search', 'page')) }}"
+                            <a href="{{ route('admin.product.index', request()->except('search', 'page')) }}"
                                 class="btn btn-light">清除</a>
                         @endif
                     </div>
@@ -29,8 +29,8 @@
                 @endforeach
             </form>
 
-            {{-- 新增消息按鈕 --}}
-            <a href="{{ route('admin.news.create') }}" class="btn btn-primary">新增消息</a>
+            {{-- 新增產品按鈕 --}}
+            <a href="{{ route('admin.product.create') }}" class="btn btn-primary">新增產品</a>
         </div>
 
         <table class="table table-bordered table-striped">
@@ -45,7 +45,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($newsList as $item)
+                @forelse ($productList as $item)
                     {{-- 使用 @forelse 處理無資料情況 --}}
                     <tr>
                         {{-- 確保顯示多語系標題，如果沒有則顯示 '--' --}}
@@ -62,17 +62,17 @@
                             {{-- AdminLTE Custom Switch Element --}}
                             <div class="custom-control custom-switch">
                                 <input type="checkbox" class="custom-control-input toggle-boolean-switch"
-                                    id="newsSwitch{{ $item->news_id }}" data-id="{{ $item->news_id }}" data-model="News"
+                                    id="productSwitch{{ $item->product_id }}" data-id="{{ $item->product_id }}" data-model="product"
                                     {{-- 指定模型名稱 --}} data-field="is_visible" {{-- 指定要更新的欄位 --}}
                                     {{ $item->is_visible ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="newsSwitch{{ $item->news_id }}"></label>
+                                <label class="custom-control-label" for="productSwitch{{ $item->product_id }}"></label>
                             </div>
                         </td>
                         <td>{{ $item->display_order }}</td>
                         <td>{{ $item->created_at->format('Y-m-d H:i') }}</td>
                         <td>
-                            <a href="{{ route('admin.news.edit', $item->news_id) }}" class="btn btn-sm btn-warning">編輯</a>
-                            <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
+                            <a href="{{ route('admin.product.edit', $item->product_id) }}" class="btn btn-sm btn-warning">編輯</a>
+                            <form action="{{ route('admin.product.destroy', $item->product_id) }}" method="POST"
                                 style="display:inline-block;" onsubmit="return confirm('確定要刪除嗎？')"> {{-- 傳統的 JS confirm 提示 --}}
                                 @csrf
                                 @method('DELETE')
@@ -110,14 +110,14 @@
 
             {{-- 總頁數等資訊 --}}
             <div>
-                總計 {{ $newsList->total() }} 筆記錄，分 {{ $newsList->lastPage() }} 頁，目前第 {{ $newsList->currentPage() }} 頁
+                總計 {{ $productList->total() }} 筆記錄，分 {{ $productList->lastPage() }} 頁，目前第 {{ $productList->currentPage() }} 頁
             </div>
         </div>
 
         {{-- 分頁按鈕獨立一行 --}}
         <div class="d-flex justify-content-center mt-3">
             {{-- appends() 方法用於將當前請求的所有查詢參數（包括搜尋關鍵字和 per_page）添加到分頁連結中 --}}
-            {{ $newsList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
+            {{ $productList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
         </div>
     </x-admin.page-message>
 @stop

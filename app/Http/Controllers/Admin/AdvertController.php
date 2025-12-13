@@ -329,11 +329,15 @@ class AdvertController extends BaseAdminController
     // 刪除
     public function destroy(Advert $advert)
     {
-        // 刪除桌面版圖片檔案
-        ImageHelper::deleteImage($advert->adv_img_url, 'public');
+        if (!empty($advert->adv_img_url)) {
+            // 刪除桌面版圖片檔案
+            ImageHelper::deleteImage($advert->adv_img_url, 'public');
+        }
 
-        // 刪除行動版圖片檔案
-        ImageHelper::deleteImage($advert->adv_img_m_url, 'public');
+        if (!empty($advert->adv_img_m_url)) {
+            // 刪除行動版圖片檔案
+            ImageHelper::deleteImage($advert->adv_img_m_url, 'public');
+        }
 
         $advert->delete();
 

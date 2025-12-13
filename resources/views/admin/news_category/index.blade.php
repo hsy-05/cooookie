@@ -7,49 +7,53 @@
 @stop
 
 @section('content')
-    <div class="text-right">
-        <a href="{{ route('admin.news_category.create') }}" class="btn btn-primary mb-3">新增分類</a>
-    </div>
+    {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
+    <x-admin.page-message>
+        <div class="text-right">
+            <a href="{{ route('admin.news_category.create') }}" class="btn btn-primary mb-3">新增分類</a>
+        </div>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>cat_id</th>
-                <th>名稱 (各語系)</th>
-                <th>是否顯示</th>
-                <th>排序</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($category as $cat)
+        <table class="table table-bordered table-striped">
+            <thead>
                 <tr>
-                    <td>{{ $cat->cat_id }}</td>
-                    <td>
-                        @foreach ($cat->descs as $d)
-                            <div><strong>[{{ $d->lang_id }}]</strong> {{ $d->name }}</div>
-                        @endforeach
-                    </td>
-                    <td>{{ $cat->is_visible ? '是' : '否' }}</td>
-                    <td>{{ $cat->display_order }}</td>
-                    <td>
-                        <a href="{{ route('admin.news_category.show', $cat->cat_id) }}" class="btn btn-sm btn-info">查看</a>
-                        <a href="{{ route('admin.news_category.edit', $cat->cat_id) }}" class="btn btn-sm btn-warning">編輯</a>
-                        <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST"
-                            style="display:inline" onsubmit="return confirm('確定刪除？')">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger">刪除</button>
-                        </form>
-                    </td>
+                    <th>cat_id</th>
+                    <th>名稱 (各語系)</th>
+                    <th>是否顯示</th>
+                    <th>排序</th>
+                    <th>操作</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($category as $cat)
+                    <tr>
+                        <td>{{ $cat->cat_id }}</td>
+                        <td>
+                            @foreach ($cat->descs as $d)
+                                <div><strong>[{{ $d->lang_id }}]</strong> {{ $d->name }}</div>
+                            @endforeach
+                        </td>
+                        <td>{{ $cat->is_visible ? '是' : '否' }}</td>
+                        <td>{{ $cat->display_order }}</td>
+                        <td>
+                            <a href="{{ route('admin.news_category.show', $cat->cat_id) }}" class="btn btn-sm btn-info">查看</a>
+                            <a href="{{ route('admin.news_category.edit', $cat->cat_id) }}"
+                                class="btn btn-sm btn-warning">編輯</a>
+                            <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST"
+                                style="display:inline" onsubmit="return confirm('確定刪除？')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-danger">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </x-admin.page-message>
 @stop

@@ -3,21 +3,28 @@
    ========================================= */
 :root {
     /* 🎨 配色：高端日系/大地色系 */
-    --c-primary: #8C6A4B;       /* 醇厚焦糖 - 主色 */
-    --c-primary-dark: #5D4037;  /* 深焙咖啡 */
-    --c-secondary: #2C2420;     /* 極深炭灰 - 文字色 */
-    --c-accent: #D4A373;        /* 金黃 - 點綴 */
-    --c-bg: #FDFCF8;            /* 蛋殼白 - 背景 */
-    --c-surface: #FFFFFF;       /* 純白 - 卡片 */
-    --c-light: #F4F1EA;         /* 淺灰米 - 裝飾背景 */
+    --c-primary: #8c6a4b; /* 醇厚焦糖 - 主色 */
+    --c-primary-dark: #5d4037; /* 深焙咖啡 */
+    --c-secondary: #2c2420; /* 極深炭灰 - 文字色 */
+    --c-accent: #d4a373; /* 金黃 - 點綴 */
+    --c-bg: #fdfcf8; /* 蛋殼白 - 背景 */
+    --c-surface: #ffffff; /* 純白 - 卡片 */
+    --c-light: #f4f1ea; /* 淺灰米 - 裝飾背景 */
 
     /* ✒️ 字體系統 */
     --font-serif: "Noto Serif TC", serif;
     --font-sans: "Inter", sans-serif;
 
+    --padding-space: 25px;
+    --container-1765: calc(1765px + (var(--padding-space) * 2));
+    --container-1600: calc(1600px + (var(--padding-space) * 2));
+    --container-1440: calc(1440px + (var(--padding-space) * 2));
+    --container-1280: calc(1280px + (var(--padding-space) * 2));
+    --container-1070: calc(1070px + (var(--padding-space) * 2));
+
     /* 📐 佈局與間距 */
     --header-h: 80px;
-    --container-widthidth: 1440px;
+    --container-width: 1440px;
     --gutter: 24px;
     --section-spacing: clamp(50px, 10vw, 100px);
 
@@ -32,12 +39,31 @@
 /* =========================================
    2. Reset & Base
    ========================================= */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html.lenis { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
+* {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+html.lenis {
+    height: auto;
+}
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
 
 body {
     font-family: var(--font-sans);
@@ -50,12 +76,20 @@ body {
 
 /* 全域雜訊紋理 */
 .global-noise {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 1; opacity: 0.04;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.04;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
 }
 
-h2, h3, h4 {
+h2,
+h3,
+h4 {
     font-family: var(--font-serif);
     font-weight: 700;
     line-height: 1.2;
@@ -66,60 +100,132 @@ h2, h3, h4 {
 ol,
 ul,
 dl {
-  margin-top: 0;
-  margin-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-img { display: block; max-width: 100%; height: auto; object-fit: cover; }
-a { transition: 0.3s;        /* 平滑效果放在一般狀態，不要放 hover */ }
-a:hover { text-decoration: none;   /* 移除底線 */ color: inherit;          /* 保持文字顏色不變 */ }
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+a {
+    transition: 0.3s; /* 平滑效果放在一般狀態，不要放 hover */
+}
+a:hover {
+    text-decoration: none; /* 移除底線 */
+    color: inherit; /* 保持文字顏色不變 */
+}
 
-ul { list-style: none; }
+ul {
+    list-style: none;
+}
 
 .container {
     max-width: var(--container-width);
-    margin: 0 auto; padding: 0 var(--gutter);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
     position: relative;
 }
 
 /* 通用按鈕樣式 */
 .btn-pill {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 12px 32px; border-radius: var(--radius-pill);
-    font-size: 1rem; font-weight: 600; letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 32px;
+    border-radius: var(--radius-pill);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     border: 1px solid var(--c-secondary);
-    color: var(--c-secondary); background: transparent;
-    transition: all 0.3s ease; position: relative; overflow: hidden;
+    color: var(--c-secondary);
+    background: transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 .btn-pill:hover {
-    background: var(--c-secondary); color: var(--c-surface);
+    background: var(--c-secondary);
+    color: var(--c-surface);
 }
 
 /* Swiper 自訂導航箭頭 (參考 qingsan 風格) */
 .swiper-nav-wrapper {
     position: relative;
-    display: flex; justify-content: center; gap: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
     margin-top: 50px;
 }
-.swiper-btn-prev, .swiper-btn-next {
-    width: 50px; height: 50px;
-    border: 1px solid var(--c-secondary); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--c-secondary); transition: all 0.3s ease;
-    cursor: pointer; position: relative; z-index: 10;
+.swiper-btn-prev,
+.swiper-btn-next {
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--c-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c-secondary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
 }
-.swiper-btn-prev:hover, .swiper-btn-next:hover {
-    background: var(--c-secondary); color: var(--c-surface);
+.swiper-btn-prev:hover,
+.swiper-btn-next:hover {
+    background: var(--c-secondary);
+    color: var(--c-surface);
     transform: scale(1.1);
 }
-.swiper-btn-prev.swiper-button-disabled, .swiper-btn-next.swiper-button-disabled {
-    opacity: 0.3; cursor: not-allowed; pointer-events: none;
+.swiper-btn-prev.swiper-button-disabled,
+.swiper-btn-next.swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* 裝飾線條 */
 .deco-line {
-    width: 0; height: 1px; background: var(--c-secondary);
-    margin: 30px 0; transition: width 1s var(--ease-out);
+    width: 0;
+    height: 1px;
+    background: var(--c-secondary);
+    margin: 30px 0;
+    transition: width 1s var(--ease-out);
+}
+
+.container-1765,
+.container-1600,
+.container-1440,
+.container-1280,
+.container-1070 {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto;
+    padding: 0 var(--padding-space);
+    width: 100%;
+}
+
+.container-1765 {
+    max-width: var(--container-1765);
+}
+
+.container-1600 {
+    max-width: var(--container-1600);
+}
+
+.container-1440 {
+    max-width: var(--container-1440);
+}
+
+.container-1280 {
+    max-width: var(--container-1280);
+}
+
+.container-1070 {
+    max-width: var(--container-1070);
 }
 
 /* =========================================
@@ -152,42 +258,68 @@ ul { list-style: none; }
 
 /* Intro裝飾圖案 */
 .deco-shape--intro-1 {
-    top: -5%; right: 5%; width: 250px; height: 250px; /* 位於畫面右上角 */
+    top: -5%;
+    right: 5%;
+    width: 250px;
+    height: 250px; /* 位於畫面右上角 */
 }
 .deco-shape--intro-2 {
-    bottom: 5%; left: 50%; width: 120px; height: 120px; /* 位於畫面底部中央 */
+    bottom: 5%;
+    left: 50%;
+    width: 120px;
+    height: 120px; /* 位於畫面底部中央 */
 }
 
 /* Ingredients裝飾圖案 */
 .deco-shape--ing-1 {
-    top: 5%; right: 5%; width: 150px; height: 150px; /* 位於畫面右上角 */
+    top: 5%;
+    right: 5%;
+    width: 150px;
+    height: 150px; /* 位於畫面右上角 */
 }
 .deco-shape--ing-2 {
-    bottom: 2%; left: 10%; width: 200px; height: 200px; /* 位於畫面左下角 */
+    bottom: 2%;
+    left: 10%;
+    width: 200px;
+    height: 200px; /* 位於畫面左下角 */
 }
 
 /* Products裝飾圖案 */
 .deco-shape--prod-1 {
-    top: 20%; left: 8%; width: 100px; height: 100px; /* 左上角的小圓形 */
+    top: 20%;
+    left: 8%;
+    width: 100px;
+    height: 100px; /* 左上角的小圓形 */
     background: rgba(110, 70, 30, 0.2); /* 淺色背景 */
 }
 .deco-shape--prod-2 {
-    top: 0%; right: 5%; width: 300px; height: 300px; /* 位於畫面右上角 */
+    top: 0%;
+    right: 5%;
+    width: 300px;
+    height: 300px; /* 位於畫面右上角 */
 }
 .deco-shape--prod-3 {
-    bottom: 5%; left: 10%; width: 180px; height: 180px; /* 左下角的餅乾形狀 */
+    bottom: 5%;
+    left: 10%;
+    width: 180px;
+    height: 180px; /* 左下角的餅乾形狀 */
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; /* 不規則形狀 */
     background: rgba(212, 163, 115, 0.2); /* 淺金色背景 */
 }
 
 /* Process裝飾圖案 */
 .deco-shape--process-1 {
-    bottom: 8%; left: 10%; width: 160px; height: 160px; /* 左下角的圓形 */
+    bottom: 8%;
+    left: 10%;
+    width: 160px;
+    height: 160px; /* 左下角的圓形 */
 }
 .deco-shape--process-2 {
-    top: 5%; right: 20%; width: 140px; height: 140px; /* 右上角的圓形 */
+    top: 5%;
+    right: 20%;
+    width: 140px;
+    height: 140px; /* 右上角的圓形 */
 }
-
 
 /* --------------  RWD  -------------- */
 
@@ -202,7 +334,7 @@ ul { list-style: none; }
 @media (max-width: 768px) {
     /* 隱藏某些裝飾圖案避免畫面擁擠 */
     .deco-shape--prod-2 {
-        display: none;  /* 隱藏元素 */
+        display: none; /* 隱藏元素 */
         visibility: hidden; /* 確保不佔位 */
     }
     .deco-shape {
@@ -221,17 +353,20 @@ ul { list-style: none; }
     left: 0;
     width: 100%;
     height: var(--header-h);
-    background: rgba(0, 0, 0, .1);
-    border-bottom: .2px solid rgba(0, 0, 0, .1);
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     z-index: 1000;
     transition: all 0.5s var(--ease-out);
 }
+.site-header > .container-1600 {
+    height: var(--header-h);
+}
 
 /* 滾動時的主選單樣式 */
 .site-header.scrolled {
-    background: rgba(0, 0, 0, .4);
-    border-bottom: .2px solid rgba(253, 252, 248, .1);
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 0.2px solid rgba(253, 252, 248, 0.1);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
@@ -257,7 +392,6 @@ ul { list-style: none; }
 .main-nav {
     position: relative;
     padding-right: 50px;
-
 }
 
 /* 桌面版選單 */
@@ -278,7 +412,7 @@ ul { list-style: none; }
 }
 
 .nav-link::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;
@@ -297,7 +431,6 @@ ul { list-style: none; }
 }
 
 /* 滾動時的導航文字顏色調整 */
-
 
 /* 漢堡按鈕樣式 */
 .hamburger {
@@ -361,7 +494,7 @@ ul { list-style: none; }
         font-size: 2.5rem;
         font-weight: 700;
         padding: 10px 0;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         width: 100%;
         text-align: center;
     }
@@ -377,33 +510,53 @@ ul { list-style: none; }
     }
 }
 
-
-
 /* =========================================
    6. Sections Layout
    ========================================= */
-.section-header { text-align: center; margin-bottom: 80px; position: relative; z-index: 2; }
-.section-tag {
-    font-size: 0.85rem; color: var(--c-primary); letter-spacing: 0.2em; font-weight: 700;
-    margin-bottom: 15px; display: block; text-transform: uppercase;
+.section-header {
+    text-align: center;
+    margin-bottom: 80px;
+    position: relative;
+    z-index: 2;
 }
-.section-title { font-size: 2.2rem; margin-bottom: 20px; }
-
+.section-tag {
+    font-size: 0.85rem;
+    color: var(--c-primary);
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: block;
+    text-transform: uppercase;
+}
+.section-title {
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+}
 
 /* =========================================
    9. Footer
    ========================================= */
 .site-footer {
-    background: #221b18; color: rgba(255,255,255,0.7);
-    padding: 80px 0 40px; text-align: center;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    background: #221b18;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 80px 0 40px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
-.footer-logo img { height: 50px; margin-bottom: 30px; opacity: 0.9; }
+.footer-logo img {
+    height: 50px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
 .footer-nav a {
-    color: inherit; margin: 0 15px; transition: 0.3s;
+    color: inherit;
+    margin: 0 15px;
+    transition: 0.3s;
     font-size: 0.9rem;
 }
-.footer-nav a:hover { color: #fff; }
+.footer-nav a:hover {
+    color: #fff;
+}
 
 /* =================== tasting區塊 =================== */
 .i-tasting {
@@ -669,25 +822,46 @@ ul { list-style: none; }
     Marquee : 跑馬燈
    ========================================= */
 .marquee {
-    background: var(--c-primary); color: #fff; padding: 18px 0; overflow: hidden;
-    white-space: nowrap; position: relative; z-index: 2;
+    background: var(--c-primary);
+    color: #fff;
+    padding: 18px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
 }
-.marquee__inner { display: inline-block; animation: marquee 25s linear infinite; }
+.marquee__inner {
+    display: inline-block;
+    animation: marquee 25s linear infinite;
+}
 .marquee__item {
-    font-size: 1.2rem; margin: 0 40px; font-family: var(--font-serif);
-    font-style: italic; letter-spacing: 0.05em;
+    font-size: 1.2rem;
+    margin: 0 40px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    letter-spacing: 0.05em;
 }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
 
 /* --------------  RWD  -------------- */
 @media (max-width: 1024px) {
     /* 確保滑動手感 */
-    .category-swiper { padding-right: 40px; }
+    .category-swiper {
+        padding-right: 40px;
+    }
 }
 
 @media (max-width: 768px) {
-    .hamburger { display: flex; }
+    .hamburger {
+        display: flex;
+    }
 }
 
 /* =========================================
@@ -723,7 +897,7 @@ ul { list-style: none; }
     top: 0;
     left: 0;
     transform: rotate(-90deg); /* 旋轉圓環，使進度條從頂端開始 */
-    width: 100%;  /* 確保圓環的大小適應父容器 */
+    width: 100%; /* 確保圓環的大小適應父容器 */
     height: 100%; /* 同上 */
 }
 
@@ -759,15 +933,95 @@ ul { list-style: none; }
 
 /* --------------  RWD  -------------- */
 @media (max-width: 768px) {
-    .back-to-top { bottom: 20px; right: 20px; }
+    .back-to-top {
+        bottom: 20px;
+        right: 20px;
+    }
 }
-
 
 /* --------------  RWD  -------------- */
 @media (max-width: 1024px) {
-    .hamburger { display: flex; }
+    .hamburger {
+        display: flex;
+    }
 }
 
 @media (max-width: 768px) {
-    .back-to-top { bottom: 20px; right: 20px; }
+    .back-to-top {
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+/* =========================================
+   麵包屑樣式
+   ========================================= */
+.breadcrumb-wrap {
+    padding: max(1.6vw, 10px) 0 max(2vw, 20px);
+    width: 100%;
+}
+
+.breadcrumb__nav {
+    display: flex; /* 水平排列麵包屑項目 */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #494338;
+}
+
+.breadcrumb__nav li {
+    position: relative;
+    line-height: 1.2;
+    display: inline-block;
+    color: #494338;
+}
+
+.breadcrumb__nav li:not(:last-child) {
+    padding-right: 30px; /* 為非最後一個項目添加右邊距 */
+}
+
+.breadcrumb__nav li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    width: 5px;
+    height: 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #494338 #494338 transparent transparent;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.breadcrumb__nav li a {
+    color: #494338;
+}
+
+.breadcrumb__nav li a:hover {
+    color: var(--c-accent);
+    text-decoration: underline;
+}
+
+.breadcrumb__nav li.home a {
+    font-weight: 700; /* 將 HOME 項目加粗 */
+}
+
+/* 禁止最後一個項目為可點擊 */
+.breadcrumb__nav li:last-child a {
+    pointer-events: none; /* 禁止最後一個項目的點擊 */
+    color: #8c8c8c; /* 禁用顏色 */
+    text-decoration: none; /* 去除最後一個項目的下劃線 */
+}
+
+@media (max-width: 767px) {
+    .breadcrumb__nav li {
+        font-size: 1.2rem; /* 小螢幕調整字體大小 */
+    }
+    .breadcrumb__nav li:not(:last-child) {
+        padding-right: 20px;
+    }
+    .breadcrumb__nav li:not(:last-child)::after {
+        right: 9px; /* 小螢幕箭頭位置調整 */
+    }
 }

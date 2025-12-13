@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_desc', function (Blueprint $table) {
-            // 產品外鍵，連結到 product 表的 product_id
-            $table->unsignedInteger('product_id')->primary()->comment('product.product_id');
+        Schema::create('news_desc', function (Blueprint $table) {
+            // 產品外鍵，連結到 news 表的 news_id
+            $table->unsignedInteger('news_id')->primary()->comment('news.news_id');
 
             // 語言 ID，連結到 languages 表的 lang_id
             $table->unsignedMediumInteger('lang_id')->index()->comment('languages.lang_id');
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('content')->nullable()->comment('內容（語系）');
 
             // 產品 ID 和語言 ID 必須唯一，避免重複資料
-            $table->unique(['product_id', 'lang_id']);
+            $table->unique(['news_id', 'lang_id']);
 
             // 自動產生 created_at 和 updated_at 時間戳
             $table->timestamps();
@@ -37,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_desc'); // 刪除 product_desc 表
+        Schema::dropIfExists('news_desc'); // 刪除 news_desc 表
     }
 };

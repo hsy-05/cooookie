@@ -517,19 +517,3 @@ button {
         display: none;
     } /* 手機版隱藏裝飾以節省空間 */
 }
-
-/* 麵包屑 */
-.breadcrumb {
-    padding: 20px 0;
-    font-size: 0.9rem;
-    color: #888;
-    border-bottom: 1px solid #eee;
-}
-.breadcrumb ol {
-    display: flex;
-    gap: 10px;
-}
-.breadcrumb li + li::before {
-    content: "/";
-    margin-right: 10px;
-}

@@ -5,10 +5,11 @@
 @include('components.admin.page_content_header')
 
 @section('content')
+    {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
     <x-admin.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
-        <form action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
+        <form action="{{ isset($isEdit) ? route('admin.product.update', $product->product_id) : route('admin.product.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
             @if (isset($isEdit))
@@ -24,7 +25,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="content-tab" data-toggle="tab" href="#content" role="tab"
-                            aria-controls="content" aria-selected="false">消息內容</a>
+                            aria-controls="content" aria-selected="false">產品內容</a>
                     </li>
                 </ul>
 
@@ -76,7 +77,7 @@
                                         <div class="input-group">
                                             <input type="file" id="image" name="image" class="form-control"
                                                 aria-label="Upload image">
-                                            @if (isset($isEdit) && $news->image)
+                                            @if (isset($isEdit) && $product->image)
                                                 <div class="input-group-append">
                                                     <button type="button" class="btn btn-info" data-toggle="modal"
                                                         data-target="#imageModal">瀏覽</button>
@@ -92,7 +93,7 @@
                                             <option value="">-- 無 --</option>
                                             @foreach ($cats as $cat)
                                                 <option value="{{ $cat->cat_id }}"
-                                                    {{ isset($isEdit) && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
+                                                    {{ isset($isEdit) && $cat->cat_id == $product->cat_id ? 'selected' : '' }}>
                                                     {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
                                                 </option>
                                             @endforeach
@@ -103,10 +104,10 @@
                                         <label for="is_visible">是否顯示</label>
                                         <select id="is_visible" name="is_visible" class="form-control">
                                             <option value="1"
-                                                {{ isset($isEdit) && $news->is_visible ? 'selected' : '' }}>
+                                                {{ isset($isEdit) && $product->is_visible ? 'selected' : '' }}>
                                                 顯示</option>
                                             <option value="0"
-                                                {{ isset($isEdit) && !$news->is_visible ? 'selected' : '' }}>隱藏
+                                                {{ isset($isEdit) && !$product->is_visible ? 'selected' : '' }}>隱藏
                                             </option>
                                         </select>
                                     </div>
@@ -114,14 +115,14 @@
                                     <div class="col-md-6 form-group">
                                         <label for="display_order">排序</label>
                                         <input type="number" id="display_order" name="display_order" class="form-control"
-                                            @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
+                                            @if (isset($isEdit)) value="{{ $product->display_order }}" @endif>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 消息內容頁籤 -->
+                    <!-- 內容頁籤 -->
                     <div class="tab-pane fade" id="content">
                         <!-- 語系內容的分頁 -->
                         <ul class="nav nav-tabs mt-2" role="tablist">
@@ -152,7 +153,7 @@
 
             <!-- 提交按鈕 -->
             <div class="text-right mt-3">
-                <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
+                <a href="{{ route('admin.product.index') }}" class="btn btn-secondary">返回</a>
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>
         </form>
@@ -171,7 +172,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <img src="{{ $UPLOAD_PATH . '/' . $news->image }}" class="img-fluid" alt="封面圖片">
+                        <img src="{{ $UPLOAD_PATH . '/' . $product->image }}" class="img-fluid" alt="封面圖片">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
@@ -192,20 +193,7 @@
     <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
 
     <script>
-
         const BASE_URL = "{{ url('/') }}";
-        console.log('BASE_URL defined:', BASE_URL);  // 調試：檢查控制台
-
-        {{-- 強制送出前同步 Summernote 內容 --}}
-        $('form').on('submit', function() {
-            $('.summernote').each(function() {
-                // 將Summernote內容同步回 textarea
-                const content = $(this).summernote('code');
-                $(this).val(content);
-            });
-
-            // 防止重複送出
-            $(this).find('button[type="submit"]').prop('disabled', true).text('處理中...');
-        });
+        console.log('BASE_URL defined:', BASE_URL); // 調試：檢查控制台
     </script>
 @stop

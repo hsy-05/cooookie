@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product', function (Blueprint $table) {
-            // 主鍵 product_id (使用 INT 取代 BIGINT)
-            $table->increments('product_id'); // 自動遞增的 INT 主鍵
+        Schema::create('news', function (Blueprint $table) {
+            // 主鍵 news_id (使用 INT 取代 BIGINT)
+            $table->increments('news_id'); // 自動遞增的 INT 主鍵
 
             // 類別 ID，對應到 category 表的 cat_id，使用 MEDIUMINT
-            $table->mediumInteger('cat_id')->nullable()->index()->comment('product_category.cat_id');
+            $table->mediumInteger('cat_id')->nullable()->index()->comment('news_category.cat_id');
 
             // 是否顯示，布林值，預設為 true
             $table->boolean('is_visible')->default(true)->comment('是否顯示');
@@ -37,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product'); // 刪除 product 表
+        Schema::dropIfExists('news'); // 刪除 news 表
     }
 };

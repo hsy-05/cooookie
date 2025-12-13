@@ -5,10 +5,12 @@
 @include('components.admin.page_content_header')
 
 @section('content')
+    {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
     <x-admin.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
-        <form action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
+        <form name="the-form"
+            action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
             @if (isset($isEdit))
@@ -88,7 +90,7 @@
 
                                     <div class="col-md-6 form-group">
                                         <label for="cat_id">分類</label>
-                                        <select id="cat_id" name="cat_id" class="form-control">
+                                        <select id="cat_id" name="cat_id" class="form-control required-field">
                                             <option value="">-- 無 --</option>
                                             @foreach ($cats as $cat)
                                                 <option value="{{ $cat->cat_id }}"
@@ -141,7 +143,7 @@
                                 <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                     id="content-{{ $lang->lang_id }}">
                                     <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $d->content ?? '' }}</textarea>
+                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote required-field" data-label="內容 ({{ $lang->name }})">{{ $d->content ?? '' }}</textarea>
                                     </div>
                                 </div>
                             @endforeach
@@ -192,20 +194,20 @@
     <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
 
     <script>
+        $(function() {
+            const BASE_URL = "{{ url('/') }}";
+            console.log('BASE_URL defined:', BASE_URL); // 調試：檢查控制台
+            const theForm = $('form[name="the-form"]');
 
-        const BASE_URL = "{{ url('/') }}";
-        console.log('BASE_URL defined:', BASE_URL);  // 調試：檢查控制台
-
-        {{-- 強制送出前同步 Summernote 內容 --}}
-        $('form').on('submit', function() {
-            $('.summernote').each(function() {
-                // 將Summernote內容同步回 textarea
-                const content = $(this).summernote('code');
-                $(this).val(content);
+            theForm.on('submit', function(e) {
+                // 如果驗證失敗，阻止表單送出
+                if (!validateRequiredFields(this)) {
+                    e.preventDefault(); // 阻止表單提交
+                    return false;
+                }
+                // 強制送出前同步 Summernote 內容
+                syncSummernoteContentOnSubmit();
             });
-
-            // 防止重複送出
-            $(this).find('button[type="submit"]').prop('disabled', true).text('處理中...');
         });
     </script>
 @stop
