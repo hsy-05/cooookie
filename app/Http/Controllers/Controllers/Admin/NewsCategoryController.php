@@ -8,6 +8,7 @@ use App\Models\NewsCategory;
 use App\Models\NewsCategoryDesc;
 use App\Models\Language;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ContentHelper;
 
 class NewsCategoryController extends Controller
 {
@@ -66,7 +67,7 @@ class NewsCategoryController extends Controller
                     'lang_id' => (int)$langId,
                     'name' => $desc['name'],
                     'description' => $desc['description'] ?? null,
-                    'content' => $desc['content'] ?? null,
+                    'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -145,7 +146,7 @@ class NewsCategoryController extends Controller
                     [
                         'name' => $desc['name'],
                         'description' => $desc['description'] ?? null,
-                        'content' => $desc['content'] ?? null,
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                         'updated_at' => now(),
                         'created_at' => now(), // 若 updating 會忽略 created_at
                     ]

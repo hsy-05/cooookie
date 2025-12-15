@@ -13,8 +13,14 @@ class ContentHelper
      * @param string $content
      * @return string
      */
-    public static function encodeSiteUrl(string $content)
+    public static function encodeSiteUrl(?string $content): string
     {
+
+        // 空內容直接回空字串
+        if (empty($content)) {
+            return '';
+        }
+
         Log::info('[encodeSiteUrl] 被呼叫了');
         $siteUrl = URL::to('/') . '/';
         return str_replace($siteUrl, '[[SITE_URL]]', $content);

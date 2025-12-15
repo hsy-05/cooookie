@@ -29,28 +29,28 @@
                 {{-- 一般資料 --}}
                 <div id="general" class="tab-pane fade show active p-3" role="tabpanel">
                     <div class="form-row">
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label>分類代碼 (cat_code)</label>
-                            <input type="text" name="cat_code" class="form-control" maxlength="50"
+                            <input type="text" name="cat_code" class="form-control"
                                 value="{{ old('cat_code', $advert_category->cat_code) }}" required>
                         </div>
 
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-2 ml-3">
                             <label>排序 (sort_order)</label>
                             <input type="number" name="sort_order" class="form-control"
                                 value="{{ old('sort_order', $advert_category->sort_order) }}">
                         </div>
 
-                        <div class="form-group col-md-2">
-                            <label>是否顯示 (is_visible)</label>
-                            <select name="is_visible" class="form-control">
-                                <option value="1"
-                                    {{ old('is_visible', (int) $advert_category->is_visible) === 1 ? 'selected' : '' }}>顯示</option>
-                                <option value="0"
-                                    {{ old('is_visible', (int) $advert_category->is_visible) === 0 ? 'selected' : '' }}>隱藏</option>
-                            </select>
+                        <div class="form-group col-md-5 ml-3">
+                            <label for="is_visible">是否顯示</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="is_visible" name="is_visible"
+                                    value="1" {{ isset($isEdit) && $advert_category->is_visible ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="is_visible"></label>
+                            </div>
                         </div>
                     </div>
+
 
                     {{-- cat_func_scope：以 checkbox 呈現，送出 array --}}
                     <div class="form-group">
@@ -70,7 +70,8 @@
                                         value="{{ $k }}"
                                         {{ in_array($k, (array) $scope, true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="scope_{{ $k }}">{{ $label }}
-                                        ({{ $k }})</label>
+                                        ({{ $k }})
+                                    </label>
                                 </div>
                             @endforeach
                         </div>

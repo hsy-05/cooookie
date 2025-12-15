@@ -67,7 +67,7 @@ class NewsCategoryController extends Controller
                     'lang_id' => (int)$langId,
                     'name' => $desc['name'],
                     'description' => $desc['description'] ?? null,
-                    'content' => $desc['content'] ?? null,
+                    'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -156,7 +156,7 @@ class NewsCategoryController extends Controller
                     [
                         'name' => $desc['name'],
                         'description' => $desc['description'] ?? null,
-                        'content' => $desc['content'] ?? null,
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                         'updated_at' => now(),
                         'created_at' => now(), // 若更新則忽略 created_at
                     ]

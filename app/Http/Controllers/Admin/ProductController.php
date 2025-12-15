@@ -107,7 +107,7 @@ class ProductController extends BaseAdminController
                         'product_id' => $product->product_id,
                         'lang_id' => $lang_id,
                         'title' => $desc['title'],
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                     ]);
                 }
             }
@@ -191,7 +191,7 @@ class ProductController extends BaseAdminController
                         ['product_id' => $product->product_id, 'lang_id' => $lang_id],
                         [
                             'title' => $desc['title'],
-                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                             'updated_at' => now(),
                             'created_at' => now(),
                         ]

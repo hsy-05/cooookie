@@ -108,7 +108,15 @@
                                         </select>
                                     </div>
 
+                                <!-- 排序與是否顯示 -->
+                                <div class="row col-12">
                                     <div class="col-md-6 form-group">
+                                        <label for="display_order">排序</label>
+                                        <input type="number" id="display_order" name="display_order"
+                                            class="form-control"
+                                            @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
+                                    </div>
+                                    <div class="col-md-2 form-group ml-3">
                                         <label for="is_visible">是否顯示</label>
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input" id="is_visible"
@@ -117,13 +125,7 @@
                                             <label class="custom-control-label" for="is_visible"></label>
                                         </div>
                                     </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="display_order">排序</label>
-                                        <input type="number" id="display_order" name="display_order"
-                                            class="form-control"
-                                            @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
-                                    </div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -149,7 +151,7 @@
                                 <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                     id="content-{{ $lang->lang_id }}">
                                     <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote required-field"
+                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote {{-- required-field --}}"
                                             {{-- data-label="內容 ({{ $lang->name }})" --}}>{{ $desc->content ?? '' }}</textarea>
                                     </div>
                                 </div>

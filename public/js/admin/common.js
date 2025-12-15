@@ -210,7 +210,21 @@ function validateRequiredFields(formSelector) {
         .each(function () {
             let $field = $(this);
             let value = $field.val();
-            let label = $field.data("label") || $field.attr("name") || "欄位"; // 用 data-label 或 name
+            // 取得欄位顯示名稱（依優先順序）
+            // 1. data-label（最穩定，推薦）
+            // 2. 對應的 <label> 文字
+            // 3. name 屬性
+            // 4. 預設「欄位」
+            let label =
+                $field.data("label") ||
+                (function () {
+                    // 嘗試抓同一個 form-group 裡的 label
+                    let $label = $field.closest(".form-group").find("label").first();
+                    return $label.length ? $label.text().trim() : null;
+                })() ||
+                $field.attr("name") ||
+                "欄位";
+
 
             if ($field.is(":checkbox") || $field.is(":radio")) {
                 // 若 checkbox/radio 沒有被勾選
@@ -237,7 +251,7 @@ function validateRequiredFields(formSelector) {
                 if (!value || value.trim() === "") {
                     isValid = false;
                     firstInvalid = firstInvalid || $field;
-                    missingFields.push(label);
+                    missingFields.push(label + " 未填寫");
                     $field.addClass("is-invalid");
                 } else {
                     $field.removeClass("is-invalid");

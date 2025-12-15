@@ -95,7 +95,7 @@ class NewsController extends BaseAdminController
                         'news_id' => $news->news_id,
                         'lang_id' => $lang_id,
                         'title' => $desc['title'],
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                     ]);
                 }
             }
@@ -187,7 +187,7 @@ class NewsController extends BaseAdminController
                 if ($existing) {
                     $existing->update([
                         'title' => $desc['title'] ?? '',
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                     ]);
                 } else {
                     if (!empty($desc['title'])) {
@@ -195,7 +195,7 @@ class NewsController extends BaseAdminController
                             'news_id' => $news->news_id,
                             'lang_id' => $lang_id,
                             'title' => $desc['title'],
-                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? null),
+                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
                         ]);
                     }
                 }

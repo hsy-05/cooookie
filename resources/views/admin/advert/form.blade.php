@@ -152,21 +152,20 @@
 
                                 <!-- 排序與是否顯示 -->
                                 <div class="row">
-                                    <div class="col-sm-6 mb-3">
-                                        <label>排序</label>
-                                        <input type="number" name="display_order" class="form-control"
-                                            value="{{ old('display_order', $advert->display_order ?? 0) }}">
+                                    <div class="col-md-6 form-group">
+                                        <label for="display_order">排序</label>
+                                        <input type="number" id="display_order" name="display_order"
+                                            class="form-control"
+                                            @if (isset($isEdit)) value="{{ $advert->display_order }}" @endif>
                                     </div>
-                                    <div class="col-sm-6 mb-3">
-                                        <label>是否顯示</label>
-                                        <select name="is_visible" class="form-control">
-                                            <option value="1"
-                                                {{ old('is_visible', $advert->is_visible ?? 1) ? 'selected' : '' }}>顯示
-                                            </option>
-                                            <option value="0"
-                                                {{ !old('is_visible', $advert->is_visible ?? 1) ? 'selected' : '' }}>隱藏
-                                            </option>
-                                        </select>
+                                    <div class="col-md-2 form-group ml-3">
+                                        <label for="is_visible">是否顯示</label>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                name="is_visible" value="1"
+                                                {{ isset($isEdit) && $advert->is_visible ? 'checked' : 'checked' }}>
+                                            <label class="custom-control-label" for="is_visible"></label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
