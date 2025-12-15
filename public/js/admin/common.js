@@ -152,6 +152,9 @@ function showAlert(
         backdrop: true,
         width: "auto",
         padding: "1.25rem",
+        color: "#fff",
+        background: "#6C757D",
+        // theme: 'dark',
         grow: false,
         customClass: {
             container: "",
@@ -257,7 +260,7 @@ function validateRequiredFields(formSelector) {
         const fieldList = missingFields.map((f) => `<li>${f}</li>`).join("");
 
         showAlert(
-            "error", // type
+            "warning", // type
             "欄位未填寫", // title
             `<ol>${fieldList}</ol>`, // message，使用有序列表 <ol>
             true, // toast
@@ -265,6 +268,11 @@ function validateRequiredFields(formSelector) {
             false, // showConfirmButton
             "確定", // confirmButtonText
             5000, // timer (0 = 不自動關閉)
+            {
+                customClass: {
+                    title: "text-warning", // 使用 Bootstrap 標題樣式
+                },
+            }
         );
     }
 

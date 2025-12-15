@@ -65,9 +65,6 @@
 @stop
 
 @section('js')
-    {{-- 引入 SweetAlert2 --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         $(function() {
             // 監聽所有帶有 'toggle-boolean-switch' 類別的 checkbox 的 change 事件

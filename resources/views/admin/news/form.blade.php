@@ -51,15 +51,22 @@
 
                             <div class="tab-content" id="language-tabs-content">
                                 @foreach ($langs as $lang)
-                                    @php $d = $descMap[$lang->lang_id] ?? null; @endphp
+                                    @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                     <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                         id="lang-{{ $lang->lang_id }}" role="tabpanel"
                                         aria-labelledby="lang-{{ $lang->lang_id }}-tab">
                                         <div class="form-group">
                                             <label for="title_{{ $lang->lang_id }}">標題</label>
                                             <input type="text" id="title_{{ $lang->lang_id }}"
-                                                name="desc[{{ $lang->lang_id }}][title]" class="form-control"
-                                                value="{{ $d->title ?? '' }}" required>
+                                                name="desc[{{ $lang->lang_id }}][title]"
+                                                class="form-control required-field" data-label="標題 ({{ $lang->name }})"
+                                                value="{{ $desc->title ?? '' }}">
+                                        </div>
+                                        <!-- 新增 描述 欄位 -->
+                                        <div class="form-group">
+                                            <label for="description_{{ $lang->lang_id }}">描述</label>
+                                            <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
+                                                maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
                                         </div>
                                     </div>
                                 @endforeach
@@ -103,19 +110,18 @@
 
                                     <div class="col-md-6 form-group">
                                         <label for="is_visible">是否顯示</label>
-                                        <select id="is_visible" name="is_visible" class="form-control">
-                                            <option value="1"
-                                                {{ isset($isEdit) && $news->is_visible ? 'selected' : '' }}>
-                                                顯示</option>
-                                            <option value="0"
-                                                {{ isset($isEdit) && !$news->is_visible ? 'selected' : '' }}>隱藏
-                                            </option>
-                                        </select>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                name="is_visible" value="1"
+                                                {{ isset($isEdit) && $news->is_visible ? 'checked' : 'checked' }}>
+                                            <label class="custom-control-label" for="is_visible"></label>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-6 form-group">
                                         <label for="display_order">排序</label>
-                                        <input type="number" id="display_order" name="display_order" class="form-control"
+                                        <input type="number" id="display_order" name="display_order"
+                                            class="form-control"
                                             @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
                                     </div>
                                 </div>
@@ -139,11 +145,12 @@
 
                         <div class="tab-content mt-3">
                             @foreach ($langs as $lang)
-                                @php $d = $descMap[$lang->lang_id] ?? null; @endphp
+                                @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                 <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                     id="content-{{ $lang->lang_id }}">
                                     <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote required-field" data-label="內容 ({{ $lang->name }})">{{ $d->content ?? '' }}</textarea>
+                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote required-field"
+                                            {{-- data-label="內容 ({{ $lang->name }})" --}}>{{ $desc->content ?? '' }}</textarea>
                                     </div>
                                 </div>
                             @endforeach
