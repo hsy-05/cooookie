@@ -1,0 +1,114 @@
+/* ===========================================================================
+   後台專用 Utilities CSS
+   - px-width-* : 固定表格欄位寬度
+   - hidden-*   : 響應式欄位隱藏，th + td 同步
+   - 後台表格專用，簡單維護
+   =========================================================================== */
+
+/* =========================
+   1. 表格基礎樣式
+   ========================= */
+.table th,
+.table td {
+    vertical-align: middle;   /* 表格內容垂直置中 */
+}
+
+[class^="px-width-"],
+[class*=" px-width-"] {
+    white-space: nowrap;      /* 固定欄位不換行 */
+}
+
+/* =========================
+   2. 固定欄位寬度 px-width-*
+   ========================= */
+.px-width-60  { width: 60px;  min-width: 60px; }   /* 小圖示 / checkbox */
+.px-width-80  { width: 80px;  min-width: 80px; }   /* 狀態欄位 */
+.px-width-100 { width: 100px; min-width: 100px; }  /* 操作欄位 */
+.px-width-120 { width: 120px; min-width: 120px; }
+.px-width-150 { width: 150px; min-width: 150px; }  /* 日期 / 排序 */
+.px-width-180 { width: 180px; min-width: 180px; }
+.px-width-200 { width: 200px; min-width: 200px; }
+.px-width-250 { width: 250px; min-width: 250px; }
+.px-width-300 { width: 300px; min-width: 300px; }
+
+/* =========================
+   3. 響應式寬度調整
+   ========================= */
+/* 手機 (<576px) ：解除所有固定寬度 */
+/* @media (max-width: 575.98px) {
+    [class^="px-width-"],
+    [class*=" px-width-"] {
+        width: auto;
+        min-width: auto;
+    }
+} */
+
+/* 平板 (<992px) ：大欄位自動適應 */
+@media (max-width: 991.98px) {
+    .px-width-200,
+    .px-width-250,
+    .px-width-300 {
+        width: auto;
+        min-width: auto;
+    }
+}
+
+/* =========================
+   4. hidden-* 響應式欄位隱藏
+   th + td 都需加 hidden-* class
+   ========================= */
+
+/* hidden-xs：手機 (<576px) 隱藏 */
+@media (max-width: 575.98px) {
+    .hidden-xs {
+        display: none !important;
+    }
+}
+
+/* hidden-sm：小平板 (<768px) 隱藏 */
+@media (max-width: 767.98px) {
+    .hidden-sm {
+        display: none !important;
+    }
+}
+
+/* hidden-md：平板 (<992px) 隱藏 */
+@media (max-width: 991.98px) {
+    .hidden-md {
+        display: none !important;
+    }
+}
+
+/* hidden-lg：小桌機 (<1200px) 隱藏 */
+@media (max-width: 1199.98px) {
+    .hidden-lg {
+        display: none !important;
+    }
+}
+
+/* =========================
+   5. 後台常用輔助 class
+   ========================= */
+.table-actions {
+    white-space: nowrap;        /* 按鈕群組不換行 */
+}
+
+.text-ellipsis {
+    overflow: hidden;           /* 文字過長隱藏 */
+    text-overflow: ellipsis;    /* 顯示省略號 */
+    white-space: nowrap;        /* 單行 */
+}
+
+.table-img {
+    max-width: 100px;           /* 表格內圖片最大寬度 */
+    height: auto;
+}
+
+/* =========================
+   6. 維護說明
+   ========================= */
+/*
+1. td 需與 th 對應，加相同的 hidden-* class
+2. px-width-* 可依需求增加或修改
+3. 這份 CSS 專為後台表格設計，前台慎用
+*/

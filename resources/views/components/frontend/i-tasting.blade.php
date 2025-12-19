@@ -3,7 +3,6 @@
     <div class="i-tasting__overlay"></div> <!-- 新增遮罩層 -->
     <div class="i-tasting__content">
         <div class="container-1440">
-            <div class="i-tasting__icon"></div>
             <h2 class="g__box-ti">
                 <span class="en">TASTE TESTING</span>
                 <span class="tw">試吃申請</span>

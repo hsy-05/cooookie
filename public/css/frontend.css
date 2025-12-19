@@ -595,22 +595,6 @@ ul {
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.85); /* 加強文字陰影，提升對比 */
 }
 
-/* 試吃申請圖示 */
-.i-tasting__icon {
-    margin: 0 auto 15px; /* 水平置中，下方外距 */
-    width: 15%; /* 寬度佔比 */
-    max-width: 70px; /* 最大寬度 */
-    background: url(../images/i_tasting_icon.svg) no-repeat center center; /* 背景圖置中 */
-    background-size: contain; /* 背景圖完整顯示 */
-}
-
-.i-tasting__icon::before {
-    display: block; /* 區塊元素 */
-    content: ""; /* 空內容 */
-    width: 100%; /* 滿寬 */
-    padding-bottom: 57.143%; /* 保持圖示比例 */
-}
-
 .i-tasting .container-1440 {
     -webkit-animation: up-down 6s ease-out forwards infinite;
     animation: up-down 6s ease-out forwards infinite;

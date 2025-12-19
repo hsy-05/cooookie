@@ -92,8 +92,13 @@
                                                 </div>
                                             @endif
                                         </div>
-                                        <small class="form-text text-muted">點擊「瀏覽」查看已上傳的封面圖片</small>
+                                        @if (isset($imageSizes['image']))
+                                            <small class="form-text text-muted">
+                                                建議尺寸：{{ $imageSizes['image'][0] }} x {{ $imageSizes['image'][1] }}
+                                            </small>
+                                        @endif
                                     </div>
+
 
                                     <div class="col-md-6 form-group">
                                         <label for="cat_id">分類</label>
@@ -108,24 +113,24 @@
                                         </select>
                                     </div>
 
-                                <!-- 排序與是否顯示 -->
-                                <div class="row col-12">
-                                    <div class="col-md-6 form-group">
-                                        <label for="display_order">排序</label>
-                                        <input type="number" id="display_order" name="display_order"
-                                            class="form-control"
-                                            @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
-                                    </div>
-                                    <div class="col-md-2 form-group ml-3">
-                                        <label for="is_visible">是否顯示</label>
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="is_visible"
-                                                name="is_visible" value="1"
-                                                {{ isset($isEdit) && $news->is_visible ? 'checked' : 'checked' }}>
-                                            <label class="custom-control-label" for="is_visible"></label>
+                                    <!-- 排序與是否顯示 -->
+                                    <div class="row col-12">
+                                        <div class="col-md-6 form-group">
+                                            <label for="display_order">排序</label>
+                                            <input type="number" id="display_order" name="display_order"
+                                                class="form-control"
+                                                @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
+                                        </div>
+                                        <div class="col-md-2 form-group ml-3">
+                                            <label for="is_visible">是否顯示</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                    name="is_visible" value="1"
+                                                    {{ isset($isEdit) && $news->is_visible ? 'checked' : 'checked' }}>
+                                                <label class="custom-control-label" for="is_visible"></label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                             </div>
                         </div>

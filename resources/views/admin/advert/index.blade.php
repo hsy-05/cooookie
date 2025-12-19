@@ -6,6 +6,10 @@
     <h1>廣告列表</h1>
 @stop
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
+@stop
+
 @section('content')
     <div class="text-right mb-3">
         <a href="{{ route('admin.advert.create') }}" class="btn btn-light">新增廣告</a>
@@ -14,30 +18,30 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th class="text-center">ID</th>
-                <th class="text-center">分類</th>
-                <th class="text-center">廣告圖</th>
+                <!-- <th class="text-center">廣告編號</th> -->
                 <th class="text-center">廣告名稱</th>
-                <th class="text-center">排序</th>
-                <th class="text-center">狀態</th>
-                <th class="text-center">操作</th>
+                <th class="text-center px-width-150 hidden-xs">分類</th>
+                <th class="text-center px-width-150 hidden-md">廣告圖</th>
+                <th class="text-center px-width-150 hidden-md">排序</th>
+                    <th class="text-center px-width-150 hidden-xs">是否顯示</th>
+                    <th class="text-center px-width-120 table-actions">操作</th>
             </tr>
         </thead>
         <tbody>
             @foreach($adverts as $advert)
                 <tr>
-                    <td>{{ $advert->adv_id }}</td>
-                    <td>{{ $advert->category->cat_code }}</td>
-                    <td>
+                    {{-- <td>{{ $advert->adv_id }}</td> --}}
+                    <td>{{ $advert->descs->first()->adv_name ?? '--' }}</td>
+                    <td class="hidden-xs">{{ $advert->category->cat_code }}</td>
+                    <td class="hidden-md">
                         @if ($advert->adv_img_url)
                             <img src="{{ asset('storage/' . $advert->adv_img_url) }}" width="100" alt="廣告圖">
                         @else
                             無圖片
                         @endif
                     </td>
-                    <td>{{ $advert->descs->first()->adv_name ?? '--' }}</td>
-                    <td>{{ $advert->display_order }}</td>
-                    <td class="text-center">
+                    <td class="hidden-md">{{ $advert->display_order }}</td>
+                    <td class="text-center hidden-xs">
                         {{-- AdminLTE Custom Switch Element --}}
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input toggle-boolean-switch"
