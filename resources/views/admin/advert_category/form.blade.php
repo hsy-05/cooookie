@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <div class="text-right mt-3">
+        <div class="text-center mt-3">
             <a href="{{ route('admin.advert_category.index') }}" class="btn btn-secondary">返回列表</a>
             <button type="submit" class="btn btn-success">{{ isset($isEdit) && $isEdit ? '更新' : '新增' }}</button>
         </div>

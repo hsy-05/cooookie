@@ -58,7 +58,11 @@ Auth::routes();
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('languages', LanguageController::class);            // 語言管理
-    Route::resource('news_category', NewsCategoryController::class);  // 分類管理
+    // 分類管理
+    Route::resource('news_category', NewsCategoryController::class)->parameters([
+        'news_category' => 'category' // 這裡自定義將 'news_category' 參數綁定到 '$category'
+    ]);
+
     Route::resource('news', NewsController::class)->parameters([
         'news' => 'news' // 讓隱式綁定用 App\Models\News 的主鍵
     ]);

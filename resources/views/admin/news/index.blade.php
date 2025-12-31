@@ -33,15 +33,15 @@
                 @endforeach
             </form>
 
-            <!-- 新增消息按鈕 -->
-            <a href="{{ route('admin.news.create') }}" class="btn btn-primary">新增消息</a>
+            <!-- 新增按鈕 -->
+            <a href="{{ route('admin.news.create') }}" class="btn btn-primary mb-3 ml-auto">新增消息</a>
         </div>
 
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th class="text-center">標題</th>
-                    <!-- <th class="text-center px-width-150 hidden-xs">圖片</th> -->
+                    {{-- <th class="text-center px-width-150 hidden-xs">圖片</th> --}}
                     <th class="text-center px-width-150 hidden-xs">是否顯示</th>
                     <th class="text-center px-width-150 hidden-md">排序</th>
                     <th class="text-center px-width-150 hidden-sm">更新時間</th>
@@ -53,7 +53,7 @@
                     {{-- 使用 @forelse 處理無資料情況 --}}
                     <tr>
                         {{-- 確保顯示多語系標題，如果沒有則顯示 '--' --}}
-                        <td>{{ $item->descs->first()->title ?? '--' }}</td>
+                        <td class="text-center">{{ $item->descs->first()->title ?? '--' }}</td>
                         {{--
                             <td>
                                 @if ($item->image)
@@ -64,6 +64,7 @@
                                 @endif
                             </td>
                         --}}
+                        {{-- 是否顯示 --}}
                         <td class="text-center hidden-xs">
                             <!-- AdminLTE Custom Switch Element -->
                             <div class="custom-control custom-switch">

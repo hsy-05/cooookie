@@ -1,519 +1,461 @@
-/* about.css (2025 Professional Agency Style) */
+/* * about.css
+ * 2025 Refined Version - Responsive Fixes & Layout Optimization
+ */
+/* * about.css
+ * 2025 Refined Version
+ */
 
 /* =========================================
-   1. Design System & Variables
+   1. Design System & Global Fixes
    ========================================= */
 :root {
-    /* 📐 佈局與間距 */
-    --container-width: 1440px;
-    --gutter: 24px;
-    --radius-sm: 8px;
-    --radius-lg: 32px;
-    --radius-pill: 100px;
-    /* 有機不規則圓角 (Organic Shapes) */
-    --radius-blob: 40% 60% 70% 30% / 40% 50% 60% 50%;
-
-    /* 🎢 動畫曲線 */
-    --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
-    --shadow-soft: 0 20px 40px rgba(44, 36, 32, 0.08); /* 柔和的高級陰影 */
+    --c-primary: #8c6a4b;      /* 主色：焦糖棕 */
+    --c-secondary: #2c2420;    /* 文字色：深炭咖啡 */
+    --c-bg: #fdfcf8;           /* 背景：暖白蛋殼色 */
+    --values-text-height: 350px; /* 核心價值文字區高度 */
 }
 
-/* =========================================
-   2. Reset & Base Styles
-   ========================================= */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
+/* 這一層保留作為雙重保險，防止頁面內部元件溢出 */
+.smooth-wrapper {
+    width: 100%;
+    overflow: hidden;
 }
 
-body {
-    margin: 0;
-    font-family: var(--font-sans);
-    background-color: var(--c-bg);
-    color: var(--c-dark);
-    line-height: 1.7;
-    overflow-x: hidden; /* 防止橫向滾動 */
-    -webkit-font-smoothing: antialiased;
-}
-
-h1,
-h2,
-h3,
-h4 {
-    font-family: var(--font-serif);
-    font-weight: 900;
-    line-height: 1.1;
-    margin: 0 0 1rem;
-    color: var(--c-dark);
-}
-
-img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    object-fit: cover;
-}
-
-a {
-    text-decoration: none;
-    color: inherit;
-    transition: 0.3s;
-}
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-button {
-    border: none;
-    background: none;
-    cursor: pointer;
-}
-
-/* 容器 (對齊的基礎) */
-.container {
-    max-width: var(--container-width);
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-    position: relative;
-}
-
-/* 💎 高級感細節：全域噪點紋理 (Texture) */
+/* 全域雜訊優化 */
 .global-noise {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.6;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+    pointer-events: none; opacity: 0.04;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJ4D30DAAAAB3RSTlMABDQzMzMzM75F8wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAABV0RVh0Y3JlYXRpb24gdGltZQAyMDI1LTAxLTAx1D0fWAAAAAdvSURBVDjLY2AYBaNgFIyCUTAKRsEoGAWjYBSMglEwCkbBKBgFgwkAAMd/AAH3+M8dAAAAAElFTkSuQmCC");
+    transform: translateZ(0); /* GPU 加速 */
 }
 
-/* Utility Classes */
-.text-italic {
-    font-style: italic;
-    color: var(--c-primary);
-    font-family: var(--font-serif);
+.section { padding: clamp(80px, 10vw, 140px) 0; }
+
+/* 針對每個區塊單獨調整間距，避免區塊之間過於擁擠 */
+@media (max-width: 1024px) {
+    .section { padding: 60px 20px; }
 }
-.section {
-    padding: clamp(80px, 10vw, 150px) 0;
-} /* 響應式 Padding */
+@media (max-width: 768px) {
+    .section { padding: 40px 10px; }
+}
 
 /* =========================================
-   3. HERO Section (雜誌級排版)
+   2. Page Banner
    ========================================= */
-.hero {
-    position: relative;
-    min-height: 90svh; /* 使用 svh 避免手機版跳動 */
-    display: flex;
-    align-items: center;
-    padding-top: 80px;
-    overflow: hidden;
+.page-banner {
+    position: relative; width: 100%; height: 530px;
+    display: flex; align-items: center; overflow: hidden; margin-top: -3px; z-index: 10;
+}
+.page-banner__bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.page-banner__bg img { width: 100%; height: 125%; object-fit: cover; object-position: center; }
+.page-banner__overlay {
+    position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)); z-index: 1;
+}
+.page-banner__container { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; align-items: center;
+ padding-top: 80px;  }
+.js-hero-text { visibility: hidden; opacity: 0; }
+.page-banner__content { color: #fff; max-width: 800px; padding-left: 80px; text-align: left; width: 100%; }
+.page-banner__meta {
+    font-size: 0.9rem; letter-spacing: 0.2em; font-weight: 600;
+    margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; display: inline-block;
+}
+.page-banner__title {
+    color: #fff; font-family: var(--font-roboto); font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.1; margin-bottom: 25px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); font-weight: 600;
+}
+.page-banner__title .text-italic { font-style: italic; color: #d4a373; }
+.page-banner__desc { font-size: 1.1rem; line-height: 1.8; color: rgba(255,255,255,0.9); }
+.page-banner__deco {
+    position: absolute; bottom: 40px; right: 5%; width: 150px; height: 150px; z-index: 3; opacity: 0.8; pointer-events: none;
 }
 
-.hero__layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 左文右圖 */
-    gap: 80px;
-    align-items: center;
-    width: 100%;
+/* --------------  RWD  -------------- */
+@media (max-width: 1024px) {
+    .page-banner__content { text-align: center; padding-left: 0; margin: 0 auto; max-width: 90%; }
 }
-
-/* 文字區域 */
-.hero__content {
-    position: relative;
-    z-index: 2;
-}
-
-.hero__meta {
-    font-size: 0.85rem;
-    letter-spacing: 0.2em;
-    font-weight: 700;
-    margin-bottom: 24px;
-    padding-left: 50px;
-    position: relative;
-}
-.hero__meta::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 40px;
-    height: 1px;
-    background: var(--c-dark);
-}
-
-.hero__title {
-    font-size: clamp(3.5rem, 6vw, 6.5rem); /* 巨型字體 */
-    letter-spacing: -0.02em;
-    margin-bottom: 30px;
-    color: var(--c-dark);
-}
-
-/* 文字遮罩效果 */
-.line-mask {
-    display: block;
-    overflow: hidden;
-}
-
-.hero__desc {
-    font-size: 1.15rem;
-    color: var(--c-text-gray);
-    max-width: 480px;
-    margin-bottom: 50px;
-    line-height: 1.8;
-}
-
-/* 磁吸按鈕樣式 */
-.hero__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    position: relative;
-    padding: 10px 0;
-}
-.btn-circle {
-    width: 12px;
-    height: 12px;
-    background: var(--c-primary);
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-}
-.hero__btn:hover .btn-circle {
-    transform: scale(1.5);
-}
-
-/* 圖片區域 */
-.hero__visual {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.hero__img-mask {
-    width: 100%;
-    height: 75vh;
-    max-height: 800px;
-    overflow: hidden;
-    /* 2025 風格：有機不對稱切角 */
-    border-radius: 200px 200px 0 0;
-    box-shadow: var(--shadow-soft); /* 高級陰影 */
-}
-
-.hero__img {
-    width: 100%;
-    height: 120%; /* 為了視差預留 */
-    object-fit: cover;
-}
-
-/* 裝飾 SVG */
-.hero__deco {
-    position: absolute;
-    bottom: -40px;
-    left: -40px;
-    width: 140px;
-    height: 140px;
-    z-index: 3;
-}
-.hero__deco text {
-    font-size: 14px;
-    font-weight: bold;
-    letter-spacing: 2px;
+@media (max-width: 768px) {
+    .page-banner { height: 480px; }
+    .page-banner__deco { bottom: 20px; right: 20px; width: 80px; height: 80px; opacity: 0.5; }
 }
 
 /* =========================================
-   5. Story Section (Z-Pattern Layout)
+   3. Brand Story
    ========================================= */
 .story__grid {
     display: grid;
-    grid-template-columns: 0.8fr 1fr;
-    gap: 80px;
+    /* 調整比例，避免左邊太窄 */
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(40px, 6vw, 100px);
     align-items: center;
 }
-
-.story__visual {
-    position: relative;
+.story-mask {
+    width: 100%; overflow: hidden; border-radius: 4px;
+    box-shadow: 30px 30px 0px rgba(140, 106, 75, 0.08);
 }
-
-.img-frame {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
-}
-.img-frame img {
-    transition: transform 1.2s var(--ease-smooth);
-}
-.story__visual:hover img {
-    transform: scale(1.05);
-}
-
-/* 區塊標題設計 */
-.section-subtitle {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--c-primary);
-    margin-bottom: 15px;
-}
-.section-title {
-    font-size: 2.8rem;
-    margin-bottom: 20px;
-}
-.section-line {
-    width: 0;
-    height: 2px;
-    background: var(--c-primary);
-    margin: 30px 0;
-}
-
-.story__text p {
-    font-size: 1.1rem;
-    margin-bottom: 24px;
-    text-align: justify;
-    color: var(--c-text-gray);
-}
-
+.story-img-anim { width: 100%; display: block; }
+.section-line { width: 60px; height: 2px; background: var(--c-primary); margin: 30px 0; }
+.story__text p { font-size: 1.05rem; color: #555; margin-bottom: 25px; line-height: 1.8; text-align: justify; }
 .story__quote {
-    margin-top: 40px;
-    padding: 30px;
-    background: #fff;
-    border-left: 4px solid var(--c-primary);
-    font-size: 1.2rem;
-    font-family: var(--font-serif);
-    font-weight: 700;
-    color: var(--c-dark);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-family: var(--font-roboto); font-size: 1.35rem; color: var(--c-secondary);
+    padding-left: 25px; border-left: 3px solid var(--c-primary); margin-top: 40px; font-weight: 600;
+}
+
+/* --------------  RWD  -------------- */
+@media (max-width: 1024px) {
+    /* 平板轉為單欄，但保留寬度限制，避免文字過長難閱讀 */
+    .story__grid { grid-template-columns: 1fr; gap: 50px; }
+    .story__visual { order: -1; width: 100%; max-width: 600px; margin: 0 auto; }
+    .story__content { max-width: 700px; margin: 0 auto; }
 }
 
 /* =========================================
-   6. Parallax Banner
+   2. 核心價值區塊 (Sticky 釘選佈局)
+   ========================================= */
+.values-section {
+    position: relative;
+    background: #fff;
+    width: 100%;
+    /* 設定高度，讓 pin 運作正常 */
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.values-sticky-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 標題區域 */
+.values-top-bar {
+    padding-top: clamp(60px, 8vh, 100px);
+    flex-shrink: 0;
+    z-index: 10;
+    text-align: center;
+}
+.values-header {
+    margin-bottom: 20px;
+}
+.values-deco-line {
+    width: 100px;
+    height: 3px;
+    background: var(--c-primary);
+    margin: 15px auto 0;
+    opacity: 0.6;
+}
+
+.values-content-body {
+    flex-grow: 0;                          /* 禁止擴展，保持固定大小 */
+    display: flex;                         /* 使用 Flex 佈局 */
+    align-items: start;                   /* 垂直對齊開始位置 */
+    justify-content: center;               /* 水平居中對齊 */
+    gap: 80px;                             /* 子元素之間間隔 */
+    height: 600px;                         /* 固定高度 */
+    width: 100%;                           /* 填滿父容器寬度 */
+    max-width: 1440px;                     /* 最大寬度限制為 1440px */
+    margin: 0 auto;                        /* 水平居中 */
+    padding-bottom: 40px;                  /* 底部內邊距 */
+}
+
+
+/* 左側文字容器 */
+.values-text-col {
+    flex: 0 0 450px;
+    height: var(--values-text-height);
+    position: relative;
+    /* 避免在小尺寸螢幕過寬 */
+    max-width: 45%;
+}
+.v-text-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* 文字項目樣式 */
+.v-item {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+}
+
+/* 狀態樣式 (由 JS 控制 class) */
+.v-item.is-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    z-index: 3;
+}
+.v-item.is-prev {
+    opacity: 0.15;
+    transform: translateY(-120px) scale(0.85);
+    z-index: 2;
+    pointer-events: none;
+}
+.v-item.is-next {
+    opacity: 0.15;
+    transform: translateY(120px) scale(0.85);
+    z-index: 2;
+    pointer-events: none;
+}
+.v-item.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.v-meta {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+.v-num {
+    font-family: var(--font-roboto);
+    font-size: 1.2rem;
+    color: var(--c-primary);
+}
+.v-progress {
+    width: 60px;
+    height: 1px;
+    background: #e0e0e0;
+    position: relative;
+}
+.v-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--c-primary);
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: width 0.6s;
+}
+.v-item.is-active .v-bar {
+    width: 100%;
+}
+
+.v-head {
+    font-size: clamp(2rem, 3vw, 2.5rem);
+    margin-bottom: 20px;
+    color: var(--c-secondary);
+    font-family: var(--font-roboto);
+}
+.v-desc {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #666;
+}
+
+/* 右側圖片框 */
+.values-img-col {
+    flex: 0 0 550px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 50%;
+}
+.v-img-frame {
+    width: 100%;
+    aspect-ratio: 4/3;
+    max-height: 400px;
+    position: relative;
+    /* border-radius: 24px; */
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.15);
+}
+.v-pic {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    clip-path: inset(100% 0% 0% 0%);
+}
+.v-pic.active {
+    clip-path: inset(0% 0% 0% 0%);
+}
+
+/* --------------  RWD  -------------- */
+
+/* 平板直向 (Tablet Portrait & Small Desktop) */
+@media (max-width: 1200px) {
+    .values-content-body {
+        gap: 40px;
+    }
+    .values-text-col {
+        flex: 1;
+        max-width: none;
+        text-align: center;
+    }
+    .values-img-col {
+        flex: 1;
+        max-width: none;
+    }
+
+    /* 文字置中 */
+    .v-meta {
+        justify-content: center;
+    }
+    .v-item {
+        align-items: center;
+    }
+}
+/* 手機版 (Mobile) - 轉為垂直堆疊 */
+@media (max-width: 1024px) {
+    .values-content-body {
+        flex-direction: column; /* 改為垂直 */
+        gap: 20px;
+        justify-content: center; /* 靠上對齊 */
+        padding-top: 10px;
+    }
+
+    .values-top-bar {
+        padding-top: 60px;
+    }
+    .values-deco-line {
+        display: none;
+    }
+
+    /* 調整文字區域 */
+    .values-text-col {
+        width: 100%;
+        height: 180px;
+        text-align: center;
+        order: 2;
+        padding: 0 15px;
+    }
+
+    /* 圖片區域 */
+    .values-img-col {
+        width: 100%;
+        order: 1; /* 圖片在上 */
+        flex: none; /* 取消 flex 伸縮 */
+    }
+
+    .v-img-frame {
+        max-width: 400px;
+        margin: 0 auto;
+        max-height: 35vh; /* 限制高度 */
+    }
+
+    /* 隱藏前後預覽 */
+    .v-item.is-prev, .v-item.is-next {
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   Parallax Banner (穩定版)
    ========================================= */
 .parallax-banner {
     position: relative;
-    height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%;
+    height: 300px;
     overflow: hidden;
-    color: #fff;
-    text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    /* 核心設定：確保背景圖片比例正確 */
     background-size: cover;
-    background-position: 50% 50%; /* 初始位置 */
-    background-attachment: fixed; /* 讓背景固定，實現經典視差 */
+    background-position: center center;
+    background-repeat: no-repeat;
 }
-.parallax-banner__overlay {
+
+.parallax-banner__mask {
+    position: absolute; inset: 0; z-index: 0;
+}
+
+/* 圖片比容器大，確保有空間移動但不跑版 */
+.js-stable-parallax-img {
+    width: 100%;
+    height: 125%; /* 125% 高度 */
+    object-fit: cover;
+    object-position: center;
     position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1;
+    top: -12.5%; /* 初始置中 */
 }
-.parallax-banner__content {
-    position: relative;
-    z-index: 2;
-}
-.parallax-title {
+
+.parallax-banner__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 1; }
+.parallax-banner__content { position: relative; z-index: 2; text-align: center; padding: 0 20px;}
+
+.parallax-title, .parallax-subtitle {
     color: #fff;
-    font-size: clamp(2.5rem, 4vw, 3.5rem);
-    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.85); /* 加強文字陰影，提升對比 */
 }
+
+.parallax-title {
+    font-size: 42px; /* 高度變短，字體也要縮小一點才和諧 */
+    margin: 0 0 5px 0;
+    line-height: 1.2;
+}
+
 .parallax-subtitle {
-    font-size: 1.2rem;
-    letter-spacing: 1px;
-    opacity: 0.9;
+    font-size: 18px;
+    margin: 0;
+    opacity: 0.85;
+}
+
+/* --------------  RWD  -------------- */
+@media (max-width: 768px) {
+    .parallax-banner { height: 250px; }
 }
 
 /* =========================================
-   7. Values & Ingredients
+   5. 靈魂食材 (Overlay Circle Design)
    ========================================= */
-.center {
-    text-align: center;
-    margin: 0 auto 60px;
-    max-width: 600px;
-}
-
-.values__grid {
+.ing-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-}
-.value-card {
-    padding: 40px 30px;
-    text-align: center;
-    background: #fff;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03); /* 極淡陰影 */
-    transition: transform 0.4s ease;
-}
-.value-card:hover {
-    transform: translateY(-10px);
-}
-.value-num {
-    font-size: 3.5rem;
-    font-weight: 900;
-    color: rgba(176, 137, 104, 0.2);
-    margin-bottom: 10px;
-}
-.value-deco-line {
-    width: 40px;
-    height: 3px;
-    background: var(--c-primary);
-    margin: 20px auto 0;
-}
-
-/* =========================================
-   7. Ingredients (新區塊: 嚴選食材)
-   ========================================= */
-.section-ingredients {
-    background: var(--c-light); padding: var(--section-spacing) 0;
-    position: relative; overflow: hidden;
-}
-
-.ing-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
-    margin-top: 60px;
-}
-
-.ing-card { text-align: center; }
-.ing-img-box {
-    width: 100%; aspect-ratio: 1/1;
-    border-radius: 50%; /* 圓形 */
-    overflow: hidden; margin-bottom: 25px;
-    position: relative; border: 1px solid rgba(0,0,0,0.05);
-}
-.ing-img-box img {
-    width: 100%; height: 100%; transition: transform 0.6s var(--ease-out);
-}
-.ing-card:hover img { transform: scale(1.1); }
-
-.ing-title { font-size: 1.5rem; margin-bottom: 10px; color: var(--c-primary-dark); }
-.ing-desc { font-size: 0.95rem; color: #777; line-height: 1.6; }
-
-
-/* =========================================
-   8. CTA Section
-   ========================================= */
-.cta-section {
-    padding: 100px 0;
-}
-.cta-box {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 80px;
-    background: #fff;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-.cta-title {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-.cta-actions {
+    gap: 50px;
     margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
 }
 
-.btn-primary,
-.btn-outline {
-    padding: 18px 48px;
-    border-radius: var(--radius-pill);
-    font-weight: 700;
-    transition: 0.3s;
-    font-size: 1.1rem;
-}
-.btn-primary {
-    background: var(--c-dark);
-    color: #fff;
-    border: 1px solid var(--c-dark);
-}
-.btn-primary:hover {
-    background: var(--c-primary);
-    border-color: var(--c-primary);
-}
-.btn-outline {
-    border: 1px solid var(--c-dark);
-    color: var(--c-dark);
-}
-.btn-outline:hover {
-    background: var(--c-dark);
-    color: #fff;
+.ing-item { display: flex; justify-content: center; }
+
+.ing-circle {
+    position: relative;
+    width: 350px; height: 350px; /* 電腦版尺寸 */
+    border-radius: 50%; overflow: hidden; margin: 0;
+    box-shadow: 20px 20px 50px rgba(140, 106, 75, 0.15);
 }
 
+.ing-circle img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.8s ease;
+}
 
-/* =========================================
-   9. RWD (Responsive Design)
-   ========================================= */
-/* Tablet & Small Desktop (Max 1024px) */
+/* 遮罩層：覆蓋在圖片上 */
+.ing-overlay {
+    position: absolute; inset: 0;
+    background: rgba(44, 36, 32, 0.5); /* 半透明黑底 */
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; text-align: center; padding: 20px;
+    opacity: 0; /* JS 控制淡入 */
+    transition: opacity 0.5s ease;
+}
+
+/* 預設直接顯示文字 (像老井)，或用 JS 觸發 */
+.ing-overlay.is-visible { opacity: 1; }
+
+.ing-text h4 {
+    font-family: var(--font-roboto); font-size: 1.5rem; color: #fff; margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+.ing-line { width: 40px; height: 1px; background: #fff; margin: 10px auto; opacity: 0.8; }
+.ing-text span { font-size: 0.85rem; letter-spacing: 2px; opacity: 0.9; font-weight: 300; }
+
+/* --------------  RWD  -------------- */
 @media (max-width: 1024px) {
-    .hero__layout {
-        grid-template-columns: 1fr;
-        gap: 50px;
-    }
-    .hero__content {
-        order: 2;
-        padding: 0;
-        text-align: center;
-    }
-    .hero__meta {
-        padding-left: 0;
-    }
-    .hero__meta::before {
-        display: none;
-    }
-    .hero__visual {
-        height: 50vh;
-        order: 1;
-    }
-    .hero__img-mask {
-        border-radius: 0 0 100px 100px;
-        height: 100%;
-    }
-
-    .story__grid {
-        grid-template-columns: 1fr;
-    }
-    .story__visual {
-        order: -1;
-        margin-bottom: 40px;
-    }
-
-    .ingredients__layout {
-        grid-template-columns: 1fr;
-        gap: 40px;
-    }
+    /* 平板縮小圓形 */
+    .ing-circle { width: 280px; height: 280px; }
+    .ing-grid { gap: 30px; }
 }
 
-/* Mobile (Max 768px) */
 @media (max-width: 768px) {
-    .section {
-        padding: 80px 0;
-    }
-    .hero__title {
-        font-size: 3rem;
-    }
-    .values__grid,
-    .ingredients__gallery {
-        grid-template-columns: 1fr;
-    }
-    .cta-actions {
-        flex-direction: column;
-    }
-    .parallax-title {
-        font-size: 2.2rem;
-    }
-    .hero__deco {
-        display: none;
-    } /* 手機版隱藏裝飾以節省空間 */
+    /* 手機改單欄 */
+    .ing-grid { grid-template-columns: 1fr; gap: 40px; }
+    .ing-circle { width: 260px; height: 260px; margin: 0 auto; }
 }

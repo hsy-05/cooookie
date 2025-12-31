@@ -27,7 +27,7 @@ class News extends Model
     ];
 
     /**
-     * 一則新聞會有多個語系描述
+     * 一則資料會有多個語系描述
      * hasMany(對應 model, 對方的外鍵 news_id, 本方的主鍵 news_id)
      */
     public function descs()
@@ -51,7 +51,7 @@ class News extends Model
     }
 
     /**
-     * 每則新聞屬於某一個分類
+     * 每則資料屬於某一個分類
      */
     public function category()
     {
@@ -61,6 +61,7 @@ class News extends Model
     /**
      * 動態屬性：自動取得目前語系的標題
      * 讓你可以用 $news->title，而不是 $news->desc->title
+     * 目前無使用此功能，但未來可能會用到
      */
     public function getTitleAttribute()
     {

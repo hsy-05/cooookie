@@ -1,10 +1,11 @@
 @extends('adminlte::page')
 
-@section('title', '編輯分類')
+@section('title', $pageTitle)
 
-@section('content_header')
-    <h1>{{ isset($isEdit) ? '編輯分類' : '新增分類' }}</h1>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@include('components.admin.page_content_header')
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
 @stop
 
 @section('content')
@@ -55,7 +56,7 @@
 
                             <div class="tab-content" id="language-tabs-content">
                                 @foreach ($langs as $lang)
-                                    @php $d = $descMap[$lang->lang_id] ?? null; @endphp
+                                    @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                     <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                         id="lang-{{ $lang->lang_id }}" role="tabpanel"
                                         aria-labelledby="lang-{{ $lang->lang_id }}-tab">
@@ -63,13 +64,13 @@
                                             <label for="name_{{ $lang->lang_id }}">分類名稱</label>
                                             <input type="text" id="name_{{ $lang->lang_id }}"
                                                 name="desc[{{ $lang->lang_id }}][name]" class="form-control"
-                                                value="{{ $d->name ?? '' }}">
+                                                value="{{ $desc->name ?? '' }}">
                                         </div>
                                         <div class="form-group">
                                             <label for="description_{{ $lang->lang_id }}">簡述</label>
                                             <input type="text" id="description_{{ $lang->lang_id }}"
                                                 name="desc[{{ $lang->lang_id }}][description]" class="form-control"
-                                                value="{{ $d->description ?? '' }}">
+                                                value="{{ $desc->description ?? '' }}">
                                         </div>
                                     </div>
                                 @endforeach
@@ -133,11 +134,11 @@
 
                         <div class="tab-content mt-3">
                             @foreach ($langs as $lang)
-                                @php $d = $descMap[$lang->lang_id] ?? null; @endphp
+                                @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                 <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                                     id="content-{{ $lang->lang_id }}">
                                     <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $d->content ?? '' }}</textarea>
+                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $desc->content ?? '' }}</textarea>
                                     </div>
                                 </div>
                             @endforeach
@@ -147,7 +148,7 @@
             </div>
 
             <!-- 提交按鈕 -->
-            <div class="text-right mt-3">
+            <div class="text-center mt-3">
                 <a href="{{ route('admin.news_category.index') }}" class="btn btn-secondary">返回</a>
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>

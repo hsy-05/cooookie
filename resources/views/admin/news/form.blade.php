@@ -104,7 +104,7 @@
                                         <label for="cat_id">分類</label>
                                         <select id="cat_id" name="cat_id" class="form-control required-field">
                                             <option value="">-- 無 --</option>
-                                            @foreach ($cats as $cat)
+                                            @foreach ($categories as $cat)
                                                 <option value="{{ $cat->cat_id }}"
                                                     {{ isset($isEdit) && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
                                                     {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
@@ -167,7 +167,7 @@
             </div>
 
             <!-- 提交按鈕 -->
-            <div class="text-right mt-3">
+            <div class="text-center mt-3">
                 <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
                 <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
             </div>

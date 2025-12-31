@@ -23,8 +23,8 @@ class NewsController extends BaseAdminController
      */
     protected $imageSizes = [
         'image' => [600, 400],     // 封面圖片
-        'thumbnail' => [300, 200], // 縮圖範例
-        'banner' => [1200, 500],   // Banner 範例
+        // 'thumbnail' => [300, 200], // 縮圖範例
+        // 'banner' => [1200, 500],   // Banner 範例
     ];
 
     /**
@@ -76,11 +76,11 @@ class NewsController extends BaseAdminController
      */
     public function create()
     {
-        $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
+        $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $imageSizes = $this->getAllImageSizes();
 
-        return $this->view('admin.news.form', compact('cats', 'langs', 'imageSizes'));
+        return $this->view('admin.news.form', compact('categories', 'langs', 'imageSizes'));
     }
 
     /**
@@ -156,17 +156,18 @@ class NewsController extends BaseAdminController
 
             return redirect()->back();
         } catch (\Throwable $e) {
+            // 發生錯誤時回滾交易
             DB::rollBack();
             return redirect()->back()->withInput()->with('error', '新增失敗: ' . $e->getMessage());
         }
     }
 
-    /**
-     * 編輯表單
-     */
+        /**
+         * 編輯表單
+         */
     public function edit(News $news)
-    {
-        $cats = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
+    {dd($news);
+        $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
         $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
         $news->load('descs');
         $isEdit = $news->exists;
@@ -180,7 +181,7 @@ class NewsController extends BaseAdminController
 
         $imageSizes = $this->getAllImageSizes();
 
-        return $this->view('admin.news.form', compact('news', 'isEdit', 'cats', 'langs', 'descMap', 'imageSizes'));
+        return $this->view('admin.news.form', compact('news', 'isEdit', 'categories', 'langs', 'descMap', 'imageSizes'));
     }
 
     /**
@@ -196,6 +197,7 @@ class NewsController extends BaseAdminController
             'desc' => 'nullable|array',
         ]);
 
+        // 開始資料庫交易，保證資料一致性
         DB::beginTransaction();
         try {
             // 圖片處理 (支援多欄位)

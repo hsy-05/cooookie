@@ -6,13 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class NewsCategory extends Model
 {
-    // 指定 table 與 primaryKey（cat_id）
+    // 👉 指定操作的資料表名稱
     protected $table = 'news_category';
+
+    // 👉 指定主鍵欄位（因為不是預設的 id）
     protected $primaryKey = 'cat_id';
+
+    // 👉 主鍵是 int 並且是 auto-increment（因為 migration 用 increments）
     public $incrementing = true;
+
+    // 👉 主鍵的資料型態（Laravel 預設是 string，要改正確）
     protected $keyType = 'int';
 
-    // 可以大量賦值的欄位
+    // 👉 控制可批量填入的欄位（對 create / update 才能用）
     protected $fillable = [
         'parent_id',
         'parent_ids',
@@ -30,37 +36,31 @@ class NewsCategory extends Model
     }
 
     /**
-     * 取得指定語系的描述（helper）
+     * 取得目前語系的一筆描述資料
      * $langId 可傳入特定 lang_id，若為 null 則從 session 或系統預設取
+     * 當你要抓語系內容時可以直接使用： $news->desc->title
      */
-    public function desc($langId = null)
+    public function desc()
     {
-        $langId = $langId ?: session('lang_id') ?: config('app.locale'); // 你可能需要自行 mapping
-        return $this->descs()->where('lang_id', $langId)->first();
+        // 如果 Session 沒設定，預設語系為 1
+        $langId = session('lang_id') ?? 1;
+
+        // hasOne 並加上 where 語言過濾
+        return $this->hasOne(NewsCategoryDesc::class, 'cat_id', 'cat_id')
+            ->where('lang_id', $langId);
     }
-}
 
-class NewsCategoryDesc extends Model
-{
-    protected $table = 'news_category_desc';
+    // 在 NewsCategory 模型中添加以下方法
+    public function news()
+    {
+        // 假設 News 模型中有一個 cat_id 外鍵，指向 NewsCategory
+        return $this->hasMany(News::class, 'cat_id', 'cat_id');
+    }
 
-    // 使用複合主鍵時，Eloquent 的自增設定需關閉
-    public $incrementing = false;
-    protected $primaryKey = null; // 我們以 (cat_id, lang_id) 為主鍵
-
-    protected $fillable = [
-        'cat_id',
-        'lang_id',
-        'name',
-        'description',
-        'content',
-    ];
-
-    /**
-     * 關聯回主表
-     */
+    // 在 News 模型中添加以下方法
     public function category()
     {
+        // 假設 News 模型中的外鍵是 cat_id
         return $this->belongsTo(NewsCategory::class, 'cat_id', 'cat_id');
     }
 }

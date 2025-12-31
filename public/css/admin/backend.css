@@ -21,33 +21,52 @@
 /* =========================
    2. 固定欄位寬度 px-width-*
    ========================= */
-.px-width-60  { width: 60px;  min-width: 60px; }   /* 小圖示 / checkbox */
-.px-width-80  { width: 80px;  min-width: 80px; }   /* 狀態欄位 */
-.px-width-100 { width: 100px; min-width: 100px; }  /* 操作欄位 */
-.px-width-120 { width: 120px; min-width: 120px; }
-.px-width-150 { width: 150px; min-width: 150px; }  /* 日期 / 排序 */
-.px-width-180 { width: 180px; min-width: 180px; }
-.px-width-200 { width: 200px; min-width: 200px; }
-.px-width-250 { width: 250px; min-width: 250px; }
-.px-width-300 { width: 300px; min-width: 300px; }
+/* =========================
+   1. 固定欄位寬度 px-width-50 到 px-width-250，每10px遞增
+   ========================= */
+.px-width-50  { width: 50px;   min-width: 50px; }
+.px-width-60  { width: 60px;   min-width: 60px; }
+.px-width-70  { width: 70px;   min-width: 70px; }
+.px-width-80  { width: 80px;   min-width: 80px; }
+.px-width-90  { width: 90px;   min-width: 90px; }
+.px-width-100 { width: 100px;  min-width: 100px; }
+.px-width-110 { width: 110px;  min-width: 110px; }
+.px-width-120 { width: 120px;  min-width: 120px; }
+.px-width-130 { width: 130px;  min-width: 130px; }
+.px-width-140 { width: 140px;  min-width: 140px; }
+.px-width-150 { width: 150px;  min-width: 150px; }
+.px-width-160 { width: 160px;  min-width: 160px; }
+.px-width-170 { width: 170px;  min-width: 170px; }
+.px-width-180 { width: 180px;  min-width: 180px; }
+.px-width-190 { width: 190px;  min-width: 190px; }
+.px-width-200 { width: 200px;  min-width: 200px; }
+.px-width-210 { width: 210px;  min-width: 210px; }
+.px-width-220 { width: 220px;  min-width: 220px; }
+.px-width-230 { width: 230px;  min-width: 230px; }
+.px-width-240 { width: 240px;  min-width: 240px; }
+.px-width-250 { width: 250px;  min-width: 250px; }
 
 /* =========================
-   3. 響應式寬度調整
+   2. 響應式寬度調整
    ========================= */
+
 /* 手機 (<576px) ：解除所有固定寬度 */
-/* @media (max-width: 575.98px) {
+@media (max-width: 575.98px) {
     [class^="px-width-"],
     [class*=" px-width-"] {
         width: auto;
         min-width: auto;
     }
-} */
+}
 
 /* 平板 (<992px) ：大欄位自動適應 */
 @media (max-width: 991.98px) {
     .px-width-200,
-    .px-width-250,
-    .px-width-300 {
+    .px-width-210,
+    .px-width-220,
+    .px-width-230,
+    .px-width-240,
+    .px-width-250 {
         width: auto;
         min-width: auto;
     }

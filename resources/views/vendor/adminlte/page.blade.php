@@ -39,6 +39,13 @@
             @include('adminlte::partials.cwrapper.cwrapper-iframe')
         @endempty
 
+        {{-- Footer Section --}}
+    @section('footer')
+        <div class="footer-content">
+            <p>© 2023 My Custom Footer. All rights reserved.</p>
+        </div>
+    @endsection
+
         {{-- Footer --}}
         @hasSection('footer')
             @include('adminlte::partials.footer.footer')

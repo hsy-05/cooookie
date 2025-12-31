@@ -179,7 +179,7 @@
                 </div>
 
                 <!-- 提交按鈕 -->
-                <div class="text-right mt-3">
+                <div class="text-center mt-3">
                     <a href="{{ route('admin.advert.index') }}" class="btn btn-secondary">返回</a>
                     <button type="submit" class="btn btn-success">
                         {{ isset($isEdit) ? '更新' : '新增' }}

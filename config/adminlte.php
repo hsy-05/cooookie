@@ -152,12 +152,13 @@ return [
     |
     */
 
-    'layout_topnav' => null, // true 則為 TopNav (無側邊欄)
-    'layout_boxed' => null,
-    'layout_fixed_sidebar' => null,
-    'layout_fixed_navbar' => null,
-    'layout_fixed_footer' => null,
-    'layout_dark_mode' => true,
+    'layout_topnav' => null,        // true 則為 TopNav (無側邊欄)
+    'layout_boxed' => null,         // 啟用 Boxed 佈局
+    'layout_fixed_sidebar' => null, // 側邊欄固定
+    'layout_fixed_navbar' => null,  // 頂部導航固定
+    'layout_fixed_footer' => null,  // 頁腳固定
+    'layout_dark_mode' => true,     // 啟用暗黑模式
+
 
     /*
     |--------------------------------------------------------------------------
@@ -201,6 +202,7 @@ return [
     'classes_topnav' => 'navbar-white navbar-light',
     'classes_topnav_nav' => 'navbar-expand',
     'classes_topnav_container' => 'container',
+    'classes_footer' => 'mt-5',
 
     /*
     |--------------------------------------------------------------------------
