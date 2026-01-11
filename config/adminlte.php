@@ -398,6 +398,11 @@ return [
                     'url'  => 'admin/languages',
                     'active' => ['regex:@^admin/languages($|/)@'], // 可用陣列 / 通配符
                 ],
+                [
+                    'text' => '操作紀錄',
+                    'url'  => 'admin/logs',
+                    'active' => ['regex:@^admin/logs($|/)@'], // 可用陣列 / 通配符
+                ],
             ],
         ],
         [

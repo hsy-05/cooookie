@@ -16,7 +16,8 @@
                 $color = 'text-success';
                 $heading = '成功';
                 break;
-            default: // 一般資訊
+            default:
+                // 一般資訊
                 $icon = 'fa-info-circle';
                 $color = 'text-info';
                 $heading = '資訊';
@@ -43,10 +44,9 @@
             @endif
 
             {{-- 連結按鈕 --}}
-            <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+            <div class="d-flex flex-column align-items-center mt-3">
                 @foreach ($links as $i => $link)
-                    <a href="{{ $link['href'] }}"
-                       class="btn {{ $i === 0 ? 'btn-primary' : 'btn-secondary' }} mr-2">
+                    <a href="{{ $link['href'] }}" class="btn {{ $i === 0 ? 'btn-primary' : 'btn-secondary' }} w-100 mb-3">
                         {{ $link['text'] }}
                     </a>
                 @endforeach
@@ -57,7 +57,7 @@
     {{-- 倒數計時 --}}
     @if (!empty($links) && ($msg['autoRedirect'] ?? false))
         <script>
-            (function(){
+            (function() {
                 let countdown = 3;
                 const el = document.getElementById('redirect-countdown');
                 const target = "{{ $links[0]['href'] ?? '#' }}";

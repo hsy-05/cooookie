@@ -66,6 +66,7 @@ class ContentHelper
             );
         }
 
+        // 提示頁面：\resources\views\components\admin\page-message.blade.php
         session()->flash('form_success', [
             'msg_type'     => $msgType,
             'title'        => $msgContent,

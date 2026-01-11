@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\ActionLogController;
+
 use App\Http\Controllers\Admin\NewsCategoryController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\NewsController;
@@ -58,6 +60,7 @@ Auth::routes();
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('languages', LanguageController::class);            // 語言管理
+    Route::resource('logs', ActionLogController::class);                // 操作紀錄
     // 分類管理
     Route::resource('news_category', NewsCategoryController::class)->parameters([
         'news_category' => 'category' // 這裡自定義將 'news_category' 參數綁定到 '$category'

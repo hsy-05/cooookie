@@ -45,10 +45,10 @@
             <!-- 主選單 (電腦版和手機版共用) -->
             <nav class="main-nav js-main-nav">
                 <ul class="nav-list">
-                    <li><a href="{{ url('/about') }}" class="nav-link">關於我們</a></li>
-                    <li><a href="{{ url('/products') }}" class="nav-link">美味餅乾</a></li>
-                    <li><a href="{{ url('/news') }}" class="nav-link">最新消息</a></li>
-                    <li><a href="{{ url('/contact') }}" class="nav-link">聯絡我們</a></li>
+                    <li><a href="{{ url('/about') }}" class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">關於我們</a></li>
+                    <li><a href="{{ url('/products') }}" class="nav-link {{ request()->routeIs('products') ? 'active' : '' }}">美味餅乾</a></li>
+                    <li><a href="{{ url('/news') }}" class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a></li>
+                    <li><a href="{{ url('/contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">聯絡我們</a></li>
                 </ul>
             </nav>
 

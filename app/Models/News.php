@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Loggable; // 1. 引入 Trait
 
 class News extends Model
 {
+    use Loggable; // 2. 使用 Trait
+
+    public $logName = '消息'; // 3. 定義 Log 顯示的模組名稱
+    public $logTitle = 'log_title'; // 4. 告訴 Trait 標題要抓 'log_title' 這個屬性
+
     // 👉 指定操作的資料表名稱
     protected $table = 'news';
 
@@ -47,7 +53,7 @@ class News extends Model
 
         // hasOne 並加上 where 語言過濾
         return $this->hasOne(NewsDesc::class, 'news_id', 'news_id')
-                    ->where('lang_id', $langId);
+            ->where('lang_id', $langId);
     }
 
     /**
@@ -78,5 +84,12 @@ class News extends Model
         return optional(
             $this->descs()->where('lang_id', $langIdCache)->first()
         )->title;
+    }
+
+    public function getLogTitleAttribute()
+    {
+        // 嘗試抓取第一筆關聯的標題，抓不到就回傳 '未命名'
+        // 注意：如果你是用語系，可以寫 ->where('lang', 'zh-TW')->first()
+        return $this->descs->first()->title ?? '未命名消息';
     }
 }

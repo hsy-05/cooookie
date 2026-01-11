@@ -451,13 +451,16 @@ ul {
     transition: width 0.4s var(--ease-out);
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link.active {
     color: var(--c-primary);
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.active::after {
     width: 100%;
 }
+
 
 /* 滾動時的導航文字顏色調整 */
 

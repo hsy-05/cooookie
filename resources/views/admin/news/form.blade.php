@@ -4,16 +4,19 @@
 
 @include('components.admin.page_content_header')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
+@stop
+
 @section('content')
     {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
     <x-admin.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.summernote.template-modal')
-        <form name="the-form"
-            action="{{ isset($isEdit) ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
+        <form name="the-form" action="{{ $isEdit ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
-            @if (isset($isEdit))
+            @if ($isEdit)
                 @method('PUT')
             @endif
 
@@ -62,9 +65,9 @@
                                                 class="form-control required-field" data-label="標題 ({{ $lang->name }})"
                                                 value="{{ $desc->title ?? '' }}">
                                         </div>
-                                        <!-- 新增 描述 欄位 -->
+                                        <!-- 簡述欄位 -->
                                         <div class="form-group">
-                                            <label for="description_{{ $lang->lang_id }}">描述</label>
+                                            <label for="description_{{ $lang->lang_id }}">簡述</label>
                                             <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
                                                 maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
                                         </div>
@@ -85,7 +88,7 @@
                                         <div class="input-group">
                                             <input type="file" id="image" name="image" class="form-control"
                                                 aria-label="Upload image">
-                                            @if (isset($isEdit) && $news->image)
+                                            @if ($isEdit && $news->image)
                                                 <div class="input-group-append">
                                                     <button type="button" class="btn btn-info" data-toggle="modal"
                                                         data-target="#imageModal">瀏覽</button>
@@ -106,7 +109,7 @@
                                             <option value="">-- 無 --</option>
                                             @foreach ($categories as $cat)
                                                 <option value="{{ $cat->cat_id }}"
-                                                    {{ isset($isEdit) && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
+                                                    {{ $isEdit && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
                                                     {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
                                                 </option>
                                             @endforeach
@@ -119,14 +122,14 @@
                                             <label for="display_order">排序</label>
                                             <input type="number" id="display_order" name="display_order"
                                                 class="form-control"
-                                                @if (isset($isEdit)) value="{{ $news->display_order }}" @endif>
+                                                @if ($isEdit) value="{{ $news->display_order }}" @endif>
                                         </div>
                                         <div class="col-md-2 form-group ml-3">
                                             <label for="is_visible">是否顯示</label>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input" id="is_visible"
                                                     name="is_visible" value="1"
-                                                    {{ isset($isEdit) && $news->is_visible ? 'checked' : 'checked' }}>
+                                                    {{ !$isEdit || $news->is_visible ? 'checked' : '' }}>
                                                 <label class="custom-control-label" for="is_visible"></label>
                                             </div>
                                         </div>
@@ -169,13 +172,13 @@
             <!-- 提交按鈕 -->
             <div class="text-center mt-3">
                 <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
-                <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
+                <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
             </div>
         </form>
     </x-admin.page-message>
 
     <!-- 圖片預覽彈出視窗 -->
-    @if (isset($isEdit))
+    @if ($isEdit)
         <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -203,6 +206,9 @@
     <!-- Summernote -->
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+
+    <!-- Summernote 繁體中文語系 -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-zh-TW.min.js"></script>
 
     <!-- 引入自訂的 Summernote 初始化檔 -->
     <script src="{{ asset('js/admin/summernote-init.js') }}"></script>

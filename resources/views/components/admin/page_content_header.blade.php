@@ -14,7 +14,7 @@
 @section('content_header')
     <h1>{{ $pageTitle }}
         <small class="hidden-480">
-            <i class="ace-icon fa fa-angle-double-right"></i>
+            <i class="fas fa-angle-double-right"></i>
             {{ $actionlbl }}
         </small>
     </h1>

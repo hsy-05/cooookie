@@ -14,7 +14,7 @@ class UploadController extends Controller
         Log::info('[uploadImage] 被呼叫了');
 
         if ($request->hasFile('image')) {
-            $saveDir = 'uploads'; // 儲存子目錄
+            $saveDir = 'editor'; // 儲存子目錄
             $file = $request->file('image');
 
             // 生成唯一檔名（已先檢查是否存在）

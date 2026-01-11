@@ -37,4 +37,6 @@ class NewsDesc extends Model
     {
         return $this->belongsTo(News::class, 'news_id', 'news_id');
     }
+
+    public $timestamps = true; // 預設是 true，會自動管理 created_at 和 updated_at
 }

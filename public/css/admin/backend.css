@@ -6,7 +6,7 @@
    =========================================================================== */
 
 /* =========================
-   1. 表格基礎樣式
+   表格基礎樣式
    ========================= */
 .table th,
 .table td {
@@ -19,10 +19,7 @@
 }
 
 /* =========================
-   2. 固定欄位寬度 px-width-*
-   ========================= */
-/* =========================
-   1. 固定欄位寬度 px-width-50 到 px-width-250，每10px遞增
+   固定欄位寬度 px-width-*
    ========================= */
 .px-width-50  { width: 50px;   min-width: 50px; }
 .px-width-60  { width: 60px;   min-width: 60px; }
@@ -47,7 +44,7 @@
 .px-width-250 { width: 250px;  min-width: 250px; }
 
 /* =========================
-   2. 響應式寬度調整
+   響應式寬度調整
    ========================= */
 
 /* 手機 (<576px) ：解除所有固定寬度 */
@@ -73,7 +70,7 @@
 }
 
 /* =========================
-   4. hidden-* 響應式欄位隱藏
+   hidden-* 響應式欄位隱藏
    th + td 都需加 hidden-* class
    ========================= */
 
@@ -106,7 +103,7 @@
 }
 
 /* =========================
-   5. 後台常用輔助 class
+   後台常用輔助 class
    ========================= */
 .table-actions {
     white-space: nowrap;        /* 按鈕群組不換行 */
@@ -124,7 +121,37 @@
 }
 
 /* =========================
-   6. 維護說明
+   Tree Table 專用樣式
+   ========================= */
+.tree-indent {
+    width: 25px;
+    display: inline-block;
+}
+
+.btn-toggle-tree {
+    cursor: pointer;
+    width: 20px;
+    transition: transform 0.2s;
+}
+
+/* 用 CSS 來處理第一層加粗，比在 Blade 寫判斷更乾淨 */
+.tree-row[data-level="0"] .category-name-text {
+    font-weight: 700 !important;
+    color: #333;
+}
+
+.tree-row .category-name-text {
+    font-weight: 400;
+}
+
+.tree-row .fa-minus {
+    font-size: 10px;
+    opacity: 0.5;
+    width: 20px;
+}
+
+/* =========================
+   維護說明
    ========================= */
 /*
 1. td 需與 th 對應，加相同的 hidden-* class

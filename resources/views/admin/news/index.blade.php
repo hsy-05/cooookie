@@ -17,7 +17,8 @@
             <!-- 搜尋表單 -->
             <form action="{{ route('admin.news.index') }}" method="GET" class="form-inline">
                 <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="搜尋標題..." value="{{ $search ?? '' }}">
+                    <input type="text" name="search" class="form-control" placeholder="搜尋標題..."
+                        value="{{ $search ?? '' }}">
                     <div class="input-group-append">
                         <button class="btn btn-success" type="submit">搜尋</button>
                         <!-- 如果有搜尋關鍵字，顯示清除按鈕 -->
@@ -80,10 +81,14 @@
                         <td>
                             <a href="{{ route('admin.news.edit', $item->news_id) }}" class="btn btn-sm btn-warning">編輯</a>
                             <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
-                                style="display:inline-block;" onsubmit="return confirm('確定要刪除嗎？')"> <!-- 傳統的 JS confirm 提示 -->
+                                style="display:inline-block;" id="deleteForm{{ $item->news_id }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                                <button type="button" class="btn btn-sm btn-danger js-delete-btn" data-id="{{ $item->news_id }}"
+                                    data-title="確定刪除這筆資料嗎？" data-text="刪除後將無法恢復！">
+                                    刪除
+                                </button>
+
                             </form>
                         </td>
                     </tr>
@@ -127,4 +132,28 @@
             {{ $newsList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
         </div>
     </x-admin.page-message>
+@stop
+
+@section('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 取得所有刪除按鈕（可用在任何管理頁）
+            const deleteButtons = document.querySelectorAll('.js-delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+
+                    // 從 data-* 取得資料
+                    const id = this.dataset.id;
+                    const title = this.dataset.title || '確定要刪除嗎？';
+                    const text = this.dataset.text || '刪除後無法恢復！';
+
+                    // 呼叫共用刪除確認視窗
+                    confirmDelete(id, title, text);
+                });
+            });
+
+        });
+    </script>
 @stop

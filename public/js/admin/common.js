@@ -124,7 +124,7 @@ function showAlert(
     title = "", // 顯示標題
     message = "", // 顯示訊息
     toast = true, // 啟用 Toast 模式 (右上角彈出)
-    position = "top-end", // 彈出位置
+    position = "center", // 彈出位置
     showConfirmButton = false, // 是否顯示確認按鈕
     confirmButtonText = "確定",
     timer = 3000, // 3 秒後自動關閉
@@ -153,7 +153,7 @@ function showAlert(
         width: "auto",
         padding: "1.25rem",
         color: "#fff",
-        background: "#6C757D",
+        background: "#1F2226",
         // theme: 'dark',
         grow: false,
         customClass: {
@@ -305,4 +305,49 @@ function syncSummernoteContent(formSelector) {
             const content = $(this).summernote("code");
             $(this).val(content);
         });
+}
+
+
+/**
+ * 顯示 SweetAlert2 刪除確認視窗（共用）
+ *
+ * @param {number} id - 要刪除的資料 ID
+ * @param {string} title - 提示標題（由各管理頁決定）
+ * @param {string} text - 提示內容
+ */
+function confirmDelete(id, title, text) {
+
+    showAlert(
+        'warning',      // 警告類型
+        title,          // ← 不再寫死
+        text,           // ← 不再寫死
+        false,          // Toast 關閉
+        'center',
+        true,
+        '刪除',
+        0,
+        {
+            showCancelButton: true,
+            cancelButtonText: '取消',
+
+            // 確認後才真的刪除
+            preConfirm: function () {
+                const form = document.getElementById('deleteForm' + id);
+
+                if (!form) {
+                    console.error('找不到刪除表單：deleteForm' + id);
+                    return false; // 防呆
+                }
+
+                form.submit();
+            },
+
+            customClass: {
+                title: "text-white",
+                popup: "border border-white rounded",
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-secondary'
+            }
+        }
+    );
 }

@@ -4,36 +4,50 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Models\NewsCategory;
-use App\Models\NewsCategoryDesc;
-use App\Models\Language;
-use Illuminate\Support\Facades\DB;
-use App\Helpers\ContentHelper;
+use App\Models\{NewsCategory, NewsCategoryDesc, Language};
+use Illuminate\Support\Facades\{DB, Log};
+use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsCategoryController extends BaseAdminController
 {
     protected $pageTitle = '消息分類';
 
     /**
+     * 圖片欄位尺寸設定
+     * key = input name
+     * value = [width, height]
+     */
+    protected $imageSizes = [
+        'image' => [600, 400],
+    ];
+
+    /**
      * 顯示分類列表頁面，包含多語系表單
      */
     public function index(Request $request)
     {
-        // 搜尋條件與每頁顯示數量設定
+        // 1. 取得搜尋關鍵字
         $search = $request->input('search');
-        $perPage = $request->input('per_page', 10);
 
-        // 取得所有表單，並根據顯示順序排序
-        $categories = NewsCategory::with('descs')
-            ->when($search, function ($query) use ($search) {
-                $query->whereHas('descs', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
-                });
+        // 2. 建立查詢基礎：預載語言描述與子分類
+        $query = NewsCategory::with(['children.descs', 'descs']);
+
+        // 3. 處理搜尋與層級邏輯
+        if ($search) {
+            // 如果有搜尋，通常會打破樹狀結構，直接列出所有符合的項目
+            $categories = $query->whereHas('descs', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })->get();
+        } else {
+            // 如果沒有搜尋，顯示標準樹狀結構：只抓第一層 (parent_id 為 0 或 null)
+            $categories = $query->where(function ($q) {
+                $q->where('parent_id', 0)->orWhereNull('parent_id');
             })
-            ->orderBy('display_order', 'desc')
-            ->paginate($perPage);
+                ->orderBy('display_order', 'asc')
+                ->orderBy('cat_id', 'asc')
+                ->get();
+        }
 
-        // 返回分類頁面
         return $this->view('admin.news_category.index', compact('categories', 'search'));
     }
 
@@ -42,70 +56,45 @@ class NewsCategoryController extends BaseAdminController
      */
     public function create()
     {
-        // 取得所有可作為父分類的分類資料與啟用中的語系
-        $parents = NewsCategory::all();
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-
-        return $this->view('admin.news_category.form', compact('parents', 'langs'));
+        return $this->renderForm(new NewsCategory(), false);
     }
 
-    /**
-     * 儲存表單
-     */
     public function store(Request $request)
     {
-        // 驗證輸入資料
-        $request->validate([
-            'parent_id' => 'nullable|exists:news_category,cat_id',
-            'is_visible' => 'nullable|boolean',
-            'display_order' => 'nullable|integer',
-            'desc' => 'required|array',
-        ]);
+        $validRes = $this->validateRequest($request);
+        // 如果有回傳 Redirect 物件，代表防呆觸發了，必須立刻 return 回去給瀏覽器
+        if ($validRes) {
+            return $validRes;
+        }
+        return DB::transaction(function () use ($request) {
+            try {
+                $category = new NewsCategory();
 
-        // 開始資料庫交易，保證資料一致性
-        DB::beginTransaction();
-        try {
-            // 儲存主表資料
-            $category = NewsCategory::create([
-                'parent_id' => $request->parent_id ?: null,
-                'is_visible' => $request->is_visible ?? 1,
-                'display_order' => $request->display_order ?? 0,
-            ]);
+                // 1. 處理圖片 (預留功能)
+                $this->handleImageUpload($request, $category);
 
-            // 儲存每個語系的描述資料
-            foreach ($request->desc as $langId => $desc) {
-                if (!empty($desc['name'])) {
-                    NewsCategoryDesc::create([
-                        'cat_id' => $category->cat_id,
-                        'lang_id' => $langId,
-                        'name' => $desc['name'],
-                        'description' => $desc['description'] ?? null,
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
-                    ]);
-                }
-            }
+                // 2. 儲存主表
+                $category->fill([
+                    'parent_id'     => $request->parent_id ?: null,
+                    'is_visible'    => $request->has('is_visible'),
+                    'display_order' => $request->display_order ?? 0,
+                ])->save();
 
-            // 提交交易
-            DB::commit();
+                // 3. 儲存多語系資料
+                $this->saveTranslations($category, $request->desc);
 
-            // 5️⃣ 回傳訊息
-            ContentHelper::showMsg(
-                0,
-                '消息新增完成',
-                [
+                ContentHelper::showMsg(0, '分類新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news_category.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
                     ['text' => '返回列表', 'href' => route('admin.news_category.index')],
-                ],
-                true
-            );
+                ], true);
 
-            return redirect()->back();
-        } catch (\Throwable $e) {
-            // 發生錯誤時回滾交易
-            DB::rollBack();
-            return back()->withInput()->with('error', '新增失敗：' . $e->getMessage());
-        }
+                return redirect()->back();
+            } catch (\Exception $e) {
+                Log::error("Category Store Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '新增失敗');
+            }
+        });
     }
 
     /**
@@ -113,126 +102,252 @@ class NewsCategoryController extends BaseAdminController
      */
     public function edit(NewsCategory $category)
     {
-        // 取得所有可以作為父分類的分類資料，並排除當前編輯的分類，且 parent_id = 當前編輯分類的 cat_id
-        $parents = NewsCategory::where('cat_id', '!=', $category->cat_id) // 排除當前分類
-            ->where('parent_id', $category->cat_id) // 只選取 parent_id 等於當前分類的項目
-            ->get();
-
-        // 取得所有啟用中的語系
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-
-        // 載入該分類的所有描述資料（desc）
-        $category->load('descs');
-        $isEdit = $category->exists;
-
-        // 轉換 desc 資料成為以 lang_id 為鍵的映射表
-        $descMap = [];
-        foreach ($category->descs as $desc) {
-            // 解碼 content 資料
-            $desc->content = ContentHelper::decodeSiteUrl($desc->content);
-            $descMap[$desc->lang_id] = $desc;
-        }
-
-        // 渲染視圖並傳遞所需的變數
-        return $this->view('admin.news_category.form', compact(
-            'category',     // 當前編輯的分類資料
-            'parents',      // 可選的父類分類資料
-            'langs',        // 所有啟用中的語系
-            'descMap',      // 每個語系的分類描述
-        ));
+        return $this->renderForm($category);
     }
-
-
 
     /**
      * 更新表單
      */
     public function update(Request $request, NewsCategory $category)
     {
-        // 驗證輸入資料
-        $request->validate([
-            'parent_id' => 'nullable|exists:news_category,cat_id',
-            'is_visible' => 'nullable|boolean',
-            'display_order' => 'nullable|integer',
-            'desc' => 'nullable|array',
-        ]);
+        $validRes = $this->validateRequest($request);
+        // 如果有回傳 Redirect 物件，代表防呆觸發了，必須立刻 return 回去給瀏覽器
+        if ($validRes) {
+            return $validRes;
+        }
+        return DB::transaction(function () use ($request, $category) {
+            try {
+                // 1. 更新圖片 (預留功能)
+                $this->handleImageUpload($request, $category);
 
-        // 開始資料庫交易，保證資料一致性
-        DB::beginTransaction();
-        try {
-            // 更新主表資料
-            $category->update([
-                'parent_id' => $request->parent_id ?: null,
-                'is_visible' => $request->is_visible ?? 1,
-                'display_order' => $request->display_order ?? 0,
-            ]);
+                // 2. 更新主表
+                $category->update([
+                    'parent_id'     => $request->parent_id ?: null,
+                    'is_visible' => $request->input('is_visible') === '1',
+                    'display_order' => $request->display_order ?? 0,
+                ]);
 
-            // 更新或插入每個語系的描述資料
-            foreach ($request->desc as $langId => $desc) {
-                if (empty($desc['name'])) {
-                    // 如果名稱為空，刪除該語言描述
-                    NewsCategoryDesc::where('cat_id', $category->cat_id)
-                        ->where('lang_id', $langId)
-                        ->delete();
-                    continue;
-                }
+                // 3. 更新多語系資料
+                $this->saveTranslations($category, $request->desc);
 
-                // 更新或插入語系描述
-                NewsCategoryDesc::updateOrCreate(
-                    ['cat_id' => $category->cat_id, 'lang_id' => $langId],
-                    [
-                        'name' => $desc['name'],
-                        'description' => $desc['description'] ?? null,
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
-                    ]
-                );
-            }
-
-            // 提交交易
-            DB::commit();
-
-            ContentHelper::showMsg(
-                0,
-                '編輯操作完成',
-                [
+                ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
                     ['text' => '返回列表', 'href' => route('admin.news_category.index')],
-                ],
-                true
-            );
+                ], true);
 
-            return redirect()->back();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return redirect()->back()->withInput()->with('error', '更新失敗: ' . $e->getMessage());
-        }
+                return redirect()->back();
+            } catch (\Exception $e) {
+                Log::error("Category Update Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '更新失敗');
+            }
+        });
     }
-    /**
-     * 刪除表單
-     */
+
     public function destroy(NewsCategory $category)
     {
-        // 檢查是否有消息使用此分類
+        // 業務邏輯檢查：若有子項目則禁止刪除
         if ($category->news()->exists()) {
-            return back()->with('error', '此分類已有消息使用，請先移除關聯後再刪除。');
+            return back()->with('error', '此分類已有消息使用，無法刪除。');
         }
 
-        // 刪除所有圖片
-        // foreach ($this->imageSizes as $inputName => $_) {
-        //     if (!empty($news->$inputName)) {
-        //         ImageHelper::deleteImage($news->$inputName, 'public');
-        //     }
-        // }
+        DB::transaction(function () use ($category) {
+            // 刪除圖片檔案
+            foreach (array_keys($this->imageSizes) as $field) {
+                if ($category->$field) ImageHelper::deleteImage($category->$field, 'public');
+            }
+            $category->descs()->delete();
+            $category->delete();
+        });
 
-        // 刪除翻譯
-        NewsCategoryDesc::where('cat_id', $category->cat_id)->delete();
+        return redirect()->route('admin.news_category.index')->with('form_success_swal', '分類已刪除');
+    }
 
-        // 刪除分類，並透過外鍵關聯自動刪除相關描述
-        $category->delete();
+    /* --- 內部輔助方法 (符合 NewsController 邏輯) --- */
 
-        // return redirect()->route('admin.news_category.index')->with('success', '分類已刪除');
+    /**
+     * 處理表單顯示邏輯：準備新增或編輯所需的資料
+     */
+    private function renderForm(NewsCategory $category)
+    {
+        // 判斷當前是「新增」還是「編輯」
+        $isEdit = (bool)$category->exists;
 
-        // 修改：重定向並帶上 'form_success_swal' session 訊息，以便前端 SweetAlert2 捕獲
-        return redirect()->route('admin.news_category.index')->with('form_success_swal', '消息已刪除');
+        // 【專業點】從全域設定讀取此單元的層級限制。若沒設定，預設為 2 層 (大類 > 小類)
+        $maxLevel = config('site_settings.category_levels.news', 2);
+
+        // 抓取所有的根分類 (最頂層)，並預載子分類及多語系資料，減少 SQL 查詢次數 (Eager Loading)
+        $rootCategories = NewsCategory::with(['children', 'descs'])
+            ->where(function ($q) {
+                $q->where('parent_id', 0)->orWhereNull('parent_id');
+            })
+            ->orderBy('display_order', 'asc')
+            ->get();
+
+        // 用來存放「拉平」後的下拉選單選項
+        $parentsList = [];
+
+        // 遍歷根分類，透過遞迴函式去計算每個分類的「縮排」與「是否可當父層」
+        foreach ($rootCategories as $root) {
+            $this->buildTreeOptions($root, 0, $parentsList, $category->cat_id, $maxLevel);
+        }
+
+        // 獲取目前啟用的語系設定
+        $langs = $this->getActiveLanguages();
+
+        // 建立語系資料對照表，方便 View 使用 $descMap[語系ID] 直接抓到內容
+        $descMap = [];
+        if ($isEdit) {
+            $category->load('descs');
+            foreach ($category->descs as $desc) {
+                $descMap[$desc->lang_id] = $desc;
+            }
+        }
+
+        return $this->view('admin.news_category.form', [
+            'category'   => $category,
+            'isEdit'     => $isEdit,
+            'parents'    => $parentsList, // 這是處理好的「層級選單陣列」
+            'langs'      => $langs,
+            'descMap'    => $descMap,
+            'imageSizes' => $this->imageSizes // 傳遞圖片尺寸規範給前端參考
+        ]);
+    }
+
+    /**
+     * 遞迴計算分類樹狀結構
+     * @param NewsCategory $category 當前跑到的分類物件
+     * @param int $level             當前的深度層級 (0 是最頂層)
+     * @param array &$result         引用傳遞，將處理好的資料塞進此結果陣列
+     * @param int $currentId         目前正在編輯的 ID，用來排除「自己不能當自己的父層」
+     * @param int $maxLevel          此單元允許的最大總層級
+     */
+    private function buildTreeOptions($category, $level, &$result, $currentId, $maxLevel)
+    {
+        // 【防呆】編輯時，不能選擇自己或自己的子孫作為父層，否則會發生邏輯死循環
+        if ($category->cat_id == $currentId) {
+            return;
+        }
+
+        // 【層級邏輯】判斷該分類是否還有餘額可以接收「子分類」
+        // 原理：如果我是 level 0，我的下一層是 1。如果 maxLevel 是 1，那 (0+1 < 1) 為 false，我就不能當父層。
+        $canBeParent = ($level + 1) < $maxLevel;
+
+        // 取得名稱，優先使用關聯資料中的名稱
+        $name = $category->desc->name ?? ($category->descs->first()->name ?? '未命名');
+
+        // 生成縮排符號，層級越高縮越進去
+        $indent = $level > 0 ? str_repeat('　', $level) . '└─ ' : '';
+
+        // 將此分類包裝成物件，存入結果
+        $result[] = (object)[
+            'cat_id'        => $category->cat_id,
+            'name'          => $indent . $name,
+            'can_be_parent' => $canBeParent // 給 Blade 判斷是否要 disabled
+        ];
+
+        // 如果還有子分類，繼續往深處跑 (遞迴)
+        if ($category->children && $category->children->count() > 0) {
+            foreach ($category->children as $child) {
+                $this->buildTreeOptions($child, $level + 1, $result, $currentId, $maxLevel);
+            }
+        }
+    }
+
+    /**
+     * 基本格式驗證及層級防呆檢查
+     * 注意：現在會回傳 Redirect 物件或 null，呼叫處必須 return 它
+     */
+    private function validateRequest(Request $request)
+    {
+        // 1. 基本格式驗證
+        $request->validate([
+            // 修改點：加上 'sometimes' 或手動判斷，避開 parent_id = 0 的檢查
+            'parent_id'     => 'nullable|integer',
+            'is_visible'    => 'nullable|boolean',
+            'display_order' => 'nullable|integer',
+            'image'         => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'desc'          => 'nullable|array',
+            'desc.*.name'   => 'required_with:desc.*|string|max:255',
+        ]);
+
+        // 如果 parent_id > 0，才進入深度檢查與存在檢查
+        if ($request->filled('parent_id') && $request->parent_id > 0) {
+            $parent = NewsCategory::find($request->parent_id);
+
+            // 準備返回的連結：如果是編輯就回編輯頁，新增就回新增頁
+            $backUrl = url()->previous();
+
+            if (!$parent) {
+                // 明確指定回傳連結，不要讓它用 javascript:history.go(-1)
+                ContentHelper::showMsg(1, '找不到指定的父分類', [['text' => '返回表單', 'href' => $backUrl]], true);
+                return redirect()->back();
+            }
+
+            // B. 計算該父層真正的深度 (支援 1~N 層)
+            $parentLevel = 1;
+            $tempParent = $parent;
+            while ($tempParent->parent_id > 0) {
+                $tempParent = NewsCategory::find($tempParent->parent_id);
+                // 防呆：避免資料庫關聯出錯導致死循環
+                if (!$tempParent) break;
+                $parentLevel++;
+            }
+
+            // C. 取得上限設定
+            $maxLimit = config('site_settings.category_levels.news', 1);
+
+            // D. 判斷是否超過上限
+            if (($parentLevel + 1) > $maxLimit) {
+                // 同樣明確指定連結
+                ContentHelper::showMsg(1, "違反層級限制：消息分類最高僅允許 {$maxLimit} 層", [['text' => '返回表單', 'href' => $backUrl]], true);
+                return redirect()->back();
+            }
+        }
+        return null;
+    }
+
+    private function handleImageUpload(Request $request, NewsCategory $category)
+    {
+        foreach ($this->imageSizes as $field => [$width, $height]) {
+            if ($request->hasFile($field)) {
+                if ($category->$field) ImageHelper::deleteImage($category->$field, 'public');
+
+                $file = $request->file($field);
+                $processed = ImageHelper::processImage($file, $width, $height, 'center_crop');
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $fullPath = "news_category/{$filename}"; // 存放在不同資料夾
+
+                ImageHelper::saveProcessedImage($processed, $fullPath, 'public', 90, 'jpeg');
+                $category->$field = $fullPath;
+            }
+        }
+    }
+
+    private function saveTranslations(NewsCategory $category, ?array $descData)
+    {
+        if (!$descData) return;
+
+        foreach ($descData as $langId => $data) {
+            // 如果名稱為空，視為刪除該語系內容
+            if (empty($data['name'])) {
+                NewsCategoryDesc::where('cat_id', $category->cat_id)->where('lang_id', $langId)->delete();
+                continue;
+            }
+
+            DB::table('news_category_desc')->updateOrInsert(
+                ['cat_id' => $category->cat_id, 'lang_id' => $langId],
+                [
+                    'name'        => $data['name'],
+                    'description' => $data['description'] ?? null,
+                    'content'     => ContentHelper::encodeSiteUrl($data['content'] ?? ''),
+                    'updated_at'  => now(),
+                ]
+            );
+        }
+    }
+
+    private function getActiveLanguages()
+    {
+        return Language::where('enabled', 1)->orderByDesc('display_order')->get();
     }
 }

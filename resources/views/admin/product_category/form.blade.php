@@ -151,6 +151,9 @@
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
 
+    <!-- Summernote 繁體中文語系 -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-zh-TW.min.js"></script>
+
     <!-- 引入自訂的 Summernote 初始化檔 -->
     <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
 
