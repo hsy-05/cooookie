@@ -134,7 +134,7 @@ class NewsController extends BaseAdminController
             $news->delete();
         });
 
-        return redirect()->route('admin.news.index')->with('form_success_swal', '消息已刪除');
+        return back()->with('form_success_swal', '消息已刪除');
     }
 
     /* --- 內部輔助方法 (Private Helper Methods) --- */

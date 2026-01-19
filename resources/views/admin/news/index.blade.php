@@ -38,7 +38,7 @@
             <a href="{{ route('admin.news.create') }}" class="btn btn-primary mb-3 ml-auto">新增消息</a>
         </div>
 
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped table-hover">
             <thead>
                 <tr>
                     <th class="text-center">標題</th>
@@ -54,7 +54,7 @@
                     {{-- 使用 @forelse 處理無資料情況 --}}
                     <tr>
                         {{-- 確保顯示多語系標題，如果沒有則顯示 '--' --}}
-                        <td class="text-center">{{ $item->descs->first()->title ?? '--' }}</td>
+                        <td>{{ $item->descs->first()->title ?? '--' }}</td>
                         {{--
                             <td>
                                 @if ($item->image)
@@ -76,7 +76,7 @@
                                 <label class="custom-control-label" for="newsSwitch{{ $item->news_id }}"></label>
                             </div>
                         </td>
-                        <td class="hidden-md">{{ $item->display_order }}</td>
+                        <td class="hidden-md text-center">{{ $item->display_order }}</td>
                         <td class="hidden-sm">{{ $item->updated_at->format('Y-m-d H:i') }}</td>
                         <td>
                             <a href="{{ route('admin.news.edit', $item->news_id) }}" class="btn btn-sm btn-warning">編輯</a>
@@ -139,9 +139,9 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             // 取得所有刪除按鈕（可用在任何管理頁）
-            const deleteButtons = document.querySelectorAll('.js-delete-btn');
+            const singleDeleteButtons = document.querySelectorAll('.js-delete-btn');
 
-            deleteButtons.forEach(button => {
+            singleDeleteButtons.forEach(button => {
                 button.addEventListener('click', function() {
 
                     // 從 data-* 取得資料

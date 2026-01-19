@@ -23,3 +23,5 @@
 
 執行 `php artisan test`
 
+【2026/1/13】
+後台會員使用 Laravel Breeze

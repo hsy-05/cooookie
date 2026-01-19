@@ -7,12 +7,14 @@
     --c-primary-dark: #5d4037; /* 深焙咖啡 */
     --c-secondary: #2c2420; /* 極深炭灰 - 文字色 */
     --c-accent: #d4a373; /* 金黃 - 點綴 */
+    --c-light-orange: #db9c55; /* 鮮橙 - 邊框 */
     --c-bg: #eee8e0; /* 蛋殼白 - 背景 */
     --c-surface: #ffffff; /* 純白 - 卡片 */
     --c-light: #f4f1ea; /* 淺灰米 - 裝飾背景 */
 
     /* ✒️ 字體系統 */
-    --font-roboto: 'Roboto', 'Microsoft JhengHei UI', 'Microsoft JhengHei', 'Arial', sans-serif;
+    --font-roboto: "Roboto", "Microsoft JhengHei UI", "Microsoft JhengHei",
+        "Arial", sans-serif;
 
     --padding-space: 25px;
     --container-1765: calc(1765px + (var(--padding-space) * 2));
@@ -49,32 +51,33 @@
 
 /* 整個滑動桿區域 */
 * {
-  scrollbar-width: auto;
-  scrollbar-color: #b7a48e #000;
+    scrollbar-width: auto;
+    scrollbar-color: #b7a48e #000;
 }
 *::-webkit-scrollbar {
-  width: 16px;
+    width: 16px;
 }
 
 /* 滑動桿的軌道（背景） */
 *::-webkit-scrollbar-track {
-  background: #000;
+    background: #000;
 }
 
 /* 滑動桿的滑塊（可以拖動的部分） */
 *::-webkit-scrollbar-thumb {
-  background-color: #c3c3c3;
-  border-radius: 10px;
-  border: 3px solid #2c404c;
+    background-color: #c3c3c3;
+    border-radius: 10px;
+    border: 3px solid #2c404c;
 }
 
 /* 滑動桿的滑塊在懸停時的樣式 */
 *::-webkit-scrollbar-thumb:hover {
-  background: #d5d5d5;
+    background: #d5d5d5;
 }
 
 /* 設定全域基礎，防止橫向捲軸溢出 */
-html, body {
+html,
+body {
     width: 100%;
     overflow-x: hidden; /* 關鍵：強制隱藏所有頁面的水平捲軸 */
     position: relative; /* 確保絕對定位參考點正確 */
@@ -119,7 +122,9 @@ body {
 }
 
 /* 標題與通用元件 */
-h2, h3, h4 {
+h2,
+h3,
+h4 {
     font-family: var(--font-roboto);
     font-weight: 700;
     line-height: 1.2;
@@ -127,7 +132,9 @@ h2, h3, h4 {
     color: var(--c-secondary);
 }
 
-ol, ul, dl {
+ol,
+ul,
+dl {
     margin-top: 0;
     margin-bottom: 0;
 }
@@ -375,31 +382,36 @@ ul {
    4. Components (Header, Nav, Buttons)
    ========================================= */
 
-/* 4. 主選單樣式 */
+/* =========================================
+   4. 主選單樣式 (RWD 高級風格)
+   ========================================= */
+
+/* ---------- 桌面版保持原設定 ---------- */
 .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: fixed;                            /* 固定於頂端 */
+    top: 0; left: 0;
     width: 100%;
-    height: var(--header-h);
-    background: rgba(0, 0, 0, 0.1);
-    border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    height: var(--header-h);                    /* 自訂 header 高度 */
+    background: rgba(0, 0, 0, 0.1);            /* 半透明背景 */
+    border-bottom: 0.2px solid rgba(0, 0, 0, 0.1); /* 細線底邊 */
+    backdrop-filter: blur(10px);                /* 背景模糊 */
     z-index: 1000;
-    transition: all 0.5s var(--ease-out);
+    transition: all 0.5s var(--ease-out);       /* 動畫過渡 */
 }
+
 .site-header > .container-1600 {
-    height: var(--header-h);
+    height: var(--header-h);                    /* 高度與 header 一致 */
 }
 
 /* 滾動時的主選單樣式 */
 .site-header.scrolled {
-    background: rgba(0, 0, 0, 0.4);
-    border-bottom: 0.2px solid rgba(253, 252, 248, 0.1);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.6);            /* 深色半透明背景 */
+    border-bottom: 0.2px solid rgba(253, 252, 248, 0.1); /* 微亮邊框 */
+    backdrop-filter: blur(5px);                 /* 背景模糊減弱 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 輕微陰影 */
 }
 
+/* 內部排列 */
 .header-inner {
     display: flex;
     justify-content: space-between;
@@ -407,64 +419,63 @@ ul {
     height: 100%;
 }
 
+/* Logo */
 .logo img {
-    height: 45px;
-    width: auto;
-    transition: transform 0.4s ease;
+    height: 45px;                               /* Logo 高度 */
+    width: auto;                                /* 寬度自動 */
+    transition: transform 0.4s ease;            /* 滾動縮放動畫 */
 }
 
 .site-header.scrolled .logo img {
-    transform: scale(0.9);
+    transform: scale(0.9);                      /* 滾動縮小 Logo */
 }
 
 /* 主選單容器 */
 .main-nav {
     position: relative;
-    padding-right: 50px;
+    padding-right: 50px;                        /* 與右邊距離 */
 }
 
 /* 桌面版選單 */
 .nav-list {
-    display: flex;
-    gap: 50px;
+    display: flex;                              /* 水平排列 */
+    gap: 50px;                                  /* 選單間距 */
 }
 
+/* 桌面版文字樣式 */
 .nav-link {
     font-family: var(--font-roboto);
-    /* font-size: 0.95rem; */
-    font-weight: 500;
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;                      /* 字距微調 */
     position: relative;
     padding: 8px 0;
-    color: var(--c-light);
+    color: var(--c-light);                       /* 文字顏色 */
     transition: color 0.3s ease;
 }
 
+/* 底線動畫 */
 .nav-link::after {
     content: "";
     position: absolute;
     bottom: 0;
     left: 0;
     width: 0;
-    height: 1px;
-    background: var(--c-primary);
-    transition: width 0.4s var(--ease-out);
+    height: 2px;
+    background: var(--c-light-orange);          /* 主題色底線 */
+    transition: width 0.4s var(--ease-out);     /* 動畫效果 */
 }
 
+/* 滑鼠滑過或 active 狀態 */
 .nav-link:hover,
 .nav-link.active {
-    color: var(--c-primary);
+    color: var(--c-light-orange);
 }
-
 .nav-link:hover::after,
 .nav-link.active::after {
     width: 100%;
 }
 
-
-/* 滾動時的導航文字顏色調整 */
-
-/* 漢堡按鈕樣式 */
+/* 漢堡按鈕樣式 (桌面隱藏) */
 .hamburger {
     display: none;
     cursor: pointer;
@@ -473,7 +484,6 @@ ul {
     padding: 10px;
     z-index: 1001;
 }
-
 .hamburger span {
     width: 24px;
     height: 2px;
@@ -482,65 +492,79 @@ ul {
     transform-origin: center;
 }
 
-/* .site-header.scrolled .hamburger span {
-    background: var(--c-secondary);
-} */
-
+/* 漢堡按鈕展開動畫 */
 .hamburger.is-active span:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
-
 .hamburger.is-active span:nth-child(2) {
     opacity: 0;
 }
-
 .hamburger.is-active span:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
 }
 
-/* 手機版-主選單樣式 */
+/* ==================== 平板版 RWD (1024px 以下) ==================== */
 @media (max-width: 1024px) {
+
+    /* 導航選單改成全螢幕浮層 */
     .nav-list {
-        position: fixed;
-        top: 0;
-        right: 0;
+        position: fixed;                           /* 浮層 */
+        top: 0; right: 0;
         width: 100%;
-        height: 100vh;
-        flex-direction: column;
-        gap: 30px;
-        background: var(--c-bg);
-        padding: 150px var(--gutter) 50px;
+        height: 100vh;                             /* 全螢幕 */
+        flex-direction: column;                     /* 垂直排列 */
+        gap: 25px;                                  /* 選單間距 */
+        background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(25,25,25,0.95)); /* 漸層玻璃感 */
+        padding: 140px var(--gutter) 50px;
         z-index: 1000;
-        transform: translateX(100%);
+        transform: translateX(100%);                /* 初始隱藏 */
         transition: transform 0.5s var(--ease-out);
         justify-content: center;
         align-items: center;
+        backdrop-filter: blur(15px);                /* 背景模糊 */
     }
 
+    /* 打開選單 */
     .main-nav.is-open .nav-list {
         transform: translateX(0);
     }
 
+    /* 導航文字 */
     .nav-link {
         font-family: var(--font-roboto);
-        font-size: 2.5rem;
+        font-size: 2rem;                            /* 平板文字較大 */
         font-weight: 700;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
         width: 100%;
         text-align: center;
+        transition: color 0.3s ease, transform 0.3s ease;
     }
 
+    /* 漢堡按鈕顯示 */
     .hamburger {
         display: flex;
     }
 }
 
+/* ==================== 手機板 RWD (768px 以下) ==================== */
 @media (max-width: 768px) {
+
+    /* 導航文字縮小 */
     .nav-link {
-        font-size: 2rem;
+        font-size: 1.8rem;                          /* 手機適中大小 */
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        letter-spacing: 0.3px;                       /* 微調字距 */
+    }
+
+    /* 選單間距調整 */
+    .nav-list {
+        gap: 20px;
+        padding: 120px var(--gutter) 40px;
     }
 }
+
 
 /* =========================================
    6. Sections Layout
@@ -881,91 +905,87 @@ ul {
 }
 
 /* =========================================
-   8. Back to Top (Magnetic Ring)
+   8. Back to Top (精確貼邊版)
    ========================================= */
+
+:root {
+    --btt-size: 60px;                 /* 定義按鈕尺寸變數 */
+    --btt-ring-w: 4px;                /* 定義圓環線條寬度 */
+}
+
 .back-to-top {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 60px; /* 調整按鈕的大小 */
-    height: 60px;
-    z-index: 900;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s, transform 0.4s;
-    background: rgba(0, 0, 0, 0.4); /* 半透明黑色背景，避免和頁面背景融為一體 */
-    border: none;
-    border-radius: 50%; /* 使按鈕成圓形 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* 增加陰影 */
+    position: fixed;                  /* 固定定位，不隨頁面捲動 */
+    bottom: 40px;                     /* 距離底部距離 */
+    right: 40px;                      /* 距離右側距離 */
+    width: var(--btt-size);           /* 使用變數設定寬度 */
+    height: var(--btt-size);          /* 使用變數設定高度 */
+    z-index: 900;                     /* 確保層級在高處 */
+    opacity: 0;                       /* 預設透明度 0 (隱藏) */
+    visibility: hidden;               /* 預設不可見 (不佔據點擊區域) */
+    transition: all 0.4s ease;        /* 所有屬性變化時使用 0.4秒 平滑過渡 */
+    background: rgba(0, 0, 0, 0.4);   /* 按鈕主體背景色(半透明黑) */
+    border: none;                     /* 去除按鈕預設邊框 */
+    border-radius: 50%;               /* 強制變為正圓形 */
+    cursor: pointer;                  /* 滑鼠移入顯示手指符號 */
+    display: flex;                    /* 使用彈性佈局 */
+    align-items: center;              /* 垂直居中內部的箭頭 */
+    justify-content: center;          /* 水平居中內部的箭頭 */
+    padding: 0;                       /* 清除按鈕預設內距 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* 增加按鈕陰影感 */
 }
 
+/* 當 JS 判定滾動超過距離後加入此類別 */
 .back-to-top.is-visible {
-    opacity: 1;
-    pointer-events: auto;
+    opacity: 1;                       /* 變為不透明 */
+    visibility: visible;              /* 變為可見並可點擊 */
 }
 
-/* SVG 進度環 */
+/* SVG 畫布設定 */
 .progress-ring {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: rotate(-90deg); /* 旋轉圓環，使進度條從頂端開始 */
-    width: 100%; /* 確保圓環的大小適應父容器 */
-    height: 100%; /* 同上 */
+    position: absolute;               /* 絕對定位，重疊在按鈕背景之上 */
+    top: 0;                           /* 貼齊頂部 */
+    left: 0;                          /* 貼齊左側 */
+    width: 100%;                      /* 寬度撐滿父層 (60px) */
+    height: 100%;                     /* 高度撐滿父層 (60px) */
+    transform: rotate(-90deg);        /* 逆時針轉 90 度，讓進度從正上方開始 */
+    pointer-events: none;             /* 防止 SVG 阻擋按鈕點擊事件 */
 }
 
-/* 背景圓環 */
-.progress-ring__background {
-    stroke: rgba(0, 0, 0, 0.2); /* 背景圓環顏色（較暗） */
-    stroke-width: 5; /* 與進度圓環的 stroke-width 相同 */
-    fill: transparent;
-    stroke-dasharray: 175; /* 計算圓環的總長度 */
-    stroke-dashoffset: 175; /* 設定初始的背景圓環長度 */
-}
-
-/* 進度圓環 */
+/* 圓環共用設定 */
+.progress-ring__background,
 .progress-ring__circle {
-    stroke: var(--c-primary); /* 預設圓環顏色 */
-    stroke-width: 5; /* 與背景圓環相同 */
-    fill: transparent;
-    stroke-dasharray: 175; /* 計算圓環的總長度，這個數值會影響進度條的顯示 */
-    stroke-dashoffset: 175; /* 設定初始的進度環 */
-    transition: stroke-dashoffset 0.1s, stroke 0.3s ease-in-out;
+    fill: transparent;                /* 圓形內部不填充顏色 */
+    stroke-width: var(--btt-ring-w);  /* 使用變數設定線條寬度 (4px) */
 }
 
-/* 箭頭樣式 */
+/* 底色圓環樣式 */
+.progress-ring__background {
+    stroke: rgba(255, 255, 255, 0.1); /* 給予極淡的白色作為軌道底色 */
+}
+
+/* 動態進度圓環樣式 */
+.progress-ring__circle {
+    stroke: var(--c-light-orange);    /* 使用你定義的主題橘色 */
+    stroke-linecap: round;            /* 線條末端使用圓角，視覺較精緻 */
+    /* 圓周長 = 2 * Math.PI * 28 ≈ 175.93 */
+    stroke-dasharray: 175.93;         /* 設定虛線長度為圓周長 */
+    stroke-dashoffset: 175.93;        /* 初始偏移量為全長 (代表進度為 0) */
+    transition: stroke-dashoffset 0.1s linear; /* 進度變化時的平滑過渡 */
+}
+
+/* 內部箭頭樣式 */
 .btt-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* 使箭頭置中 */
-    font-size: 1.5rem; /* 增大箭頭大小 */
-    color: var(--c-surface); /* 顏色為主題顏色 */
-    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* 增加陰影效果 */
+    font-size: 1.5rem;                /* 設定箭頭大小 */
+    color: #FFFFFF;                   /* 箭頭顏色 */
+    z-index: 2;                       /* 確保在圓環之上 */
 }
 
-/* --------------  RWD  -------------- */
+/* RWD 行動裝置調整 */
 @media (max-width: 768px) {
     .back-to-top {
-        bottom: 20px;
-        right: 20px;
-    }
-}
-
-/* --------------  RWD  -------------- */
-@media (max-width: 1024px) {
-    .hamburger {
-        display: flex;
-    }
-}
-
-@media (max-width: 768px) {
-    .back-to-top {
-        bottom: 20px;
-        right: 20px;
+        bottom: 20px;                 /* 手機版距離底部縮小 */
+        right: 20px;                  /* 手機版距離右側縮小 */
+        --btt-size: 50px;             /* 手機版按鈕縮小，內部圓環會隨之縮放 */
     }
 }
 

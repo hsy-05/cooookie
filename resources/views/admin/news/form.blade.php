@@ -71,6 +71,21 @@
                                             <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
                                                 maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
                                         </div>
+
+                                        {{-- 僅系統最高權限 (is_system = 1) 可見 --}}
+                                        @if (auth()->user()->role->is_system)
+                                            <div class="form-group p-3 mb-3 border border-danger rounded"
+                                                style="background-color: #fff5f5;">
+                                                <label class="text-danger font-weight-bold">
+                                                    <i class="fas fa-user-secret"></i> 工程師/最高權限專用設定
+                                                </label>
+                                                <small class="form-text text-muted mb-2">此欄位僅 Super Admin
+                                                    可見，用於設定系統內部參數。</small>
+
+                                                <input type="text" name="system_code" class="form-control"
+                                                    placeholder="輸入系統參數..." value="{{ $news->system_code ?? '' }}">
+                                            </div>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>

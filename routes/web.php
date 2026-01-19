@@ -1,86 +1,186 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+
+/*
+|--------------------------------------------------------------------------
+| Frontend Controllers
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
+use App\Http\Controllers\Frontend\AboutController;
+
+/*
+|--------------------------------------------------------------------------
+| Backend (Admin) Controllers
+|--------------------------------------------------------------------------
+*/
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ActionLogController;
-
 use App\Http\Controllers\Admin\NewsCategoryController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\NewsController;
-use App\Http\Controllers\UploadController;
-use App\Helpers\ContentHelper;
 use App\Http\Controllers\Admin\AdvertController;
 use App\Http\Controllers\Admin\AdvertCategoryController;
+use App\Http\Controllers\Admin\BaseAdminController;
+use App\Http\Controllers\Admin\DashboardController;
 
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
+/*
+|--------------------------------------------------------------------------
+| Other Controllers
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UploadController;
 
-use App\Http\Controllers\Frontend\AboutController;
-
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+/*
+|--------------------------------------------------------------------------
+| Frontend Routes（前台）
+|--------------------------------------------------------------------------
+*/
 
 // 前台首頁
-Route::get('/', [\App\Http\Controllers\Frontend\HomeController::class, 'index'])
-    ->name('frontend.layouts.home');
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
 
-// 消息：列表與詳細頁
-Route::get('/news', [FrontendNewsController::class, 'index'])->name('news.index');
-Route::get('/news/{news}', [FrontendNewsController::class, 'show'])->name('news.show'); // 隱式綁定 news by PK
+// 最新消息列表
+Route::get('/news', [FrontendNewsController::class, 'index'])
+    ->name('news.index');
 
-Route::get('/about', function () {
-    return view('frontend.about');
-})->name('about');
+// 最新消息內頁（使用 Laravel 隱式模型綁定）
+Route::get('/news/{news}', [FrontendNewsController::class, 'show'])
+    ->name('news.show');
 
+// 關於我們
+Route::get('/about', [AboutController::class, 'index'])
+    ->name('about');
 
+/*
+|--------------------------------------------------------------------------
+| Dashboard（登入後首頁，Laravel 預設）
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| Profile（會員個人資料）
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // 編輯個人資料頁
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    // 更新個人資料
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // 刪除帳號
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes（Laravel Breeze / Fortify）
+|--------------------------------------------------------------------------
+*/
 require __DIR__ . '/auth.php';
-Route::middleware('auth')->prefix('admin')->group(function () {
-    Route::get('/', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-});
 
-Auth::routes();
+/*
+|--------------------------------------------------------------------------
+| Admin Routes（後台）
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])
+    ->prefix('admin') //路由前綴
+    ->name('admin.')
+    ->group(function () {
+        // 角色管理
+        Route::resource('roles', App\Http\Controllers\Admin\AdminRoleController::class);
+        // 網站管理員
+        Route::resource('users', App\Http\Controllers\Admin\AdminUserController::class);
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('languages', LanguageController::class);            // 語言管理
-    Route::resource('logs', ActionLogController::class);                // 操作紀錄
-    // 分類管理
-    Route::resource('news_category', NewsCategoryController::class)->parameters([
-        'news_category' => 'category' // 這裡自定義將 'news_category' 參數綁定到 '$category'
-    ]);
+        // 後台首頁
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('news', NewsController::class)->parameters([
-        'news' => 'news' // 讓隱式綁定用 App\Models\News 的主鍵
-    ]);
+        /*
+        |--------------------------------------------------------------------------
+        | 語系管理
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('languages', LanguageController::class);
 
-    Route::resource('product_category', ProductCategoryController::class);  // 分類管理
+        /*
+        |--------------------------------------------------------------------------
+        | 操作紀錄 Logs
+        |--------------------------------------------------------------------------
+        */
 
-    // 廣告分類 CRUD
-    Route::resource('advert_category', AdvertCategoryController::class)
-        ->parameters(['advert_category' => 'advert_category']); // 讓隱式綁定用 cat_id
+        // 批次刪除（一定要放在 resource 之前）
+        Route::delete('logs/batch', [ActionLogController::class, 'batchDestroy'])
+            ->name('logs.batch_destroy');
 
-    // 廣告 CRUD（你先前已建立，放這裡備註）
-    Route::resource('advert', AdvertController::class)
-        ->parameters(['advert' => 'advert']);
+        // 僅使用 index + destroy
+        Route::resource('logs', ActionLogController::class)
+            ->only(['index', 'destroy']);
 
-    Route::post('upload-image', [App\Http\Controllers\UploadController::class, 'uploadImage']);
-    // 通用 AJAX 路由，用於切換布林值狀態
-    Route::post('toggle-boolean', [App\Http\Controllers\Admin\BaseAdminController::class, 'toggleBoolean'])->name('toggle.boolean');
-});
+        /*
+        |--------------------------------------------------------------------------
+        | 最新消息分類
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('news_category', NewsCategoryController::class)
+            ->parameters([
+                'news_category' => 'category'
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 最新消息
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('news', NewsController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 產品分類
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('product_category', ProductCategoryController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 廣告分類
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('advert_category', AdvertCategoryController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 廣告管理
+        |--------------------------------------------------------------------------
+        */
+        Route::resource('advert', AdvertController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 共用功能
+        |--------------------------------------------------------------------------
+        */
+
+        // Summernote 圖片上傳
+        Route::post('upload-image', [UploadController::class, 'uploadImage'])
+            ->name('upload.image');
+
+        // AJAX：切換 boolean 狀態（啟用 / 停用）
+        Route::post('toggle-boolean', [BaseAdminController::class, 'toggleBoolean'])
+            ->name('toggle.boolean');
+    });

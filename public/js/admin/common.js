@@ -142,6 +142,7 @@ function showAlert(
         confirmButtonText: confirmButtonText,
         showCancelButton: false,
         cancelButtonText: "取消",
+        confirmButtonColor: "#3085d6",
         buttonsStyling: true,
         timer: timer,
         timerProgressBar: false,
@@ -158,9 +159,9 @@ function showAlert(
         grow: false,
         customClass: {
             container: "",
-            popup: "",
+            popup: "border border-white rounded",
             header: "",
-            title: "",
+            title: "text-white",
             closeButton: "",
             icon: "",
             image: "",
@@ -219,12 +220,14 @@ function validateRequiredFields(formSelector) {
                 $field.data("label") ||
                 (function () {
                     // 嘗試抓同一個 form-group 裡的 label
-                    let $label = $field.closest(".form-group").find("label").first();
+                    let $label = $field
+                        .closest(".form-group")
+                        .find("label")
+                        .first();
                     return $label.length ? $label.text().trim() : null;
                 })() ||
                 $field.attr("name") ||
                 "欄位";
-
 
             if ($field.is(":checkbox") || $field.is(":radio")) {
                 // 若 checkbox/radio 沒有被勾選
@@ -307,7 +310,6 @@ function syncSummernoteContent(formSelector) {
         });
 }
 
-
 /**
  * 顯示 SweetAlert2 刪除確認視窗（共用）
  *
@@ -316,26 +318,25 @@ function syncSummernoteContent(formSelector) {
  * @param {string} text - 提示內容
  */
 function confirmDelete(id, title, text) {
-
     showAlert(
-        'warning',      // 警告類型
-        title,          // ← 不再寫死
-        text,           // ← 不再寫死
-        false,          // Toast 關閉
-        'center',
+        "warning", // 警告類型
+        title, // ← 不再寫死
+        text, // ← 不再寫死
+        false, // Toast 關閉
+        "center",
         true,
-        '刪除',
+        "刪除",
         0,
         {
             showCancelButton: true,
-            cancelButtonText: '取消',
+            cancelButtonText: "取消",
 
             // 確認後才真的刪除
             preConfirm: function () {
-                const form = document.getElementById('deleteForm' + id);
+                const form = document.getElementById("deleteForm" + id);
 
                 if (!form) {
-                    console.error('找不到刪除表單：deleteForm' + id);
+                    console.error("找不到刪除表單：deleteForm" + id);
                     return false; // 防呆
                 }
 
@@ -345,9 +346,9 @@ function confirmDelete(id, title, text) {
             customClass: {
                 title: "text-white",
                 popup: "border border-white rounded",
-                confirmButton: 'btn btn-danger',
-                cancelButton: 'btn btn-secondary'
-            }
+                confirmButton: "btn btn-danger",
+                cancelButton: "btn btn-secondary",
+            },
         }
     );
 }

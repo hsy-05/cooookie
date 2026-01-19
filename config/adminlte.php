@@ -257,14 +257,31 @@ return [
     | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Basic-Configuration
     |
     */
-
+    // 是否當作 route 名稱使用，Breeze 使用 path 即可
     'use_route_url' => false,
-    'dashboard_url' => '/',
+
+    // 登入後導向的首頁 (dashboard)
+    'dashboard_url' => '/admin', // 調整成你要的後台首頁
+
+    // 登出 URL
     'logout_url' => 'logout',
+
+    // 登入頁面 URL
     'login_url' => 'login',
+
+    // 註冊頁面 URL
     'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
-    'password_email_url' => 'password/email',
+
+    // 忘記密碼頁面 URL (Breeze 對應 /forgot-password)
+    'password_reset_url' => 'forgot-password',
+
+    // 忘記密碼送出 email URL (Breeze 對應 POST /forgot-password)
+    'password_email_url' => 'forgot-password',
+
+    // 密碼確認頁面 (Breeze 對應 GET /confirm-password)
+    'password_confirm_url' => 'confirm-password',
+
+    // 其他設定
     'profile_url' => false,
     'disable_darkmode_routes' => false,
 
@@ -398,17 +415,28 @@ return [
                     'url'  => 'admin/languages',
                     'active' => ['regex:@^admin/languages($|/)@'], // 可用陣列 / 通配符
                 ],
+            ],
+        ],
+        [
+            'text' => '權限設定',
+            'icon' => 'fas fa-fw fa-users',
+            'submenu' => [
                 [
                     'text' => '操作紀錄',
                     'url'  => 'admin/logs',
                     'active' => ['regex:@^admin/logs($|/)@'], // 可用陣列 / 通配符
                 ],
+                [
+                    'text' => '角色管理',
+                    'url'  => 'admin/roles',
+                    'active' => ['regex:@^admin/roles($|/)@'], // 可用陣列 / 通配符
+                ],
+                [
+                    'text' => '管理員設定',
+                    'url'  => 'admin/users',
+                    'active' => ['regex:@^admin/users($|/)@'], // 可用陣列 / 通配符
+                ],
             ],
-        ],
-        [
-            'text' => 'profile',
-            'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-user',
         ],
         [
             'text' => 'change_password',

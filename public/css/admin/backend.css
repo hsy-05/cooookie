@@ -10,38 +10,107 @@
    ========================= */
 .table th,
 .table td {
-    vertical-align: middle;   /* 表格內容垂直置中 */
+    vertical-align: middle; /* 表格內容垂直置中 */
 }
 
 [class^="px-width-"],
 [class*=" px-width-"] {
-    white-space: nowrap;      /* 固定欄位不換行 */
+    white-space: nowrap; /* 固定欄位不換行 */
+}
+
+.table-check-col {
+    width: 40px;
+    text-align: center;
+    vertical-align: middle !important;
 }
 
 /* =========================
    固定欄位寬度 px-width-*
    ========================= */
-.px-width-50  { width: 50px;   min-width: 50px; }
-.px-width-60  { width: 60px;   min-width: 60px; }
-.px-width-70  { width: 70px;   min-width: 70px; }
-.px-width-80  { width: 80px;   min-width: 80px; }
-.px-width-90  { width: 90px;   min-width: 90px; }
-.px-width-100 { width: 100px;  min-width: 100px; }
-.px-width-110 { width: 110px;  min-width: 110px; }
-.px-width-120 { width: 120px;  min-width: 120px; }
-.px-width-130 { width: 130px;  min-width: 130px; }
-.px-width-140 { width: 140px;  min-width: 140px; }
-.px-width-150 { width: 150px;  min-width: 150px; }
-.px-width-160 { width: 160px;  min-width: 160px; }
-.px-width-170 { width: 170px;  min-width: 170px; }
-.px-width-180 { width: 180px;  min-width: 180px; }
-.px-width-190 { width: 190px;  min-width: 190px; }
-.px-width-200 { width: 200px;  min-width: 200px; }
-.px-width-210 { width: 210px;  min-width: 210px; }
-.px-width-220 { width: 220px;  min-width: 220px; }
-.px-width-230 { width: 230px;  min-width: 230px; }
-.px-width-240 { width: 240px;  min-width: 240px; }
-.px-width-250 { width: 250px;  min-width: 250px; }
+.px-width-50 {
+    width: 50px;
+    min-width: 50px;
+}
+.px-width-60 {
+    width: 60px;
+    min-width: 60px;
+}
+.px-width-70 {
+    width: 70px;
+    min-width: 70px;
+}
+.px-width-80 {
+    width: 80px;
+    min-width: 80px;
+}
+.px-width-90 {
+    width: 90px;
+    min-width: 90px;
+}
+.px-width-100 {
+    width: 100px;
+    min-width: 100px;
+}
+.px-width-110 {
+    width: 110px;
+    min-width: 110px;
+}
+.px-width-120 {
+    width: 120px;
+    min-width: 120px;
+}
+.px-width-130 {
+    width: 130px;
+    min-width: 130px;
+}
+.px-width-140 {
+    width: 140px;
+    min-width: 140px;
+}
+.px-width-150 {
+    width: 150px;
+    min-width: 150px;
+}
+.px-width-160 {
+    width: 160px;
+    min-width: 160px;
+}
+.px-width-170 {
+    width: 170px;
+    min-width: 170px;
+}
+.px-width-180 {
+    width: 180px;
+    min-width: 180px;
+}
+.px-width-190 {
+    width: 190px;
+    min-width: 190px;
+}
+.px-width-200 {
+    width: 200px;
+    min-width: 200px;
+}
+.px-width-210 {
+    width: 210px;
+    min-width: 210px;
+}
+.px-width-220 {
+    width: 220px;
+    min-width: 220px;
+}
+.px-width-230 {
+    width: 230px;
+    min-width: 230px;
+}
+.px-width-240 {
+    width: 240px;
+    min-width: 240px;
+}
+.px-width-250 {
+    width: 250px;
+    min-width: 250px;
+}
 
 /* =========================
    響應式寬度調整
@@ -106,17 +175,17 @@
    後台常用輔助 class
    ========================= */
 .table-actions {
-    white-space: nowrap;        /* 按鈕群組不換行 */
+    white-space: nowrap; /* 按鈕群組不換行 */
 }
 
 .text-ellipsis {
-    overflow: hidden;           /* 文字過長隱藏 */
-    text-overflow: ellipsis;    /* 顯示省略號 */
-    white-space: nowrap;        /* 單行 */
+    overflow: hidden; /* 文字過長隱藏 */
+    text-overflow: ellipsis; /* 顯示省略號 */
+    white-space: nowrap; /* 單行 */
 }
 
 .table-img {
-    max-width: 100px;           /* 表格內圖片最大寬度 */
+    max-width: 100px; /* 表格內圖片最大寬度 */
     height: auto;
 }
 

@@ -5,18 +5,23 @@
 @stop
 
 @php
-    $loginUrl = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
-    $registerUrl = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
-    $passResetUrl = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset');
+    // 從 config/adminlte.php 取得各 URL
+    $loginUrl       = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
+    $registerUrl    = View::getSection('register_url') ?? config('adminlte.register_url', 'register');
+    $passResetUrl   = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'forgot-password');
+    $passwordConfirmUrl = config('adminlte.password_confirm_url', 'confirm-password');
 
+    // 如果設定 use_route_url = true，使用 route() 取得 URL，否則用 url()
     if (config('adminlte.use_route_url', false)) {
         $loginUrl = $loginUrl ? route($loginUrl) : '';
         $registerUrl = $registerUrl ? route($registerUrl) : '';
         $passResetUrl = $passResetUrl ? route($passResetUrl) : '';
+        $passwordConfirmUrl = $passwordConfirmUrl ? route($passwordConfirmUrl) : '';
     } else {
         $loginUrl = $loginUrl ? url($loginUrl) : '';
         $registerUrl = $registerUrl ? url($registerUrl) : '';
         $passResetUrl = $passResetUrl ? url($passResetUrl) : '';
+        $passwordConfirmUrl = $passwordConfirmUrl ? url($passwordConfirmUrl) : '';
     }
 @endphp
 
