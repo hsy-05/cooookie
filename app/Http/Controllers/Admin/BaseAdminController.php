@@ -9,6 +9,48 @@ use Illuminate\Support\Facades\Log; // 引入 Log
 
 class BaseAdminController extends Controller
 {
+    /**
+     * 定義該模組的權限名稱
+     * 例如：'news', 'users', 'roles'
+     * 子類別必須複寫此屬性
+     */
+    protected $permissionName = '';
+
+    public function __construct()
+    {
+        // 如果子類別有設定 permissionName，自動註冊 Middleware
+        if (!empty($this->permissionName)) {
+            $this->registerPermissionMiddleware();
+        }
+    }
+
+    /**
+     * 自動綁定權限到 Resource 方法
+     */
+    protected function registerPermissionMiddleware()
+    {
+        $prefix = $this->permissionName;
+
+        // 1. 瀏覽列表 (index, show) -> 對應 .view 權限
+        $this->middleware("admin.perm:{$prefix}.view")
+             ->only(['index', 'show']);
+
+        // 2. 新增與編輯 (create, store, edit, update) -> 對應 .create 權限
+        // (依據你之前的需求，新增/編輯共用 create 權限)
+        $this->middleware("admin.perm:{$prefix}.create")
+             ->only(['create', 'store', 'edit', 'update']);
+
+        // 3. 刪除 (destroy) -> 對應 .delete 權限
+        $this->middleware("admin.perm:{$prefix}.delete")
+             ->only(['destroy']);
+
+        // 4. 如果有特殊自訂方法 (例如 logs 的 batchDestroy)，
+        // 可以在子類別個別呼叫，或在這裡寫更通用的邏輯
+    }
+
+    /**
+     * 頁面標題
+     */
     protected $pageTitle = '後台管理';
 
     /**

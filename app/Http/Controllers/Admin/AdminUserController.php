@@ -15,43 +15,49 @@ class AdminUserController extends Controller
     {
         $currentUser = Auth::user();
 
-        // 1. 樹狀顯示邏輯：
-        // 如果是超級管理員 (System Role)，從最頂層 (parent_id is null) 開始抓，包含所有子層
-        // 如果是普通管理員 (如 PM)，只抓他底下的子層 (childrenRecursive)
+        // 為了 Q2 的需求，我們將資料分為兩組
+        // 這裡需要用 whereHas 來篩選「關聯表(roles)的欄位」
 
-        $query = User::query()->with('role');
+        // 1. 系統核心管理員 (Role is_system = 1) 且是頂層 (parent_id = null)
+        $systemRoots = User::whereNull('parent_id')
+            ->whereHas('role', function($q) {
+                $q->where('is_system', 1);
+            })
+            ->with(['role', 'childrenRecursive.role']) // 預加載防止 N+1
+            ->get();
 
-        if ($currentUser->role->is_system) {
-            // 系統管理員：抓出所有頂層(無父層) 以及他們的子子孫孫
-            // 使用 childrenRecursive 預加載遞迴關係
-            $users = User::whereNull('parent_id')
-                         ->with('childrenRecursive')
-                         ->get();
-        } else {
-            // 一般管理員：只顯示自己底下的
-            // 因為列表不顯示自己，只顯示下屬
-            $users = $currentUser->childrenRecursive;
+        // 2. 一般網站管理員 (Role is_system = 0) 且是頂層
+        $normalRoots = User::whereNull('parent_id')
+            ->whereHas('role', function($q) {
+                $q->where('is_system', 0);
+            })
+            ->with(['role', 'childrenRecursive.role'])
+            ->get();
+
+        // 如果當前使用者不是系統管理員，他只能看到自己 (維持之前的邏輯)
+        // 這裡為了展示方便，假設如果是系統管理員可以看到上面兩組
+        // 如果是一般管理員，只回傳他自己當作 normalRoots 的一部分
+        if (!$currentUser->role->is_system) {
+            $systemRoots = collect([]); // 空集合
+            $normalRoots = User::where('id', $currentUser->id)->with('childrenRecursive.role')->get();
         }
 
-        return view('admin.users.index', compact('users', 'currentUser'));
+        return view('admin.users.index', compact('systemRoots', 'normalRoots'));
     }
 
     public function create()
     {
-        // 只能選擇自己當父層，或是如果我是超級管理員，可以選其他系統管理員當父層(視需求)
-        // 簡化邏輯：新增的管理員，預設父層就是「當前登入者」(除了超級管理員可指定)
-
-        $roles = AdminRole::all();
-        // 找出潛在的父層選項 (目前簡單做：所有使用者)
-        // 實務上應避免循環參照，這裡先列出所有
+        // 排除自己所有的子孫，避免選到子孫當父層 (防呆：無窮迴圈)
+        // 新增時還沒ID，所以所有現存使用者都能當父層 (除了邏輯上不合理的，但在新增時還好)
         $parents = User::all();
 
         return view('admin.users.form', [
             'user' => new User(),
-            'roles' => $roles,
+            'roles' => AdminRole::all(),
             'parents' => $parents,
             'isEdit' => false,
-            'pageTitle' => '新增管理員'
+            'pageTitle' => '新增管理員',
+            'permissionConfig' => config('backend_permissions'), // 傳入權限設定
         ]);
     }
 
@@ -68,7 +74,10 @@ class AdminUserController extends Controller
         $data['password'] = Hash::make($request->password);
         $data['is_active'] = $request->has('is_active');
 
-        // 如果沒選 parent_id，且當前用戶不是最高權限，則強制 parent_id 為當前用戶
+        // 儲存個人權限 (陣列)
+        $data['permissions'] = $request->input('permissions', []);
+
+        // 若無選擇父層且非系統管理員，強制父層為自己
         if (!Auth::user()->role->is_system && empty($data['parent_id'])) {
             $data['parent_id'] = Auth::id();
         }
@@ -82,35 +91,52 @@ class AdminUserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // 防呆：不能編輯比自己高層或平行的人 (除非是超級管理員)
-        // 這裡簡化檢查：如果不是系統管理員，且該用戶不是我的下屬，擋掉
-        // (省略詳細實作，重點在 View)
+        // 防呆：編輯時，父層選單不能包含「自己」和「自己的子孫」
+        // 這裡用一個簡單的遞迴 ID 收集器來排除
+        $descendantIds = $this->getDescendantIds($user);
+        $descendantIds[] = $user->id; // 加上自己
 
-        $roles = AdminRole::all();
-        $parents = User::where('id', '!=', $user->id)->get(); // 父層不能選自己
+        $parents = User::whereNotIn('id', $descendantIds)->get();
 
         return view('admin.users.form', [
             'user' => $user,
-            'roles' => $roles,
+            'roles' => AdminRole::all(),
             'parents' => $parents,
             'isEdit' => true,
-            'pageTitle' => '編輯管理員'
+            'pageTitle' => '編輯管理員',
+            'permissionConfig' => config('backend_permissions'),
         ]);
     }
 
-    // Update & Destroy 邏輯同前，略作調整...
-    // 記得 update 時要檢查 parent_id 不能選到自己的子層 (造成無窮迴圈)
-    // 這裡不做太複雜的遞迴檢查，建議前端或後端做簡單防呆
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+
+        // 防呆：防止自己停用自己
+        if ($id == Auth::id() && !$request->has('is_active')) {
+             return back()->with('error', '您無法停用自己的帳號！');
+        }
+
         $data = $request->except(['password']);
-        if($request->filled('password')) {
+        if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
         $data['is_active'] = $request->has('is_active');
+        $data['permissions'] = $request->input('permissions', []);
+
         $user->update($data);
+
         return redirect()->route('admin.users.index')->with('success', '更新成功');
+    }
+
+    // 輔助方法：取得所有子孫 ID
+    private function getDescendantIds($user) {
+        $ids = [];
+        foreach ($user->children as $child) {
+            $ids[] = $child->id;
+            $ids = array_merge($ids, $this->getDescendantIds($child));
+        }
+        return $ids;
     }
 
     public function destroy($id)

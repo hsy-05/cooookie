@@ -5,6 +5,61 @@
    - 後台表格專用，簡單維護
    =========================================================================== */
 
+
+/* =========================
+   頁頭樣式優化
+   ========================= */
+:root {
+    --header-fs: 1.5rem;          /* 主標題字級 */
+    --action-fs: 1.1rem;          /* 動作標籤字級 */
+    --accent-gray: #d7d7d7;
+}
+
+/* 頁頭容器優化 */
+.header-container {
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid #ececec;
+    margin-bottom: 1.5rem;
+}
+
+/* 主標題樣式 */
+.page-main-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* 關鍵：手機版太長會自動換行而不溢出 */
+    font-size: var(--header-fs);
+    font-weight: 700;
+    margin: 0;
+}
+
+/* 分隔箭頭 */
+.divider-icon {
+    font-size: 1rem;
+    margin: 0 0.8rem;
+    color: var(--accent-gray);
+}
+
+/* 動作標籤 */
+.action-label {
+    font-size: var(--action-fs);
+    color: var(--accent-gray);
+    font-weight: 400;
+}
+
+.action-label i {
+    margin-right: 4px;
+    font-size: 0.9rem;
+}
+
+/* RWD 響應式：微調手機版間距 */
+@media (max-width: 576px) {
+    .page-main-title {
+        justify-content: flex-start;
+    }
+    .divider-icon {
+        margin: 0 0.5rem;
+    }
+}
 /* =========================
    表格基礎樣式
    ========================= */

@@ -7,7 +7,6 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
     <style>
         /* 樹型表格專用樣式 */
         .tree-indent {

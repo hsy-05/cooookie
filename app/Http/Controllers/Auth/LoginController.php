@@ -37,11 +37,4 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
-
-    // 在類別內加入此方法
-    protected function credentials(\Illuminate\Http\Request $request)
-    {
-        // 除了驗證帳號密碼，還強制加上 is_active = 1
-        return array_merge($request->only($this->username(), 'password'), ['is_active' => 1]);
-    }
 }

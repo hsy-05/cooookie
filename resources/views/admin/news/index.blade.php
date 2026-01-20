@@ -6,10 +6,6 @@
     <h1>消息管理</h1>
 @stop
 
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
-@stop
-
 @section('content')
     <!-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 -->
     <x-admin.page-message>
@@ -78,17 +74,18 @@
                         </td>
                         <td class="hidden-md text-center">{{ $item->display_order }}</td>
                         <td class="hidden-sm">{{ $item->updated_at->format('Y-m-d H:i') }}</td>
-                        <td>
+                        <td class="text-center table-actions">
                             <a href="{{ route('admin.news.edit', $item->news_id) }}" class="btn btn-sm btn-warning">編輯</a>
-                            <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
-                                style="display:inline-block;" id="deleteForm{{ $item->news_id }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-sm btn-danger js-delete-btn" data-id="{{ $item->news_id }}"
-                                    data-title="確定刪除這筆資料嗎？" data-text="刪除後將無法恢復！">
-                                    刪除
-                                </button>
-
+                            @can('news.delete')
+                                <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
+                                    style="display:inline-block;" id="deleteForm{{ $item->news_id }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" class="btn btn-sm btn-danger js-delete-btn"
+                                        data-id="{{ $item->news_id }}" data-title="確定刪除這筆資料嗎？" data-text="刪除後將無法恢復！">
+                                        刪除
+                                    </button>
+                                @endcan
                             </form>
                         </td>
                     </tr>

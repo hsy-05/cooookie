@@ -6,10 +6,6 @@
     <h1>操作紀錄</h1>
 @stop
 
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
-@stop
-
 @section('content')
     {{-- 顯示訊息 --}}
     @if (session('success'))

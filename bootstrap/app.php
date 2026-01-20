@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'csrf' => \App\Http\Middleware\VerifyCsrfToken::class,
             'cookies' => \App\Http\Middleware\EncryptCookies::class,
+            'admin.perm' => \App\Http\Middleware\CheckBackendPermission::class,
         ]);
 
         // 加入 Laravel web group middleware 堆疊

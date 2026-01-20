@@ -61,13 +61,20 @@ class User extends Authenticatable
      */
     public function hasPermission($permissionKey)
     {
-        // 1. 如果沒有角色，沒權限
+        // 1. 如果沒有角色，直接 false
         if (!$this->role) return false;
 
-        // 2. 如果是超級管理員 (is_system)，擁有所有權限
+        // 2. 如果角色的 is_system 是 1 (超級管理員)，直接 true
         if ($this->role->is_system) return true;
 
-        // 3. 檢查權限陣列中是否有該 Key
-        return in_array($permissionKey, $this->role->permissions ?? []);
+        // 3. 取得「角色」擁有的權限
+        $rolePermissions = $this->role->permissions ?? [];
+
+        // 4. 取得「個人」額外擁有的權限
+        $userPermissions = $this->permissions ?? [];
+
+        // 5. 兩者取聯集 (只要其中一邊有，就有權限)
+        // 檢查 Key 是否存在於任一陣列中
+        return in_array($permissionKey, $rolePermissions) || in_array($permissionKey, $userPermissions);
     }
 }

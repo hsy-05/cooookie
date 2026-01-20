@@ -25,6 +25,8 @@ use App\Http\Controllers\Admin\AdvertController;
 use App\Http\Controllers\Admin\AdvertCategoryController;
 use App\Http\Controllers\Admin\BaseAdminController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AdminRoleController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -103,13 +105,13 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin') //路由前綴
     ->name('admin.')
     ->group(function () {
-        // 角色管理
-        Route::resource('roles', App\Http\Controllers\Admin\AdminRoleController::class);
-        // 網站管理員
-        Route::resource('users', App\Http\Controllers\Admin\AdminUserController::class);
-
         // 後台首頁
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Roles & Users (假設管理員才能操作)
+        Route::resource('roles', AdminRoleController::class);
+
+        Route::resource('users', AdminUserController::class);
 
         /*
         |--------------------------------------------------------------------------
@@ -141,7 +143,8 @@ Route::middleware(['auth', 'verified'])
             ->parameters([
                 'news_category' => 'category'
             ]);
-
+        Route::resource('news_category', NewsCategoryController::class)
+            ->parameters(['news_category' => 'category']);
         /*
         |--------------------------------------------------------------------------
         | 最新消息

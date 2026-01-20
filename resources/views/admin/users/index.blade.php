@@ -8,12 +8,17 @@
         <a href="{{ route('admin.users.create') }}" class="btn btn-primary">新增管理員</a>
     </div>
 
-    <div class="card">
+    {{-- 第一區塊：系統核心管理員 (只有系統管理員看得到這個區塊) --}}
+    @if($systemRoots->isNotEmpty())
+    <div class="card card-danger card-outline mb-4">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-shield-alt"></i> 系統核心管理員 (System Admins)</h3>
+        </div>
         <div class="card-body p-0">
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th style="padding-left: 20px;">管理員架構 / 姓名</th>
+                        <th style="padding-left: 20px;">架構 / 姓名</th>
                         <th>帳號</th>
                         <th>角色</th>
                         <th>狀態</th>
@@ -21,21 +26,41 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- 顯示目前使用者的頂層 (如果是系統管理員，則顯示所有頂層) --}}
-                    {{-- 如果 Controller 回傳的是 Collection (一般管理員)，直接跑 --}}
-                    @if($currentUser->role->is_system)
-                        {{-- 系統管理員看全域 --}}
-                        @foreach($users as $user)
-                            @include('admin.users._user_row', ['user' => $user, 'level' => 0])
-                        @endforeach
-                    @else
-                        {{-- 一般管理員只看得到自己(當作頂層)與下屬 --}}
-                        {{-- 這裡為了呈現完整樹狀，我們手動先把自己印出來 --}}
-                        @include('admin.users._user_row', ['user' => $currentUser, 'level' => 0])
-                    @endif
+                    @foreach($systemRoots as $root)
+                        @include('admin.users._user_row', ['user' => $root, 'level' => 0])
+                    @endforeach
                 </tbody>
             </table>
         </div>
     </div>
+    @endif
+
+    {{-- 第二區塊：一般網站管理員 --}}
+    <div class="card card-primary card-outline">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-users"></i> 網站管理團隊 (Site Managers)</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="padding-left: 20px;">架構 / 姓名</th>
+                        <th>帳號</th>
+                        <th>角色</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($normalRoots as $root)
+                        @include('admin.users._user_row', ['user' => $root, 'level' => 0])
+                    @empty
+                        <tr><td colspan="5" class="text-center text-muted">目前沒有一般管理員</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </x-admin.page-message>
 @stop

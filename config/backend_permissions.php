@@ -2,8 +2,38 @@
 
 return [
     // 模組定義
+    'advert' => [
+        'label' => '廣告管理',
+        'actions' => [
+            // key => label
+            'view'   => '瀏覽列表',
+            'create' => '新增/編輯', // 包含 update
+            'delete' => '刪除',
+        ],
+        // 定義依賴：勾選 key，必須自動勾選 value
+        'dependencies' => [
+            'create' => ['view'],
+            'delete' => ['view'],
+        ],
+    ],
+    // 模組定義
     'news' => [
         'label' => '消息管理',
+        'actions' => [
+            // key => label
+            'view'   => '瀏覽列表',
+            'create' => '新增/編輯', // 包含 update
+            'delete' => '刪除',
+        ],
+        // 定義依賴：勾選 key，必須自動勾選 value
+        'dependencies' => [
+            'create' => ['view'],
+            'delete' => ['view'],
+        ],
+    ],
+    // 模組定義
+    'news_category' => [
+        'label' => '消息分類管理',
         'actions' => [
             // key => label
             'view'   => '瀏覽列表',

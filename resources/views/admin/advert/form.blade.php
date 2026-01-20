@@ -16,167 +16,165 @@
             @endif
 
             <!-- 表單頁籤 -->
-            <div class="nav-tabs-custom">
-                <ul class="nav nav-tabs" id="advert-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="tab-general" data-toggle="tab" href="#general" role="tab"
-                            aria-controls="general" aria-selected="true">一般資料</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="tab-preview" data-toggle="tab" href="#preview" role="tab"
-                            aria-controls="preview" aria-selected="false">其他／預覽</a>
-                    </li>
-                </ul>
+            <div class="card card-primary card-outline card-outline-tabs">
+                <div class="card-header p-0 border-bottom-0">
+                    <ul class="nav nav-tabs" id="role-tab" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#general">一般資料</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#preview">其他／預覽</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="form-tabs-content">
+                        <!-- 一般資料頁籤 -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <!-- 語系頁籤 -->
+                            <div class="nav-tabs-custom mt-3">
+                                <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                                id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                                href="#lang-{{ $lang->lang_id }}" role="tab"
+                                                aria-controls="lang-{{ $lang->lang_id }}"
+                                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
+                                                ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
 
-                <div class="tab-content" id="form-tabs-content">
-                    <!-- 一般資料頁籤 -->
-                    <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                        <!-- 語系頁籤 -->
-                        <div class="nav-tabs-custom mt-3">
-                            <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
-                                @foreach ($langs as $lang)
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ $loop->first ? 'active' : '' }}"
-                                            id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
-                                            href="#lang-{{ $lang->lang_id }}" role="tab"
-                                            aria-controls="lang-{{ $lang->lang_id }}"
-                                            aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
-                                            ({{ $lang->code }})
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                                <div class="tab-content" id="lang-tabs-content">
+                                    @foreach ($langs as $lang)
+                                        @php $d = $descMap[$lang->lang_id] ?? null; @endphp
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-{{ $lang->lang_id }}" role="tabpanel"
+                                            aria-labelledby="lang-{{ $lang->lang_id }}-tab">
 
-                            <div class="tab-content" id="lang-tabs-content">
-                                @foreach ($langs as $lang)
-                                    @php $d = $descMap[$lang->lang_id] ?? null; @endphp
-                                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                        id="lang-{{ $lang->lang_id }}" role="tabpanel"
-                                        aria-labelledby="lang-{{ $lang->lang_id }}-tab">
+                                            <!-- 語系標題 -->
+                                            <div class="form-group">
+                                                <label>標題（{{ $lang->code }}）</label>
+                                                <input type="text" name="desc[{{ $lang->lang_id }}][adv_name]"
+                                                    class="form-control"
+                                                    value="{{ old('desc.' . $lang->lang_id . '.adv_name', $d->adv_name ?? '') }}">
+                                            </div>
 
-                                        <!-- 語系標題 -->
-                                        <div class="form-group">
-                                            <label>標題（{{ $lang->code }}）</label>
-                                            <input type="text" name="desc[{{ $lang->lang_id }}][adv_name]"
-                                                class="form-control"
-                                                value="{{ old('desc.' . $lang->lang_id . '.adv_name', $d->adv_name ?? '') }}">
-                                        </div>
-
-                                        <!-- 語系圖片（如需要不同語系圖片，可取消註解） -->
-                                        {{-- <div class="form-group">
+                                            <!-- 語系圖片（如需要不同語系圖片，可取消註解） -->
+                                            {{-- <div class="form-group">
                                             <label>圖片（{{ $lang->code }}）</label>
                                             <input type="file" name="desc[{{ $lang->lang_id }}][image]"
                                                    class="form-control">
                                         </div> --}}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- 共同設定區 -->
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h5>共同設定</h5>
+                                </div>
+                                <div class="card-body">
+
+                                    <!-- 分類獨立一行，寬度 col-md-6 -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="cat_id">分類</label>
+                                            <select name="cat_id" id="cat_id" class="form-control" required>
+                                                <option value="">-- 選擇分類 --</option>
+                                                @foreach ($cats as $cat)
+                                                    <option value="{{ $cat->cat_id }}"
+                                                        data-func='@json($cat->cat_func_scope)'
+                                                        data-params='@json($cat->cat_params)'
+                                                        {{ old('cat_id', $advert->cat_id ?? '') == $cat->cat_id ? 'selected' : '' }}>
+                                                        {{ $cat->cat_code }}
+                                                        @if (optional($cat->descs->first())->cat_name)
+                                                            - {{ optional($cat->descs->first())->cat_name }}
+                                                        @endif
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
-                                @endforeach
+
+                                    <!-- 圖片區塊 -->
+                                    <div class="row">
+                                        <!-- 電腦版圖片 -->
+                                        <div class="col-md-6 mb-4 field field-adv_img_url">
+                                            <label>廣告圖-電腦版</label>
+                                            <div class="input-group">
+                                                <input type="file" name="adv_img_url" class="form-control">
+                                                @if (isset($isEdit) && $advert->adv_img_url)
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-info btn-browse-image"
+                                                            data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_url }}">
+                                                            瀏覽
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <small class="form-text text-muted field-hint"></small>
+                                            <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
+                                        </div>
+
+                                        <!-- 手機版圖片 -->
+                                        <div class="col-md-6 mb-4 field field-adv_img_m_url">
+                                            <label>廣告圖-手機版</label>
+                                            <div class="input-group">
+                                                <input type="file" name="adv_img_m_url" class="form-control">
+                                                @if (isset($isEdit) && $advert->adv_img_m_url)
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-info btn-browse-image"
+                                                            data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_m_url }}">
+                                                            瀏覽
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <small class="form-text text-muted field-hint"></small>
+                                            <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
+                                        </div>
+                                    </div>
+
+                                    <!-- 廣告連結 -->
+                                    <div class="row">
+                                        <div class="col-md-12 mb-4 field field-adv_link_url">
+                                            <label>廣告連結</label>
+                                            <input type="url" name="adv_link_url" class="form-control"
+                                                value="{{ old('adv_link_url', $advert->adv_link_url ?? '') }}">
+                                            <small class="form-text text-muted field-hint">請輸入完整網址 (https://...)</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- 排序與是否顯示 -->
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <label for="display_order">排序</label>
+                                            <input type="number" id="display_order" name="display_order"
+                                                class="form-control"
+                                                @if (isset($isEdit)) value="{{ $advert->display_order }}" @endif>
+                                        </div>
+                                        <div class="col-md-2 form-group ml-3">
+                                            <label for="is_visible">是否顯示</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                    name="is_visible" value="1"
+                                                    {{ isset($isEdit) && $advert->is_visible ? 'checked' : 'checked' }}>
+                                                <label class="custom-control-label" for="is_visible"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 共同設定區 -->
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5>共同設定</h5>
-                            </div>
-                            <div class="card-body">
-
-                                <!-- 分類獨立一行，寬度 col-md-6 -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="cat_id">分類</label>
-                                        <select name="cat_id" id="cat_id" class="form-control" required>
-                                            <option value="">-- 選擇分類 --</option>
-                                            @foreach ($cats as $cat)
-                                                <option value="{{ $cat->cat_id }}"
-                                                    data-func='@json($cat->cat_func_scope)'
-                                                    data-params='@json($cat->cat_params)'
-                                                    {{ old('cat_id', $advert->cat_id ?? '') == $cat->cat_id ? 'selected' : '' }}>
-                                                    {{ $cat->cat_code }}
-                                                    @if (optional($cat->descs->first())->cat_name)
-                                                        - {{ optional($cat->descs->first())->cat_name }}
-                                                    @endif
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- 圖片區塊 -->
-                                <div class="row">
-                                    <!-- 電腦版圖片 -->
-                                    <div class="col-md-6 mb-4 field field-adv_img_url">
-                                        <label>廣告圖-電腦版</label>
-                                        <div class="input-group">
-                                            <input type="file" name="adv_img_url" class="form-control">
-                                            @if (isset($isEdit) && $advert->adv_img_url)
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-info btn-browse-image"
-                                                        data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_url }}">
-                                                        瀏覽
-                                                    </button>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <small class="form-text text-muted field-hint"></small>
-                                        <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
-                                    </div>
-
-                                    <!-- 手機版圖片 -->
-                                    <div class="col-md-6 mb-4 field field-adv_img_m_url">
-                                        <label>廣告圖-手機版</label>
-                                        <div class="input-group">
-                                            <input type="file" name="adv_img_m_url" class="form-control">
-                                            @if (isset($isEdit) && $advert->adv_img_m_url)
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-info btn-browse-image"
-                                                        data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_m_url }}">
-                                                        瀏覽
-                                                    </button>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <small class="form-text text-muted field-hint"></small>
-                                        <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
-                                    </div>
-                                </div>
-
-                                <!-- 廣告連結 -->
-                                <div class="row">
-                                    <div class="col-md-12 mb-4 field field-adv_link_url">
-                                        <label>廣告連結</label>
-                                        <input type="url" name="adv_link_url" class="form-control"
-                                            value="{{ old('adv_link_url', $advert->adv_link_url ?? '') }}">
-                                        <small class="form-text text-muted field-hint">請輸入完整網址 (https://...)</small>
-                                    </div>
-                                </div>
-
-                                <!-- 排序與是否顯示 -->
-                                <div class="row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="display_order">排序</label>
-                                        <input type="number" id="display_order" name="display_order"
-                                            class="form-control"
-                                            @if (isset($isEdit)) value="{{ $advert->display_order }}" @endif>
-                                    </div>
-                                    <div class="col-md-2 form-group ml-3">
-                                        <label for="is_visible">是否顯示</label>
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="is_visible"
-                                                name="is_visible" value="1"
-                                                {{ isset($isEdit) && $advert->is_visible ? 'checked' : 'checked' }}>
-                                            <label class="custom-control-label" for="is_visible"></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- 第二頁籤：其他／預覽 -->
+                        <div class="tab-pane fade p-3" id="preview" role="tabpanel" aria-labelledby="tab-preview">
+                            <p class="text-muted">這邊可以擺放預覽功能或其他進階設定區塊。</p>
                         </div>
-                    </div>
-
-                    <!-- 第二頁籤：其他／預覽 -->
-                    <div class="tab-pane fade p-3" id="preview" role="tabpanel" aria-labelledby="tab-preview">
-                        <p class="text-muted">這邊可以擺放預覽功能或其他進階設定區塊。</p>
                     </div>
                 </div>
+
 
                 <!-- 提交按鈕 -->
                 <div class="text-center mt-3">
@@ -185,6 +183,7 @@
                         {{ isset($isEdit) ? '更新' : '新增' }}
                     </button>
                 </div>
+            </div>
         </form>
     </x-admin.page-message>
 

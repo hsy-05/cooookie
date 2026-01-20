@@ -1,12 +1,7 @@
 @extends('adminlte::page')
-
 @section('title', $pageTitle)
 
 @include('components.admin.page_content_header')
-
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
-@stop
 
 @section('content')
     {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
@@ -21,173 +16,170 @@
             @endif
 
             <!-- 表單頁籤 -->
-            <div class="nav-tabs-custom">
-                <ul class="nav nav-tabs" id="form-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab"
-                            aria-controls="general" aria-selected="true">一般資料</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="content-tab" data-toggle="tab" href="#content" role="tab"
-                            aria-controls="content" aria-selected="false">消息內容</a>
-                    </li>
-                </ul>
+            <div class="card card-primary card-outline card-outline-tabs">
+                <div class="card-header p-0 border-bottom-0">
+                    <ul class="nav nav-tabs" id="role-tab" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#general">一般資料</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#content">內容</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="form-tabs-content">
+                        <!-- 一般資料頁籤 -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <!-- 語系頁籤 -->
+                            <div class="nav-tabs-custom mt-3">
+                                <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                                id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                                href="#lang-{{ $lang->lang_id }}" role="tab"
+                                                aria-controls="lang-{{ $lang->lang_id }}"
+                                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
+                                                ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
 
-                <div class="tab-content" id="form-tabs-content">
-                    <!-- 一般資料頁籤 -->
-                    <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                        <!-- 語系頁籤 -->
-                        <div class="nav-tabs-custom mt-3">
-                            <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
+                                <div class="tab-content" id="language-tabs-content">
+                                    @foreach ($langs as $lang)
+                                        @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-{{ $lang->lang_id }}" role="tabpanel"
+                                            aria-labelledby="lang-{{ $lang->lang_id }}-tab">
+                                            <div class="form-group">
+                                                <label for="title_{{ $lang->lang_id }}">標題</label>
+                                                <input type="text" id="title_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][title]"
+                                                    class="form-control required-field"
+                                                    data-label="標題 ({{ $lang->name }})"
+                                                    value="{{ $desc->title ?? '' }}">
+                                            </div>
+                                            <!-- 簡述欄位 -->
+                                            <div class="form-group">
+                                                <label for="description_{{ $lang->lang_id }}">簡述</label>
+                                                <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
+                                                    maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
+                                            </div>
+
+                                            {{-- 僅系統最高權限 (is_system = 1) 可見 --}}
+                                            @if (auth()->user()->role->is_system)
+                                                <div class="form-group p-3 mb-3 border border-danger rounded">
+                                                    <label class="text-danger font-weight-bold">
+                                                        <i class="fas fa-user-secret"></i> 工程師/最高權限專用設定
+                                                    </label>
+                                                    <small class="form-text text-muted mb-2">此欄位僅 Super Admin
+                                                        可見，用於設定系統內部參數。</small>
+
+                                                    <input type="text" name="system_code" class="form-control"
+                                                        placeholder="輸入系統參數..." value="{{ $news->system_code ?? '' }}">
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- 共同設定區 -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5>共同設定</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-row">
+                                        <div class="col-md-6 form-group">
+                                            <label for="image">封面圖片</label>
+                                            <div class="input-group">
+                                                <input type="file" id="image" name="image" class="form-control"
+                                                    aria-label="Upload image">
+                                                @if ($isEdit && $news->image)
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-info" data-toggle="modal"
+                                                            data-target="#imageModal">瀏覽</button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            @if (isset($imageSizes['image']))
+                                                <small class="form-text text-muted">
+                                                    建議尺寸：{{ $imageSizes['image'][0] }} x {{ $imageSizes['image'][1] }}
+                                                </small>
+                                            @endif
+                                        </div>
+
+
+                                        <div class="col-md-6 form-group">
+                                            <label for="cat_id">分類</label>
+                                            <select id="cat_id" name="cat_id" class="form-control required-field">
+                                                <option value="">-- 無 --</option>
+                                                @foreach ($categories as $cat)
+                                                    <option value="{{ $cat->cat_id }}"
+                                                        {{ $isEdit && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
+                                                        {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- 排序與是否顯示 -->
+                                        <div class="row col-12">
+                                            <div class="col-md-6 form-group">
+                                                <label for="display_order">排序</label>
+                                                <input type="number" id="display_order" name="display_order"
+                                                    class="form-control"
+                                                    @if ($isEdit) value="{{ $news->display_order }}" @endif>
+                                            </div>
+                                            <div class="col-md-2 form-group ml-3">
+                                                <label for="is_visible">是否顯示</label>
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                        name="is_visible" value="1"
+                                                        {{ !$isEdit || $news->is_visible ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="is_visible"></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 消息內容頁籤 -->
+                        <div class="tab-pane fade" id="content">
+                            <!-- 語系內容的分頁 -->
+                            <ul class="nav nav-tabs mt-2" role="tablist">
                                 @foreach ($langs as $lang)
                                     <li class="nav-item">
-                                        <a class="nav-link {{ $loop->first ? 'active' : '' }}"
-                                            id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
-                                            href="#lang-{{ $lang->lang_id }}" role="tab"
-                                            aria-controls="lang-{{ $lang->lang_id }}"
-                                            aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
+                                        <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
+                                            href="#content-{{ $lang->lang_id }}">{{ $lang->name }}
                                             ({{ $lang->code }})
                                         </a>
                                     </li>
                                 @endforeach
                             </ul>
 
-                            <div class="tab-content" id="language-tabs-content">
+                            <div class="tab-content mt-3">
                                 @foreach ($langs as $lang)
                                     @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                     <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                        id="lang-{{ $lang->lang_id }}" role="tabpanel"
-                                        aria-labelledby="lang-{{ $lang->lang_id }}-tab">
+                                        id="content-{{ $lang->lang_id }}">
                                         <div class="form-group">
-                                            <label for="title_{{ $lang->lang_id }}">標題</label>
-                                            <input type="text" id="title_{{ $lang->lang_id }}"
-                                                name="desc[{{ $lang->lang_id }}][title]"
-                                                class="form-control required-field" data-label="標題 ({{ $lang->name }})"
-                                                value="{{ $desc->title ?? '' }}">
+                                            <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote {{-- required-field --}}"
+                                                {{-- data-label="內容 ({{ $lang->name }})" --}}>{{ $desc->content ?? '' }}</textarea>
                                         </div>
-                                        <!-- 簡述欄位 -->
-                                        <div class="form-group">
-                                            <label for="description_{{ $lang->lang_id }}">簡述</label>
-                                            <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
-                                                maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
-                                        </div>
-
-                                        {{-- 僅系統最高權限 (is_system = 1) 可見 --}}
-                                        @if (auth()->user()->role->is_system)
-                                            <div class="form-group p-3 mb-3 border border-danger rounded"
-                                                style="background-color: #fff5f5;">
-                                                <label class="text-danger font-weight-bold">
-                                                    <i class="fas fa-user-secret"></i> 工程師/最高權限專用設定
-                                                </label>
-                                                <small class="form-text text-muted mb-2">此欄位僅 Super Admin
-                                                    可見，用於設定系統內部參數。</small>
-
-                                                <input type="text" name="system_code" class="form-control"
-                                                    placeholder="輸入系統參數..." value="{{ $news->system_code ?? '' }}">
-                                            </div>
-                                        @endif
                                     </div>
                                 @endforeach
                             </div>
                         </div>
-
-                        <!-- 共同設定區 -->
-                        <div class="card mt-3">
-                            <div class="card-header">
-                                <h5>共同設定</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="image">封面圖片</label>
-                                        <div class="input-group">
-                                            <input type="file" id="image" name="image" class="form-control"
-                                                aria-label="Upload image">
-                                            @if ($isEdit && $news->image)
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-info" data-toggle="modal"
-                                                        data-target="#imageModal">瀏覽</button>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        @if (isset($imageSizes['image']))
-                                            <small class="form-text text-muted">
-                                                建議尺寸：{{ $imageSizes['image'][0] }} x {{ $imageSizes['image'][1] }}
-                                            </small>
-                                        @endif
-                                    </div>
-
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="cat_id">分類</label>
-                                        <select id="cat_id" name="cat_id" class="form-control required-field">
-                                            <option value="">-- 無 --</option>
-                                            @foreach ($categories as $cat)
-                                                <option value="{{ $cat->cat_id }}"
-                                                    {{ $isEdit && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
-                                                    {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- 排序與是否顯示 -->
-                                    <div class="row col-12">
-                                        <div class="col-md-6 form-group">
-                                            <label for="display_order">排序</label>
-                                            <input type="number" id="display_order" name="display_order"
-                                                class="form-control"
-                                                @if ($isEdit) value="{{ $news->display_order }}" @endif>
-                                        </div>
-                                        <div class="col-md-2 form-group ml-3">
-                                            <label for="is_visible">是否顯示</label>
-                                            <div class="custom-control custom-switch">
-                                                <input type="checkbox" class="custom-control-input" id="is_visible"
-                                                    name="is_visible" value="1"
-                                                    {{ !$isEdit || $news->is_visible ? 'checked' : '' }}>
-                                                <label class="custom-control-label" for="is_visible"></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 消息內容頁籤 -->
-                    <div class="tab-pane fade" id="content">
-                        <!-- 語系內容的分頁 -->
-                        <ul class="nav nav-tabs mt-2" role="tablist">
-                            @foreach ($langs as $lang)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
-                                        href="#content-{{ $lang->lang_id }}">{{ $lang->name }}
-                                        ({{ $lang->code }})
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <div class="tab-content mt-3">
-                            @foreach ($langs as $lang)
-                                @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
-                                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                    id="content-{{ $lang->lang_id }}">
-                                    <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote {{-- required-field --}}"
-                                            {{-- data-label="內容 ({{ $lang->name }})" --}}>{{ $desc->content ?? '' }}</textarea>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 提交按鈕 -->
-            <div class="text-center mt-3">
-                <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
-                <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
+                <!-- 提交按鈕 -->
+                <div class="text-center mt-3">
+                    <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
+                    <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
+                </div>
             </div>
         </form>
     </x-admin.page-message>

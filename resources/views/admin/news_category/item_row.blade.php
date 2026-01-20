@@ -38,7 +38,7 @@
     <td class="text-center">{{ $cat->display_order }}</td>
     <td class="text-center">{{ $cat->updated_at->format('Y-m-d H:i') }}</td>
 
-    <td class="text-center">
+    <td class="text-center table-actions">
         {{-- 確保 btn-group 內部的元素對齊方式一致 --}}
         <div class="btn-group align-items-center">
             {{-- 編輯按鈕 --}}

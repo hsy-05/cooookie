@@ -1,35 +1,40 @@
-@php
-    // 取得當前的 controller@method，例如 NewsController@edit
-    $action = class_basename(Route::currentRouteAction());
-    $method = explode('@', $action)[1] ?? '';
+{{--
+    File: resources/views/components/admin/page_content_header.blade.php
+    Purpose: 統一後台頁頭樣式，水平呈現標題與動作
+--}}
 
-    $actionlbl = match ($method) {
-        'index'  => '列表',
-        'create' => '新增',
-        'edit'   => '編輯',
-        default  => '操作'
-    };
+@php
+    // 1. 自動偵測目前的 Controller 方法
+    $actionName = class_basename(Route::currentRouteAction());
+    $method = explode('@', $actionName)[1] ?? '';
+
+    // 2. 動作標籤參數化
+    $labels = [
+        'index'  => ['text' => '列表', 'icon' => 'fa-list'],
+        'create' => ['text' => '新增', 'icon' => 'fa-plus'],
+        'edit'   => ['text' => '編輯', 'icon' => 'fa-pen'],
+        'show'   => ['text' => '檢視', 'icon' => 'fa-eye'],
+    ];
+
+    $currentAction = $labels[$method] ?? ['text' => '操作', 'icon' => 'fa-info-circle'];
 @endphp
 
 @section('content_header')
-    <h1>{{ $pageTitle }}
-        <small class="hidden-480">
-            <i class="fas fa-angle-double-right"></i>
-            {{ $actionlbl }}
-        </small>
-    </h1>
+<div class="container-fluid header-container">
+    <div class="row align-items-center"> {{-- 改用 center 讓大小字水平線對齊更完美 --}}
+        <div class="col-12">
+            <h1 class="page-main-title">
+                <span class="title-text">{{ $pageTitle }}</span>
+                <i class="fas fa-angle-double-right divider-icon"></i>
+                <small class="action-label">
+                    <i class="fas {{ $currentAction['icon'] }}"></i>
+                    {{ $currentAction['text'] }}
+                </small>
+            </h1>
+        </div>
+    </div>
+</div>
 
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <ol class="breadcrumb float-sm-right">
-        <li class="breadcrumb-item">
-            <a href="{{ route('admin.dashboard') }}">首頁</a>
-        </li>
-        <li class="breadcrumb-item">
-            <a href="{{ route('admin.news.index') }}">消息管理</a>
-        </li>
-        <li class="breadcrumb-item active">
-            {{ $pageTitle }}
-        </li>
-    </ol>
+{{-- 隱藏的 CSRF Token --}}
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @stop

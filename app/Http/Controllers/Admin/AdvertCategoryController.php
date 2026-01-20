@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\AdvertCategory;
-use App\Models\AdvertCategoryDesc;
-use App\Models\Language;
+use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
+use App\Models\{AdvertCategory, AdvertCategoryDesc, Language};
+use Illuminate\Support\Facades\{DB, Log};
+use App\Helpers\{ContentHelper, ImageHelper};
 
-class AdvertCategoryController extends Controller
+class AdvertCategoryController extends BaseAdminController
 {
+    protected $pageTitle = '廣告分類';
+
     /** 列表 */
     public function index(Request $request)
     {
@@ -19,7 +21,7 @@ class AdvertCategoryController extends Controller
             ->orderBy('display_order', 'desc')
             ->paginate($perPage);
 
-        return view('admin.advert_category.index', compact('list'));
+        return $this->view('admin.advert_category.index', compact('list'));
     }
 
     /** 建立表單 */
@@ -37,7 +39,7 @@ class AdvertCategoryController extends Controller
         //     ],
         // ];
 
-        return view('admin.advert_category.form', [
+        return $this->view('admin.advert_category.form', [
             'langs'           => $langs,
             'advert_category' => new AdvertCategory([
                 'cat_func_scope' => ['adv_img_url', 'adv_img_m_url', 'adv_link_url'],
@@ -96,7 +98,7 @@ class AdvertCategoryController extends Controller
         $advert_category->load('descs');
         $descMap = collect($advert_category->descs)->keyBy('lang_id')->all();
 
-        return view('admin.advert_category.form', [
+        return $this->view('admin.advert_category.form', [
             'advert_category' => $advert_category,
             'langs'           => $langs,
             'isEdit'          => true,

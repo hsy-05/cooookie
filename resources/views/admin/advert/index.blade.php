@@ -6,10 +6,6 @@
     <h1>廣告列表</h1>
 @stop
 
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/backend.css') }}">
-@stop
-
 @section('content')
     <div class="text-right mb-3">
         <a href="{{ route('admin.advert.create') }}" class="btn btn-light">新增廣告</a>

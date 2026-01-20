@@ -10,6 +10,9 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsController extends BaseAdminController
 {
+    // 只要這一行！自動綁定 news.view, news.create, news.delete
+    protected $permissionName = 'news';
+
     protected $pageTitle = '最新消息';
 
     // 設定圖片配置，方便未來擴充
