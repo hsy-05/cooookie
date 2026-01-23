@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth; // 1. 修正錯誤：必須引入 Auth Facade
 
-class ActionLogController extends Controller
+class ActionLogController extends BaseAdminController
 {
     public function index(Request $request)
     {
@@ -55,14 +55,18 @@ class ActionLogController extends Controller
     }
 
     /**
-     * 批次刪除 (處理勾選與下拉選單)
+     * 批次刪除
+     * 支援：
+     *  A. 下拉選單依時間刪除
+     *  B. 勾選多筆刪除
      */
     public function batchDestroy(Request $request)
     {
         $deletedCount = 0;
-        $deleteType = '';
+        $deleteType   = '';
+        $deletedIds   = [];
 
-        // A. 優先檢查：是否有選擇「依時間刪除」
+        // A. 檢查是否有選擇「依時間刪除」
         if ($request->filled('delete_range')) {
             $date = match ($request->delete_range) {
                 'week'      => Carbon::now()->subWeek(),
@@ -73,24 +77,29 @@ class ActionLogController extends Controller
             };
 
             if ($date) {
-                $deletedCount = ActionLog::where('created_at', '<', $date)->delete();
+                // 先抓出要刪除的 ID
+                $deletedIds = ActionLog::where('created_at', '<', $date)->pluck('id')->toArray();
+                $deletedCount = count($deletedIds);
+
+                // 刪除
+                ActionLog::where('created_at', '<', $date)->delete();
+
                 $deleteType = "清除 {$request->delete_range} 前";
             }
         }
         // B. 如果沒有選時間，則檢查 Checkbox (ids)
         elseif ($request->filled('ids') && is_array($request->ids)) {
-            $deletedCount = ActionLog::whereIn('id', $request->ids)->delete();
+            $deletedIds = $request->ids;
+            $deletedCount = count($deletedIds);
+
+            ActionLog::whereIn('id', $deletedIds)->delete();
+
             $deleteType = "手動勾選";
         }
 
         // C. 寫入操作紀錄
         if ($deletedCount > 0) {
-            ActionLog::create([
-                'user_id'    => Auth::id(),
-                'action'     => '刪除',
-                'log_info'   => "刪除操作紀錄 ({$deleteType}): {$deletedCount} 筆紀錄",
-                'ip_address' => $request->ip(),
-            ]);
+            $this->writeBatchDeleteLog('操作日誌管理', $deletedCount, $deletedIds);
 
             return back()->with('form_success_swal', "成功刪除 {$deletedCount} 筆紀錄！");
         }

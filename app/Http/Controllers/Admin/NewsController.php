@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Models\{News, NewsDesc, NewsCategory, Language};
-use Illuminate\Support\Facades\{DB, Log};
+use App\Models\{News, NewsDesc, NewsCategory, Language, ActionLog};
+use Illuminate\Support\Facades\{DB, Log, Auth};
 use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsController extends BaseAdminController
@@ -125,20 +125,28 @@ class NewsController extends BaseAdminController
         });
     }
 
+    /**
+     * 刪除表單
+     */
     public function destroy(News $news)
     {
-        DB::transaction(function () use ($news) {
-            // 刪除圖片檔案
-            foreach (array_keys($this->imageSizes) as $field) {
-                if ($news->$field) ImageHelper::deleteImage($news->$field, 'public');
-            }
-            // 刪除關聯與主體 (假設資料庫有設定 cascade 可簡化，否則手動刪除 desc)
-            $news->descs()->delete();
-            $news->delete();
-        });
+        // 刪除翻譯
+        NewsDesc::where('news_id', $news->news_id)->delete();
 
-        return back()->with('form_success_swal', '刪除成功');
+        // 刪除所有圖片
+        foreach ($this->imageSizes as $inputName => $_) {
+            if (!empty($news->$inputName)) {
+                ImageHelper::deleteImage($news->$inputName, 'public');
+            }
+        }
+
+        $news->delete();
+
+
+        // 修改：重定向並帶上 'form_success_swal' session 訊息，以便前端 SweetAlert2 捕獲
+        return redirect()->route('admin.news.index')->with('form_success_swal', '消息已刪除');
     }
+
 
     /* --- 內部輔助方法 (Private Helper Methods) --- */
 
@@ -225,5 +233,31 @@ class NewsController extends BaseAdminController
             );
         }
     }
+
+    /**
+     * 批次刪除（依勾選）
+     */
+    public function batchDestroy(Request $request)
+{
+    $ids = $request->input('ids', []);
+    if (empty($ids)) return back()->with('error', '請選擇要刪除的消息');
+
+    $newsList = News::whereIn('news_id', $ids)->get();
+
+    News::withoutEvents(function () use ($newsList) {
+        foreach ($newsList as $news) {
+            foreach (array_keys($this->imageSizes) as $field) {
+                if ($news->$field) ImageHelper::deleteImage($news->$field, 'public');
+            }
+            $news->descs()->delete();
+            $news->delete(); // 不會觸發 deleted 事件
+        }
+    });
+
+    // 寫 Batch Log
+    $this->writeBatchDeleteLog('消息管理', $newsList->count(), $ids);
+
+    return back()->with('form_success_swal', "已刪除 {$newsList->count()} 筆消息");
+}
 
 }

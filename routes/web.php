@@ -140,6 +140,11 @@ Route::middleware(['auth', 'verified'])
         | 最新消息
         |--------------------------------------------------------------------------
         */
+
+        // 批次刪除（一定要放在 resource 之前）
+        Route::delete('news/batch', [NewsController::class, 'batchDestroy'])
+            ->name('news.batch_destroy');
+
         Route::resource('news', NewsController::class);
 
         /*

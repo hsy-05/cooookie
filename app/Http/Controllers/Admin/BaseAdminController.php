@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request; // 引入 Request
-use Illuminate\Support\Facades\{Validator, Log};
-use App\Models\{Language};
+use Illuminate\Support\Facades\{Validator, Log, DB, Auth};
+use App\Models\{Language, ActionLog};
 
 class BaseAdminController extends Controller
 {
@@ -136,5 +136,29 @@ class BaseAdminController extends Controller
         return Language::where('enabled', 1)            // 只撈取已啟用的語系
             ->orderByDesc('display_order')   // 依照自訂排序值降冪排列
             ->get();
+    }
+
+    /**
+     * 批次刪除紀錄通用方法
+     *
+     * @param string $moduleName 模組名稱，例如「消息管理」
+     * @param int $count 刪除筆數
+     * @param array|null $ids 選擇性提供刪除 ID 陣列
+     */
+    protected function writeBatchDeleteLog(string $moduleName, int $count, ?array $ids = null): void
+    {
+        $info = "[{$moduleName}] 批次刪除 {$count} 筆資料";
+
+        if ($ids && count($ids) <= 10) {
+            // 如果刪除筆數少，順便記 ID
+            $info .= " (IDs: " . implode(',', $ids) . ")";
+        }
+
+        ActionLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => '刪除',
+            'log_info'   => $info,
+            'ip_address' => request()->ip(),
+        ]);
     }
 }
