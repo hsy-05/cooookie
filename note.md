@@ -5,7 +5,7 @@
 
 ---
 
-## 架構設計核心原則
+# 架構設計核心原則
 
 1. Controller 只負責請求與回應
 2. 業務邏輯集中於 Service Layer
@@ -96,13 +96,27 @@ Service Layer 用於承載業務邏輯，
 用專業網頁設計公司角度去思考新手需要了解的所有想觀的問題和回答，請全部列出來。
 
 C:\web\wwwroot82\cooookie\app\Helpers
--> ContentHelper.php：儲存時將完整 URL 換成 [[SITE_URL]] 標記、顯示時：將 [[SITE_URL]] 標記還原成完整 URL、顯示提示訊息頁面
-->ImageHelper.php：處理圖片裁切 / 縮圖 / 補背景等功能、生成一個唯一的檔名、將處理後的圖片編碼並儲存到指定路徑、刪除圖片檔案（支援單一或批量）
-->SummernoteImageHelper.php：清理 Summernote 內容中被刪除的圖片檔案（靜態方法）。比較舊內容和新內容中的圖片 URL，刪除舊內容中有但新內容中沒有的圖片檔案。、從 HTML 內容中提取所有 <img src="..."> 的 URL（靜態方法）。只提取以 /storage/{$imageSubDir}/ 開頭的圖片 URL。
+    -> ContentHelper.php：儲存時將完整 URL 換成 [[SITE_URL]] 標記、顯示時：將 [[SITE_URL]] 標記還原成完整 URL、顯示提示訊息頁面
+
+    -> ImageHelper.php：處理圖片裁切 / 縮圖 / 補背景等功能、生成一個唯一的檔名、將處理後的圖片編碼並儲存到指定路徑、刪除圖片檔案（支援單一或批量）
+
+    -> SummernoteImageHelper.php：清理 Summernote 內容中被刪除的圖片檔案（靜態方法）。比較舊內容和新內容中的圖片 URL，刪除舊內容中有但新內容中沒有的圖片檔案。、從 HTML 內容中提取所有 <img src="..."> 的 URL（靜態方法）。只提取以 /storage/{$imageSubDir}/ 開頭的圖片 URL。
 
 C:\web\wwwroot82\cooookie\app\Listeners
-->LogSuccessfulLogin.php：當登入發生時，Laravel 會把 Login $event 傳進來
+    ->LogSuccessfulLogin.php：當登入發生時，Laravel 會把 Login $event 傳進來
 
 C:\web\wwwroot82\cooookie\app\Providers
-->AppServiceProvider.php：Register any application services.、Bootstrap any application services.
-->RouteServiceProvider.php：使用者登入後的預設導向位置
+    ->AppServiceProvider.php：Register any application services.、Bootstrap any application services.
+    ->RouteServiceProvider.php：使用者登入後的預設導向位置
+
+
+---
+# 調整路徑紀錄
+---
+
+## 當管理員「已登入」卻嘗試進入 login 或 register 頁面時，強制轉向到指定路徑
+C:\web\wwwroot82\cooookie\bootstrap\app.php
+
+    $middleware->redirectUsersTo('/admin');
+
+- - -

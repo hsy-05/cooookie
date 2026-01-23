@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 @section('title', '網站管理員')
-@section('content_header') <h1>網站管理員架構</h1> @stop
+@section('content_header') <h1>網站管理員</h1> @stop
 
 @section('content')
 <x-admin.page-message>

@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // 當管理員「已登入」卻嘗試進入 login 或 register 頁面時，強制轉向到指定路徑
+        $middleware->redirectUsersTo('/admin');
 
         // 註冊兩個 Laravel 預設 middleware
         $middleware->alias([

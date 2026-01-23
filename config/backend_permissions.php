@@ -58,7 +58,7 @@ return [
             'delete' => ['view'],
         ],
     ],
-    'admins' => [
+    'users' => [
         'label' => '網站管理員',
         'actions' => [
             'view'   => '瀏覽列表',

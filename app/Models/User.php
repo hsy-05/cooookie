@@ -13,10 +13,12 @@ class User extends Authenticatable
 
     protected $fillable = [
         'role_id', // 新增
+        'parent_id', // 新增
         'name',
         'email',
         'password',
-        'avatar',  // 新增
+        'avatar_url',  // 新增
+        'permissions',  // 新增
         'is_active', // 新增
     ];
 
@@ -26,9 +28,11 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'parent_id' => 'int',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'permissions' => 'array',
     ];
 
     // 關聯角色

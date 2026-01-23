@@ -60,17 +60,6 @@ Route::get('/about', [AboutController::class, 'index'])
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard（登入後首頁，Laravel 預設）
-|--------------------------------------------------------------------------
-*/
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-/*
-|--------------------------------------------------------------------------
 | Profile（會員個人資料）
 |--------------------------------------------------------------------------
 */
@@ -112,6 +101,7 @@ Route::middleware(['auth', 'verified'])
         Route::resource('roles', AdminRoleController::class);
 
         Route::resource('users', AdminUserController::class);
+        Route::get('users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
 
         /*
         |--------------------------------------------------------------------------

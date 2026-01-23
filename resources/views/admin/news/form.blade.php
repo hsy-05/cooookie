@@ -92,18 +92,18 @@
                                         <div class="col-md-6 form-group">
                                             <label for="image">封面圖片</label>
                                             <div class="input-group">
-                                                <input type="file" id="image" name="image" class="form-control"
+                                                <input type="file" id="image_url" name="image_url" class="form-control"
                                                     aria-label="Upload image">
-                                                @if ($isEdit && $news->image)
+                                                @if ($isEdit && $news->image_url)
                                                     <div class="input-group-append">
                                                         <button type="button" class="btn btn-info" data-toggle="modal"
                                                             data-target="#imageModal">瀏覽</button>
                                                     </div>
                                                 @endif
                                             </div>
-                                            @if (isset($imageSizes['image']))
+                                            @if (isset($imageSizes['image_url']))
                                                 <small class="form-text text-muted">
-                                                    建議尺寸：{{ $imageSizes['image'][0] }} x {{ $imageSizes['image'][1] }}
+                                                    建議尺寸：{{ $imageSizes['image_url'][0] }} x {{ $imageSizes['image_url'][1] }}
                                                 </small>
                                             @endif
                                         </div>
@@ -197,7 +197,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <img src="{{ $UPLOAD_PATH . '/' . $news->image }}" class="img-fluid" alt="封面圖片">
+                        <img src="{{ $UPLOAD_PATH . '/' . $news->image_url }}" class="img-fluid" alt="封面圖片">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>

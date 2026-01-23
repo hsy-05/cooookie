@@ -29,7 +29,7 @@ class News extends Model
         'cat_id',
         'is_visible',
         'display_order',
-        'image'
+        'image_url'
     ];
 
     /**
@@ -67,7 +67,7 @@ class News extends Model
     /**
      * 動態屬性：自動取得目前語系的標題
      * 讓你可以用 $news->title，而不是 $news->desc->title
-     * 目前無使用此功能，但未來可能會用到
+     * !! 目前無使用此功能，但未來可能會用到 !!
      */
     public function getTitleAttribute()
     {

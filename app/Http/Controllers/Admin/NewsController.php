@@ -10,14 +10,14 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsController extends BaseAdminController
 {
-    // 只要這一行！自動綁定 news.view, news.create, news.delete
+    // 設定權限名稱，自動綁定 news.view, news.create, news.delete
     protected $permissionName = 'news';
 
     protected $pageTitle = '最新消息';
 
     // 設定圖片配置，方便未來擴充
     protected $imageSizes = [
-        'image' => [600, 400],
+        'image_url' => [600, 400],
         // 'thumbnail' => [300, 200], // 縮圖範例
         // 'banner' => [1200, 500],   // Banner 範例
     ];
@@ -66,7 +66,7 @@ class NewsController extends BaseAdminController
                 // 回傳訊息
                 ContentHelper::showMsg(
                     0,
-                    '消息新增完成',
+                    '新增完成',
                     [
                         ['text' => '繼續新增', 'href' => route('admin.news.create')],
                         ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
@@ -137,7 +137,7 @@ class NewsController extends BaseAdminController
             $news->delete();
         });
 
-        return back()->with('form_success_swal', '消息已刪除');
+        return back()->with('form_success_swal', '刪除成功');
     }
 
     /* --- 內部輔助方法 (Private Helper Methods) --- */
@@ -173,7 +173,7 @@ class NewsController extends BaseAdminController
             'cat_id'             => 'required|exists:news_category,cat_id',
             'is_visible'         => 'nullable|boolean',
             'display_order'      => 'nullable|integer',
-            'image'              => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'image_url'              => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             'desc'               => 'nullable|array',
             'desc.*.title'       => 'required_with:desc.*|string|max:255',
             'desc.*.description' => 'nullable|string|max:255',
@@ -226,18 +226,4 @@ class NewsController extends BaseAdminController
         }
     }
 
-    /**
-     * 取得目前系統已啟用的語系清單
-     * * 用途：
-     * 1. 用於渲染編輯/新增表單中的多語系頁籤 (Tabs)。
-     * 2. 確保後台只顯示「狀態為啟用 (enabled=1)」的語系，避免編輯到隱藏語系。
-     * 3. 統一排序規則（如：繁中 -> 簡中 -> 英文），讓介面顯示保持一致。
-     * * @return \Illuminate\Database\Eloquent\Collection
-     */
-    private function getActiveLanguages()
-    {
-        return Language::where('enabled', 1)            // 只撈取已啟用的語系
-            ->orderByDesc('display_order')   // 依照自訂排序值降冪排列
-            ->get();
-    }
 }

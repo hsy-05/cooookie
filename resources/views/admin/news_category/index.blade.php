@@ -7,51 +7,41 @@
 @stop
 
 @section('css')
-    <style>
-        /* 樹型表格專用樣式 */
-        .tree-indent {
-            width: 30px;
-            display: inline-block;
-        }
-
-        /* 層級縮排單位 */
-        .category-name {
-            text-align: left !important;
-        }
-
-        /* 分類名稱靠左對齊才有層級感 */
-    </style>
 @stop
 
 @section('content')
     <x-admin.page-message>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('admin.news_category.create') }}" class="btn btn-primary ml-auto">
-                <i class="fas fa-plus-square"></i> 新增分類
-            </a>
-        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{{ route('admin.news_category.create') }}" class="btn btn-primary ml-auto">
+                        <i class="fas fa-plus-square"></i> 新增分類
+                    </a>
+                </div>
 
-        <table class="table table-bordered table-hover">
-            <thead class="bg-light">
-                <tr>
-                    <th class="text-left">名稱</th> {{-- 樹狀結構名稱必須靠左 --}}
-                    <th class="text-center px-width-150">是否顯示</th>
-                    <th class="text-center px-width-100">排序</th>
-                    <th class="text-center px-width-150">更新時間</th>
-                    <th class="text-center px-width-200">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{-- 開始遞迴渲染，傳入初始層級 level = 0 --}}
-                @forelse ($categories as $cat)
-                    @include('admin.news_category.item_row', ['cat' => $cat, 'level' => 1])
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center">目前沒有任何記錄。</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="text-left">名稱</th> {{-- 樹狀結構名稱必須靠左 --}}
+                            <th class="text-center px-width-150">是否顯示</th>
+                            <th class="text-center px-width-100">排序</th>
+                            <th class="text-center px-width-150">更新時間</th>
+                            <th class="text-center px-width-200">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- 開始遞迴渲染，傳入初始層級 level = 0 --}}
+                        @forelse ($categories as $cat)
+                            @include('admin.news_category.item_row', ['cat' => $cat, 'level' => 1])
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">目前沒有任何記錄。</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </x-admin.page-message>
 @stop
 
@@ -71,7 +61,7 @@
                 button.addEventListener('click', function() {
 
                     const id = this.dataset.id;
-                    const title = this.dataset.title || '確定要刪除嗎？';
+                    const title = this.dataset.title || '確定刪除這筆資料嗎？';
                     const text = this.dataset.text || '刪除後無法恢復！';
 
                     /**

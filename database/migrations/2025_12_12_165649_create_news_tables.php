@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer('display_order')->default(0)->comment('排序');
 
             // 圖片檔名，使用 VARCHAR，長度限制為 255
-            $table->string('image', 255)->nullable()->comment('圖片路徑');
+            $table->string('image_url', 255)->nullable()->comment('圖片路徑');
 
             // 自動產生 created_at 和 updated_at 時間戳
             $table->timestamps();

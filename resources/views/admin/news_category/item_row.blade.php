@@ -38,26 +38,27 @@
     <td class="text-center">{{ $cat->display_order }}</td>
     <td class="text-center">{{ $cat->updated_at->format('Y-m-d H:i') }}</td>
 
-    <td class="text-center table-actions">
-        {{-- 確保 btn-group 內部的元素對齊方式一致 --}}
-        <div class="btn-group align-items-center">
+    {{-- 操作欄位 --}}
+    <td class="text-center">
+        <div class="table-actions-container">
             {{-- 編輯按鈕 --}}
-            <a href="{{ route('admin.news_category.edit', $cat->cat_id) }}"
-                class="btn btn-sm btn-warning d-flex align-items-center mr-1">
-                <i class="fas fa-pencil-alt mr-1"></i> 編輯
-            </a>
+            @can('news.edit')
+                <a href="{{ route('admin.news_category.edit', $cat->cat_id) }}" class="btn btn-sm btn-warning" title="編輯">
+                    <i class="fas fa-edit"></i>
+                </a>
+            @endcan
 
-            {{-- 刪除表單 --}}
-            <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST"
-                id="deleteForm{{ $cat->cat_id }}" class="m-0 p-0"> {{-- 強制表單邊距歸零 --}}
-                @csrf
-                @method('DELETE')
-
-                <button type="button" class="btn btn-sm btn-danger js-delete-btn" data-id="{{ $cat->cat_id }}"
-                    data-title="確定刪除這筆資料嗎？" data-text="刪除後將無法恢復！">
-                    <i class="fas fa-trash-alt mr-1"></i> 刪除
-                </button>
-            </form>
+            {{-- 刪除按鈕 --}}
+            @can('news.delete')
+                <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST"
+                    style="display:inline-block;" id="deleteForm{{ $cat->cat_id }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-sm btn-danger js-delete-btn" data-id="{{ $cat->cat_id }}" title="刪除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            @endcan
         </div>
     </td>
 </tr>

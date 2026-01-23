@@ -22,9 +22,9 @@
     @endif
 
     <div class="card">
-        <div class="card-header">
+        {{-- <div class="card-header">
             <h3 class="card-title">紀錄列表</h3>
-        </div>
+        </div> --}}
 
         <div class="card-body">
             {{-- 1. 搜尋表單 --}}
@@ -83,7 +83,7 @@
                             <th class="text-center">操作紀錄 (內容)</th>
                             <th class="text-center px-width-150 hidden-md">IP 位置</th>
                             <th class="text-center px-width-150">操作時間</th>
-                            <th class="text-center px-width-120 table-actions">操作</th>
+                            <th class="text-center px-width-120">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,16 +102,19 @@
                                 </td>
                                 <td class="text-center hidden-md">{{ $log->ip_address }}</td>
                                 <td class="text-center">{{ $log->created_at }}</td>
-                                <td class="text-center">
-                                    <form action="{{ route('admin.logs.destroy', $log->id) }}" method="POST"
-                                        style="display:inline-block;" id="deleteForm{{ $log->id }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="btn btn-sm btn-danger js-delete-btn"
-                                            data-id="{{ $log->id }}" data-title="確定刪除這筆資料嗎？" data-text="刪除後將無法恢復！">
-                                            <i class="fas fa-trash"></i> 刪除
-                                        </button>
-                                    </form>
+                                <td class="text-left">
+                                    <div class="table-actions-container">
+                                        {{-- 刪除按鈕 --}}
+                                        <form action="{{ route('admin.logs.destroy', $log->id) }}" method="POST"
+                                            id="deleteForm{{ $log->id }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="btn btn-sm btn-danger js-delete-btn"
+                                                data-id="{{ $log->id }}" title="刪除">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -194,7 +197,7 @@
 
                     // 從 data-* 取得資料
                     const id = this.dataset.id;
-                    const title = this.dataset.title || '確定要刪除嗎？';
+                    const title = this.dataset.title || '確定刪除這筆資料嗎？';
                     const text = this.dataset.text || '刪除後無法恢復！';
 
                     // 呼叫共用刪除確認視窗

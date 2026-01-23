@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request; // 引入 Request
-use Illuminate\Support\Facades\Validator; // 引入 Validator
-use Illuminate\Support\Facades\Log; // 引入 Log
+use Illuminate\Support\Facades\{Validator, Log};
+use App\Models\{Language};
 
 class BaseAdminController extends Controller
 {
@@ -33,16 +33,16 @@ class BaseAdminController extends Controller
 
         // 1. 瀏覽列表 (index, show) -> 對應 .view 權限
         $this->middleware("admin.perm:{$prefix}.view")
-             ->only(['index', 'show']);
+            ->only(['index', 'show']);
 
         // 2. 新增與編輯 (create, store, edit, update) -> 對應 .create 權限
         // (依據你之前的需求，新增/編輯共用 create 權限)
         $this->middleware("admin.perm:{$prefix}.create")
-             ->only(['create', 'store', 'edit', 'update']);
+            ->only(['create', 'store', 'edit', 'update']);
 
         // 3. 刪除 (destroy) -> 對應 .delete 權限
         $this->middleware("admin.perm:{$prefix}.delete")
-             ->only(['destroy']);
+            ->only(['destroy']);
 
         // 4. 如果有特殊自訂方法 (例如 logs 的 batchDestroy)，
         // 可以在子類別個別呼叫，或在這裡寫更通用的邏輯
@@ -77,7 +77,7 @@ class BaseAdminController extends Controller
             'model' => 'required|string', // 要更新的模型名稱 (例如 'Advert', 'News')
             'id' => 'required|integer',   // 要更新的記錄 ID
             'field' => 'required|string', // 要更新的布林值欄位名稱 (例如 'is_visible')
-            'value' => 'required|boolean',// 要設定的新值 (true/false)
+            'value' => 'required|boolean', // 要設定的新值 (true/false)
         ]);
 
         if ($validator->fails()) {
@@ -121,5 +121,20 @@ class BaseAdminController extends Controller
             Log::error("Failed to toggle boolean field for model {$modelName} (ID: {$id}, Field: {$field}): " . $e->getMessage());
             return response()->json(['success' => false, 'message' => '狀態更新失敗。'], 500);
         }
+    }
+
+    /**
+     * 取得目前系統已啟用的語系清單
+     * * 用途：
+     * 1. 用於渲染編輯/新增表單中的多語系頁籤 (Tabs)。
+     * 2. 確保後台只顯示「狀態為啟用 (enabled=1)」的語系，避免編輯到隱藏語系。
+     * 3. 統一排序規則（如：繁中 -> 簡中 -> 英文），讓介面顯示保持一致。
+     * * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function getActiveLanguages()
+    {
+        return Language::where('enabled', 1)            // 只撈取已啟用的語系
+            ->orderByDesc('display_order')   // 依照自訂排序值降冪排列
+            ->get();
     }
 }

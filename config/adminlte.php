@@ -396,11 +396,6 @@ return [
             ],
         ],
         [
-            'text' => '使用者管理',
-            'url'  => 'admin/users',
-            'icon' => 'fas fa-fw fa-users',
-        ],
-        [
             'text' => 'pages',
             'url' => 'admin/pages',
             'icon' => 'far fa-fw fa-file',

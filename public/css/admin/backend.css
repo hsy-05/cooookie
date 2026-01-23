@@ -5,13 +5,12 @@
    - 後台表格專用，簡單維護
    =========================================================================== */
 
-
 /* =========================
    頁頭樣式優化
    ========================= */
 :root {
-    --header-fs: 1.5rem;          /* 主標題字級 */
-    --action-fs: 1.1rem;          /* 動作標籤字級 */
+    --header-fs: 1.5rem; /* 主標題字級 */
+    --action-fs: 1.1rem; /* 動作標籤字級 */
     --accent-gray: #d7d7d7;
 }
 
@@ -229,8 +228,19 @@
 /* =========================
    後台常用輔助 class
    ========================= */
-.table-actions {
-    white-space: nowrap; /* 按鈕群組不換行 */
+/* 讓表格單元格內容垂直置中 */
+.table td {
+    vertical-align: middle !important;
+}
+
+/* 操作按鈕容器 */
+.table-actions-container {
+    display: flex;
+    align-items: center; /* 垂直置中 */
+    justify-content: center; /* 水平置中：一個時會置中，多個時也會從中間向外排 */
+    gap: 12px; /* 按鈕間距 */
+    flex-wrap: wrap; /* RWD：空間不足自動折行 */
+    width: 100%;
 }
 
 .text-ellipsis {
@@ -256,6 +266,11 @@
     cursor: pointer;
     width: 20px;
     transition: transform 0.2s;
+}
+
+/* 層級縮排單位 */
+.category-name {
+    text-align: left !important;
 }
 
 /* 用 CSS 來處理第一層加粗，比在 Blade 寫判斷更乾淨 */

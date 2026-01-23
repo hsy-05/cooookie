@@ -265,7 +265,7 @@ class NewsCategoryController extends BaseAdminController
             'parent_id'     => 'nullable|integer',
             'is_visible'    => 'nullable|boolean',
             'display_order' => 'nullable|integer',
-            'image'         => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'image_url'         => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             'desc'          => 'nullable|array',
             'desc.*.name'   => 'required_with:desc.*|string|max:255',
         ]);
@@ -346,8 +346,4 @@ class NewsCategoryController extends BaseAdminController
         }
     }
 
-    private function getActiveLanguages()
-    {
-        return Language::where('enabled', 1)->orderByDesc('display_order')->get();
-    }
 }

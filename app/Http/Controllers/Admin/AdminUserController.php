@@ -2,15 +2,26 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\AdminRole;
+use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use App\Models\{User, AdminRole};
+use Illuminate\Support\Facades\{DB, Log, Hash, Auth};
+use App\Helpers\{ContentHelper, ImageHelper};
 
-class AdminUserController extends Controller
+class AdminUserController extends BaseAdminController
 {
+    // 設定權限名稱，自動綁定 users.view, users.create, users.delete
+    protected $permissionName = 'users';
+
+    protected $pageTitle = '網站管理員';
+
+    // 設定圖片配置，方便未來擴充
+    protected $imageSizes = [
+        'avatar_url' => [600, 400],
+        // 'thumbnail' => [300, 200], // 縮圖範例
+        // 'banner' => [1200, 500],   // Banner 範例
+    ];
+
     public function index(Request $request)
     {
         $currentUser = Auth::user();
@@ -20,7 +31,7 @@ class AdminUserController extends Controller
 
         // 1. 系統核心管理員 (Role is_system = 1) 且是頂層 (parent_id = null)
         $systemRoots = User::whereNull('parent_id')
-            ->whereHas('role', function($q) {
+            ->whereHas('role', function ($q) {
                 $q->where('is_system', 1);
             })
             ->with(['role', 'childrenRecursive.role']) // 預加載防止 N+1
@@ -28,7 +39,7 @@ class AdminUserController extends Controller
 
         // 2. 一般網站管理員 (Role is_system = 0) 且是頂層
         $normalRoots = User::whereNull('parent_id')
-            ->whereHas('role', function($q) {
+            ->whereHas('role', function ($q) {
                 $q->where('is_system', 0);
             })
             ->with(['role', 'childrenRecursive.role'])
@@ -63,28 +74,86 @@ class AdminUserController extends Controller
 
     public function store(Request $request)
     {
+        // 1. 表單驗證（只負責「資料格式」）
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|confirmed|min:6',
-            'role_id' => 'required',
+            'name'       => 'required',
+            'email'      => 'required|email|unique:users,email',
+            'avatar_url' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'password'   => 'required|confirmed|min:6',
+            'role_id'    => 'required',
         ]);
 
-        $data = $request->except(['password']);
-        $data['password'] = Hash::make($request->password);
-        $data['is_active'] = $request->has('is_active');
+        return DB::transaction(function () use ($request) {
+            try {
 
-        // 儲存個人權限 (陣列)
-        $data['permissions'] = $request->input('permissions', []);
+                // 2. 建立空的 User（先拿到 Model 實例）
+                $user = new User();
 
-        // 若無選擇父層且非系統管理員，強制父層為自己
-        if (!Auth::user()->role->is_system && empty($data['parent_id'])) {
-            $data['parent_id'] = Auth::id();
-        }
+                /**
+                 * 3. 處理圖片
+                 * - 只回傳圖片路徑
+                 * - 不直接存 DB
+                 */
+                $imageData = $this->handleImageUpload($request, $user);
 
-        User::create($data);
+                /**
+                 * 4. 文字欄位
+                 * - 明確排除檔案欄位，避免 tmp path 被寫進 DB
+                 */
+                $data = $request->except([
+                    'password',
+                    'avatar_url',
+                ]);
 
-        return redirect()->route('admin.users.index')->with('success', '新增成功');
+                // 5. 密碼加密
+                $data['password'] = Hash::make($request->password);
+
+                // 6. checkbox（未勾選時 request 不會帶值）
+                $data['is_active'] = $request->has('is_active');
+
+                // 7. 權限（JSON / array）
+                $data['permissions'] = $request->input('permissions', []);
+
+                /**
+                 * 8. 父層邏輯防呆
+                 * - 非系統管理員
+                 * - 又沒選父層
+                 * - 強制指定為自己
+                 */
+                if (!Auth::user()->role->is_system && empty($data['parent_id'])) {
+                    $data['parent_id'] = Auth::id();
+                }
+
+                /**
+                 * 9. 合併圖片欄位
+                 * - avatar_url => users/xxx.jpg
+                 */
+                $data = array_merge($data, $imageData);
+
+                /**
+                 * 10. 一次性寫入資料庫
+                 * - 新增時用 create / fill + save 都可以
+                 */
+                $user->fill($data)->save();
+
+                // 11. 成功訊息
+                ContentHelper::showMsg(
+                    0,
+                    '新增完成',
+                    [
+                        ['text' => '繼續新增', 'href' => route('admin.users.create')],
+                        ['text' => '繼續編輯', 'href' => route('admin.users.edit', $user->id)],
+                        ['text' => '返回列表', 'href' => route('admin.users.index')],
+                    ],
+                    true
+                );
+
+                return redirect()->back();
+            } catch (\Exception $e) {
+                Log::error('Users Store Error: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '新增失敗');
+            }
+        });
     }
 
     public function edit($id)
@@ -108,29 +177,52 @@ class AdminUserController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
+        return DB::transaction(function () use ($request, $user) {
 
-        // 防呆：防止自己停用自己
-        if ($id == Auth::id() && !$request->has('is_active')) {
-             return back()->with('error', '您無法停用自己的帳號！');
-        }
+            // 1. 先處理圖片
+            $imageData = $this->handleImageUpload($request, $user);
 
-        $data = $request->except(['password']);
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-        $data['is_active'] = $request->has('is_active');
-        $data['permissions'] = $request->input('permissions', []);
+            // 2. 文字欄位（排除檔案欄位）
+            $data = $request->except([
+                'password',
+                ...array_keys($this->imageSizes),
+            ]);
 
-        $user->update($data);
+            // 3. 密碼
+            if ($request->filled('password')) {
+                $data['password'] = Hash::make($request->password);
+            }
 
-        return redirect()->route('admin.users.index')->with('success', '更新成功');
+            // 4. checkbox / array
+            $data['is_active']   = $request->has('is_active');
+            $data['permissions'] = $request->input('permissions', []);
+
+            // 5. 合併圖片路徑
+            $data = array_merge($data, $imageData);
+
+            // 6. 一次存進 DB
+            $user->update($data);
+
+            ContentHelper::showMsg(
+                0,
+                '編輯操作完成',
+                [
+                    ['text' => '繼續編輯', 'href' => route('admin.users.edit', $user->id)],
+                    ['text' => '返回列表', 'href' => route('admin.users.index')],
+                ],
+                true
+            );
+
+            return redirect()->back();
+        });
     }
 
+
     // 輔助方法：取得所有子孫 ID
-    private function getDescendantIds($user) {
+    private function getDescendantIds($user)
+    {
         $ids = [];
         foreach ($user->children as $child) {
             $ids[] = $child->id;
@@ -142,11 +234,42 @@ class AdminUserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        if ($user->id === auth()->id) {
-            return back()->with('error', '不能刪除自己！');
+        if ($user->id === Auth::id()) {
+            return back()->with('form_error_swal', '不能刪除自己！');
         }
         $user->delete();
-        return back()->with('success', '管理員已刪除');
+        return back()->with('form_success_swal', '刪除成功');
+    }
+
+
+    /**
+     * 處理圖片上傳，回傳處理後的圖片路徑並刪除舊圖
+     */
+    private function handleImageUpload(Request $request, User $user): array
+    {
+        $imageData = [];
+
+        foreach ($this->imageSizes as $field => [$width, $height]) {
+            if ($request->hasFile($field)) {
+
+                // 刪除舊圖
+                if ($user->$field) {
+                    ImageHelper::deleteImage($user->$field, 'public');
+                }
+
+                $file = $request->file($field);
+                $processed = ImageHelper::processImage($file, $width, $height, 'center_crop');
+
+                $filename = ImageHelper::generateUniqueFilename($file);
+                $path = "users/{$filename}";
+
+                ImageHelper::saveProcessedImage($processed, $path, 'public', 90, 'jpeg');
+
+                // 收集要更新的欄位
+                $imageData[$field] = $path;
+            }
+        }
+
+        return $imageData;
     }
 }
-
