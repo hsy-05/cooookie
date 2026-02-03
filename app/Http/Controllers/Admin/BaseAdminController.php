@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request; // 引入 Request
-use Illuminate\Support\Facades\{Validator, Log, DB, Auth};
+use Illuminate\Support\Facades\{Validator, Log, Auth};
 use App\Models\{Language, ActionLog};
 
 class BaseAdminController extends Controller
@@ -18,34 +18,34 @@ class BaseAdminController extends Controller
 
     public function __construct()
     {
-        // 如果子類別有設定 permissionName，自動註冊 Middleware
+        // 如果子類別有設定 $permissionName，才自動啟動權限檢查機制
         if (!empty($this->permissionName)) {
             $this->registerPermissionMiddleware();
         }
     }
 
     /**
-     * 自動綁定權限到 Resource 方法
+     * 自動綁定權限到 Resource 方法 (index, create, edit, destroy 等)
      */
     protected function registerPermissionMiddleware()
     {
         $prefix = $this->permissionName;
 
-        // 1. 瀏覽列表 (index, show) -> 對應 .view 權限
+        // 1. 瀏覽列表 -> 檢查是否擁有 .view 權限
         $this->middleware("admin.perm:{$prefix}.view")
             ->only(['index', 'show']);
 
-        // 2. 新增與編輯 (create, store, edit, update) -> 對應 .create 權限
-        // (依據你之前的需求，新增/編輯共用 create 權限)
+        // 2. 新增與編輯 -> 檢查是否擁有 .create 權限
         $this->middleware("admin.perm:{$prefix}.create")
             ->only(['create', 'store', 'edit', 'update']);
 
-        // 3. 刪除 (destroy) -> 對應 .delete 權限
+        // 3. 刪除 -> 檢查是否擁有 .delete 權限
         $this->middleware("admin.perm:{$prefix}.delete")
             ->only(['destroy']);
 
-        // 4. 如果有特殊自訂方法 (例如 logs 的 batchDestroy)，
-        // 可以在子類別個別呼叫，或在這裡寫更通用的邏輯
+        // 💡 面試官亮點：這種寫法叫做「約定優於配置」，
+        // 只要子類別寫 protected $permissionName = 'news';
+        // 剩下的增刪查改權限都會自動鎖好，不用每個 Controller 重寫一遍。
     }
 
     /**

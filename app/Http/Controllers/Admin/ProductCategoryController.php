@@ -12,6 +12,10 @@ use App\Helpers\ContentHelper;
 
 class ProductCategoryController extends Controller
 {
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'product_category';
+    protected $pageTitle = '商品分類管理';
+
     /**
      * 列表：顯示所有分類（含各語系名稱）
      */

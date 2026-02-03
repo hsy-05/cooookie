@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
         // 這裡會攔截所有 $user->can('...') 的呼叫
         Gate::before(function ($user, $ability) {
             // $ability 就是權限 Key，例如 'news.view'
-            return $user->hasPermission($ability);
+            return $user->canDo($ability);
         });
     }
 }

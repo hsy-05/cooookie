@@ -121,7 +121,7 @@
                                     </td>
 
                                     {{-- 操作 --}}
-                                    <td class="text-center">
+                                    <td>
                                         <div class="table-actions-container">
 
                                             {{-- 編輯 --}}

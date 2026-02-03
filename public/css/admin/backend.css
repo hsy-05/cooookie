@@ -1,261 +1,284 @@
 /* ===========================================================================
    後台專用 Utilities CSS
-   - px-width-* : 固定表格欄位寬度
-   - hidden-*   : 響應式欄位隱藏，th + td 同步
-   - 後台表格專用，簡單維護
+   專案名稱：【COOOOKIE】餅乾型錄管理系統
+   維護準則：變數化管理、結構化選取、減少暴力覆蓋
    =========================================================================== */
+
+/* =========================
+   全域變數定義
+   ========================= */
+:root {
+    --header-fs: 1.5rem;       /* 主標題字級 */
+    --action-fs: 1.1rem;       /* 動作標籤字級 */
+    --accent-gray: #d7d7d7;    /* 輔助灰色 */
+    --tab-border: #dee2e6;     /* 頁籤邊框色 */
+    --autofill-bg: #616d79;    /* 自動填入背景色 */
+}
+
+/* =========================
+   瀏覽器自動填入 (Autofill) 修正
+   用途：防止 Chrome 在暗色模式下自動填入導致背景變白、文字看不見
+   ========================= */
+.dark-mode input:-webkit-autofill,
+.dark-mode input:-webkit-autofill:hover,
+.dark-mode input:-webkit-autofill:focus,
+.dark-mode input:-webkit-autofill:active,
+.dark-mode textarea:-webkit-autofill {
+    /* 使用內陰影覆蓋原生背景色，此處必須使用 !important 以對抗瀏覽器預設樣式 */
+    -webkit-box-shadow: 0 0 0 1000px var(--autofill-bg) inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s; /* 防止樣式閃爍 */
+}
+
+/* =========================
+   通用輔助類別 (Utility Classes)
+   ========================= */
+/* 隱藏元素，用於 JS 切換顯示 */
+.d-none-soft {
+    display: none;
+}
+
+/* 讓確認密碼框在錯誤時有明顯紅框 */
+.is-invalid-border {
+    border: 2px solid #dc3545 !important;
+}
 
 /* =========================
    頁頭樣式優化
    ========================= */
-:root {
-    --header-fs: 1.5rem; /* 主標題字級 */
-    --action-fs: 1.1rem; /* 動作標籤字級 */
-    --accent-gray: #d7d7d7;
-}
-
-/* 頁頭容器優化 */
 .header-container {
-    padding: 1rem 0.5rem;
-    border-bottom: 1px solid #ececec;
-    margin-bottom: 1.5rem;
+    padding: 1rem 0.5rem;           /* 容器內距 */
+    border-bottom: 1px solid #ececec; /* 底部細分割線 */
 }
 
-/* 主標題樣式 */
 .page-main-title {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap; /* 關鍵：手機版太長會自動換行而不溢出 */
-    font-size: var(--header-fs);
-    font-weight: 700;
+    display: flex;                  /* 彈性佈局 */
+    align-items: center;            /* 垂直居中 */
+    flex-wrap: wrap;                /* 手機版過長自動換行 */
+    font-size: var(--header-fs);    /* 使用全域字級 */
+    font-weight: 700;               /* 加粗 */
     margin: 0;
 }
 
-/* 分隔箭頭 */
 .divider-icon {
-    font-size: 1rem;
-    margin: 0 0.8rem;
-    color: var(--accent-gray);
+    font-size: 1rem;                /* 箭頭大小 */
+    margin: 0 0.8rem;               /* 左右間距 */
+    color: var(--accent-gray);      /* 箭頭顏色 */
 }
 
-/* 動作標籤 */
 .action-label {
-    font-size: var(--action-fs);
-    color: var(--accent-gray);
-    font-weight: 400;
+    font-size: var(--action-fs);    /* 副標題字級 */
 }
 
 .action-label i {
-    margin-right: 4px;
+    margin-right: 4px;              /* 圖示與文字間距 */
     font-size: 0.9rem;
 }
 
-/* RWD 響應式：微調手機版間距 */
-@media (max-width: 576px) {
-    .page-main-title {
-        justify-content: flex-start;
-    }
-    .divider-icon {
-        margin: 0 0.5rem;
-    }
-}
 /* =========================
    表格基礎樣式
    ========================= */
 .table th,
 .table td {
-    vertical-align: middle; /* 表格內容垂直置中 */
+    vertical-align: middle;         /* 全域表格內容垂直居中 */
 }
 
-[class^="px-width-"],
-[class*=" px-width-"] {
-    white-space: nowrap; /* 固定欄位不換行 */
-}
-
-.table-check-col {
+/* 針對勾選欄位的特殊對齊 */
+.table .table-check-col {
     width: 40px;
     text-align: center;
-    vertical-align: middle !important;
+}
+
+/* 固定寬度欄位禁止換行 */
+[class^="px-width-"],
+[class*=" px-width-"] {
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   第一層：主分頁 (Main Custom Tabs)
+   ========================================================================== */
+.custom-styled-tabs.nav-tabs {
+    background: #f4f6f9;            /* 分頁列背景 */
+    padding: 10px 10px 0 10px;      /* 內距，底部留0貼齊 */
+    border-bottom: 1px solid var(--tab-border);
+    border-radius: 8px 8px 0 0;
+}
+
+.custom-styled-tabs.nav-tabs .nav-link {
+    color: #6c757d;                 /* 預設文字灰 */
+    background-color: #ebedf0;      /* 預設背景灰 */
+    margin-right: 5px;              /* 頁籤間距 */
+    padding: 0.8rem 1.5rem;
+    font-weight: 500;
+    border: 1px solid transparent;  /* 預設透明邊框防止跳動 */
+    border-top: 3px solid transparent; /* 預留上方加強線空間 */
+    border-radius: 6px 6px 0 0;
+    transition: all 0.2s ease;
+}
+
+/* 提高選取器優先級以取代 !important */
+.custom-styled-tabs.nav-tabs .nav-item .nav-link:hover {
+    background-color: #ffffff;
+    color: #495057;
+    border-color: #ced4da #ced4da transparent;
+}
+
+.custom-styled-tabs.nav-tabs .nav-item .nav-link.active {
+    background-color: #ffffff;
+    color: #343a40;
+    font-weight: 700;
+    border-left-color: #eaecee;
+    border-right-color: #eaecee;
+    border-bottom-color: transparent; /* 隱藏底線與面板融合 */
+}
+
+/* ==========================================================================
+   深色模式適配 (Dark Mode)
+   ========================================================================== */
+.dark-mode .custom-styled-tabs.nav-tabs {
+    background: #343a40;
+    border-bottom-color: #4b545c;
+}
+
+.dark-mode .custom-styled-tabs.nav-tabs .nav-link {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #adb5bd;
+}
+
+/* ==========================================================================
+   第二層：語系分頁 (Sub-Language Tabs)
+   ========================================================================== */
+.sub-language-tabs.nav .nav-link {
+    color: #adb5bd;
+    padding: 0.7rem 1rem;
+    font-weight: 500;
+    position: relative;             /* 供底線偽元素定位 */
+    border: none;
+    background: transparent;
+    transition: color 0.25s ease;
+}
+
+.sub-language-tabs.nav .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background-color: currentColor; /* 線條顏色連動文字 */
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+/* 選取與懸停狀態 */
+.sub-language-tabs.nav .nav-item .nav-link:hover,
+.sub-language-tabs.nav .nav-item .nav-link.active {
+    color: #495057;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.sub-language-tabs.nav .nav-item .nav-link:hover::after,
+.sub-language-tabs.nav .nav-item .nav-link.active::after {
+    width: 100%;                   /* 底線伸展 */
+}
+
+/* ==========================================================================
+   深色模式適配 (Dark Mode)
+   ========================================================================== */
+.dark-mode .sub-language-tabs.nav .nav-item .nav-link:hover,
+.dark-mode .sub-language-tabs.nav .nav-item .nav-link.active {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* =========================
-   固定欄位寬度 px-width-*
+   固定欄位寬度定義
    ========================= */
-.px-width-50 {
-    width: 50px;
-    min-width: 50px;
-}
-.px-width-60 {
-    width: 60px;
-    min-width: 60px;
-}
-.px-width-70 {
-    width: 70px;
-    min-width: 70px;
-}
-.px-width-80 {
-    width: 80px;
-    min-width: 80px;
-}
-.px-width-90 {
-    width: 90px;
-    min-width: 90px;
-}
-.px-width-100 {
-    width: 100px;
-    min-width: 100px;
-}
-.px-width-110 {
-    width: 110px;
-    min-width: 110px;
-}
-.px-width-120 {
-    width: 120px;
-    min-width: 120px;
-}
-.px-width-130 {
-    width: 130px;
-    min-width: 130px;
-}
-.px-width-140 {
-    width: 140px;
-    min-width: 140px;
-}
-.px-width-150 {
-    width: 150px;
-    min-width: 150px;
-}
-.px-width-160 {
-    width: 160px;
-    min-width: 160px;
-}
-.px-width-170 {
-    width: 170px;
-    min-width: 170px;
-}
-.px-width-180 {
-    width: 180px;
-    min-width: 180px;
-}
-.px-width-190 {
-    width: 190px;
-    min-width: 190px;
-}
-.px-width-200 {
-    width: 200px;
-    min-width: 200px;
-}
-.px-width-210 {
-    width: 210px;
-    min-width: 210px;
-}
-.px-width-220 {
-    width: 220px;
-    min-width: 220px;
-}
-.px-width-230 {
-    width: 230px;
-    min-width: 230px;
-}
-.px-width-240 {
-    width: 240px;
-    min-width: 240px;
-}
-.px-width-250 {
-    width: 250px;
-    min-width: 250px;
-}
+.px-width-50 { width: 50px; min-width: 50px; }
+.px-width-60 { width: 60px; min-width: 60px; }
+.px-width-70 { width: 70px; min-width: 70px; }
+.px-width-80 { width: 80px; min-width: 80px; }
+.px-width-90 { width: 90px; min-width: 90px; }
+.px-width-100 { width: 100px; min-width: 100px; }
+.px-width-110 { width: 110px; min-width: 110px; }
+.px-width-120 { width: 120px; min-width: 120px; }
+.px-width-130 { width: 130px; min-width: 130px; }
+.px-width-140 { width: 140px; min-width: 140px; }
+.px-width-150 { width: 150px; min-width: 150px; }
+.px-width-160 { width: 160px; min-width: 160px; }
+.px-width-170 { width: 170px; min-width: 170px; }
+.px-width-180 { width: 180px; min-width: 180px; }
+.px-width-190 { width: 190px; min-width: 190px; }
+.px-width-200 { width: 200px; min-width: 200px; }
+.px-width-210 { width: 210px; min-width: 210px; }
+.px-width-220 { width: 220px; min-width: 220px; }
+.px-width-230 { width: 230px; min-width: 230px; }
+.px-width-240 { width: 240px; min-width: 240px; }
+.px-width-250 { width: 250px; min-width: 250px; }
 
 /* =========================
-   響應式寬度調整
+   響應式規則 (RWD)
    ========================= */
-
-/* 手機 (<576px) ：解除所有固定寬度 */
 @media (max-width: 575.98px) {
-    [class^="px-width-"],
-    [class*=" px-width-"] {
+    /* 手機版解除固定寬度，改為自動適應 */
+    [class^="px-width-"], [class*=" px-width-"] {
         width: auto;
         min-width: auto;
     }
+    .hidden-xs { display: none !important; } /* 手機隱藏 */
+    .page-main-title { justify-content: flex-start; }
+    .divider-icon { margin: 0 0.5rem; }
 }
 
-/* 平板 (<992px) ：大欄位自動適應 */
-@media (max-width: 991.98px) {
-    .px-width-200,
-    .px-width-210,
-    .px-width-220,
-    .px-width-230,
-    .px-width-240,
-    .px-width-250 {
-        width: auto;
-        min-width: auto;
-    }
-}
-
-/* =========================
-   hidden-* 響應式欄位隱藏
-   th + td 都需加 hidden-* class
-   ========================= */
-
-/* hidden-xs：手機 (<576px) 隱藏 */
-@media (max-width: 575.98px) {
-    .hidden-xs {
-        display: none !important;
-    }
-}
-
-/* hidden-sm：小平板 (<768px) 隱藏 */
 @media (max-width: 767.98px) {
-    .hidden-sm {
-        display: none !important;
-    }
+    .hidden-sm { display: none !important; } /* 小平板隱藏 */
 }
 
-/* hidden-md：平板 (<992px) 隱藏 */
 @media (max-width: 991.98px) {
-    .hidden-md {
-        display: none !important;
+    /* 中型螢幕自動調整大寬度欄位 */
+    .px-width-200, .px-width-210, .px-width-220,
+    .px-width-230, .px-width-240, .px-width-250 {
+        width: auto;
+        min-width: auto;
     }
+    .hidden-md { display: none !important; } /* 平板隱藏 */
 }
 
-/* hidden-lg：小桌機 (<1200px) 隱藏 */
 @media (max-width: 1199.98px) {
-    .hidden-lg {
-        display: none !important;
-    }
+    .hidden-lg { display: none !important; } /* 小桌機隱藏 */
 }
 
 /* =========================
-   後台常用輔助 class
+   後台輔助工具
    ========================= */
-/* 讓表格單元格內容垂直置中 */
-.table td {
-    vertical-align: middle !important;
-}
 
-/* 操作按鈕容器 */
+/* 操作按鈕容器：水平垂直居中 */
 .table-actions-container {
     display: flex;
-    align-items: center; /* 垂直置中 */
-    justify-content: center; /* 水平置中：一個時會置中，多個時也會從中間向外排 */
-    gap: 12px; /* 按鈕間距 */
-    flex-wrap: wrap; /* RWD：空間不足自動折行 */
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
     width: 100%;
 }
 
+/* 單行文字溢出省略 */
 .text-ellipsis {
-    overflow: hidden; /* 文字過長隱藏 */
-    text-overflow: ellipsis; /* 顯示省略號 */
-    white-space: nowrap; /* 單行 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
+/* 表格圖片預覽尺寸控制 */
 .table-img {
-    max-width: 100px; /* 表格內圖片最大寬度 */
+    max-width: 100px;
     height: auto;
+    border-radius: 4px;
 }
 
 /* =========================
-   Tree Table 專用樣式
+   樹狀表格 (Tree Table) 樣式
    ========================= */
 .tree-indent {
     width: 25px;
@@ -268,19 +291,9 @@
     transition: transform 0.2s;
 }
 
-/* 層級縮排單位 */
-.category-name {
-    text-align: left !important;
-}
-
-/* 用 CSS 來處理第一層加粗，比在 Blade 寫判斷更乾淨 */
 .tree-row[data-level="0"] .category-name-text {
-    font-weight: 700 !important;
+    font-weight: 700;                /* 第一層分類加粗 */
     color: #333;
-}
-
-.tree-row .category-name-text {
-    font-weight: 400;
 }
 
 .tree-row .fa-minus {
@@ -290,10 +303,33 @@
 }
 
 /* =========================
-   維護說明
+   其他 UI 補強
    ========================= */
-/*
-1. td 需與 th 對應，加相同的 hidden-* class
-2. px-width-* 可依需求增加或修改
-3. 這份 CSS 專為後台表格設計，前台慎用
-*/
+.permission-wrapper .card {
+    box-shadow: none;
+    border: 1px solid var(--tab-border);
+}
+
+.custom-control-label {
+    cursor: pointer;                 /* 增加點擊區域手勢 */
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.02); /* 懸停底色 */
+}
+
+/* 鎖定狀態 */
+.locked-field {
+    opacity: 0.6;
+    pointer-events: none;            /* 禁止所有點擊事件 */
+}
+
+/* 用戶頭像預覽 */
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--tab-border);
+    margin-bottom: 10px;
+}

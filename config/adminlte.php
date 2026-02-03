@@ -133,12 +133,22 @@ return [
     |
     */
 
-    'usermenu_enabled' => true,
-    'usermenu_header' => false,
-    'usermenu_header_class' => 'bg-primary',
-    'usermenu_image' => false,
-    'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+    // 控制用戶菜單的顯示
+    'usermenu_enabled' => true, // 如果設置為 true，則顯示用戶菜單，false 則隱藏用戶菜單
+
+    // 控制用戶菜單中的頭部區域是否顯示
+    'usermenu_header' => false, // 設置為 true 以顯示頭部區域，false 則隱藏
+
+    // 設定用戶菜單頭部區域的 CSS 類別，用於自定義背景顏色等
+    'usermenu_header_class' => 'bg-primary', // 頭部背景顏色為 "primary" 顏色（通常為藍色）。可根據需要修改為其他顏色，如 'bg-success', 'bg-danger' 等
+
+    // 控制是否顯示用戶的頭像（圖片）
+    'usermenu_image' => true, // 如果設置為 true，則顯示用戶頭像，false 則不顯示
+
+    // 控制是否顯示用戶描述（如職位名稱、角色等）
+    'usermenu_desc' => false, // 設置為 true 以顯示用戶描述，false 則隱藏
+
+    'usermenu_profile_url' => true, // 控制用戶菜單中的個人資料鏈接是否顯示
 
     /*
     |--------------------------------------------------------------------------
@@ -154,8 +164,8 @@ return [
 
     'layout_topnav' => null,        // true 則為 TopNav (無側邊欄)
     'layout_boxed' => null,         // 啟用 Boxed 佈局
-    'layout_fixed_sidebar' => null, // 側邊欄固定
-    'layout_fixed_navbar' => null,  // 頂部導航固定
+    'layout_fixed_sidebar' => true, // 側邊欄固定
+    'layout_fixed_navbar' => true,  // 頂部導航固定
     'layout_fixed_footer' => null,  // 頁腳固定
     'layout_dark_mode' => true,     // 啟用暗黑模式
 
@@ -422,16 +432,31 @@ return [
                     'text' => '操作紀錄',
                     'url'  => 'admin/logs',
                     'active' => ['regex:@^admin/logs($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'logs.view',
                 ],
                 [
                     'text' => '角色管理',
                     'url'  => 'admin/roles',
                     'active' => ['regex:@^admin/roles($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'roles.view',
                 ],
                 [
                     'text' => '管理員設定',
                     'url'  => 'admin/users',
                     'active' => ['regex:@^admin/users($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'users.view',
+                ],
+            ],
+        ],
+        [
+            'text' => '系統管理(僅開發者可見)',
+            'icon' => 'fas fa-fw fa-users-cog',
+            'submenu' => [
+                [
+                    'text' => '系統紀錄',
+                    'url'  => 'admin/sys_log',
+                    'active' => ['regex:@^admin/sys_log($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'news.view',
                 ],
             ],
         ],

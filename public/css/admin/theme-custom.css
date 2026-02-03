@@ -1,0 +1,114 @@
+/* =========================================
+   Custom Admin Themes
+   ========================================= */
+
+/* --- 1. Ocean Blue (專業沉穩) --- */
+body.theme-ocean .main-header {
+    background-color: #17a2b8 !important; /* Cyan */
+    color: #fff;
+}
+body.theme-ocean .main-header .nav-link {
+    color: rgba(255,255,255,0.8);
+}
+body.theme-ocean .main-sidebar {
+    background-color: #343a40; /* Dark Sidebar */
+}
+body.theme-ocean .main-sidebar .brand-link {
+    background-color: #117a8b !important;
+}
+body.theme-ocean .btn-primary {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+/* --- 2. Forest Green (自然清新) --- */
+body.theme-forest .main-header {
+    background-color: #28a745 !important; /* Green */
+    color: #fff;
+}
+body.theme-forest .main-header .nav-link {
+    color: #fff;
+}
+body.theme-forest .main-sidebar {
+    background-color: #f4f6f9; /* Light Sidebar */
+    color: #333;
+}
+body.theme-forest .main-sidebar .nav-link {
+    color: #333;
+}
+body.theme-forest .main-sidebar .nav-link.active {
+    background-color: #28a745;
+    color: #fff;
+}
+body.theme-forest .brand-link {
+    background-color: #1e7e34 !important;
+    color: #fff !important;
+}
+
+/* --- 3. Royal Purple (現代高貴) --- */
+body.theme-purple .main-header {
+    background-color: #6f42c1 !important; /* Purple */
+    color: #fff;
+}
+body.theme-purple .main-sidebar {
+    background-color: #222; /* Very Dark */
+}
+body.theme-purple .brand-link {
+    background-color: #563d7c !important;
+}
+body.theme-purple .nav-pills .nav-link.active,
+body.theme-purple .nav-pills .show > .nav-link {
+    background-color: #6f42c1;
+}
+body.theme-purple .card-primary:not(.card-outline) > .card-header {
+    background-color: #6f42c1;
+}
+body.theme-purple a {
+    color: #6f42c1;
+}
+
+/* =========================================
+   Custom Admin Themes (Extended)
+   ========================================= */
+
+/* 這裡不需要過多 CSS，因為我們盡量利用 AdminLTE 內建的 Class，這樣效能最好且面試好說明 */
+/* --- Style Guide & Variables --- */
+:root {
+    --admin-transition: all 0.3s ease-in-out;
+    --preset-purple: #6f42c1;
+    --preset-pink: #E83E8C;
+    --preset-navy: #001f3f;
+    --preset-forest: #28a745;
+    --preset-olive: #556b2f;
+}
+
+/* 讓預覽更絲滑的過渡動畫 */
+body, .main-header, .main-sidebar, .nav-link {
+    transition: var(--admin-transition);
+}
+
+/* 輔助：莫蘭迪紫按鈕樣式 (如果框架沒定義) */
+.btn-outline-purple { color: var(--preset-purple); border-color: var(--preset-purple); }
+.btn-outline-purple:hover, .btn-outline-purple.active { background: var(--preset-purple); color: #fff; }
+
+/* 輔助：粉紅按鈕樣式 (如果框架沒定義) */
+.btn-outline-pink { color: var(--preset-pink); border-color: var(--preset-pink); }
+.btn-outline-pink:hover, .btn-outline-pink.active { background: var(--preset-pink); color: #fff; }
+
+/* 輔助：海軍藍按鈕樣式 */
+.btn-outline-navy { color: var(--preset-navy); border-color: var(--preset-navy); }
+.btn-outline-navy:hover, .btn-outline-navy.active { background: var(--preset-navy); color: #fff; }
+
+/* 輔助：橄欖綠按鈕樣式 */
+.btn-outline-olive { color: var(--preset-olive); border-color: var(--preset-olive); }
+.btn-outline-olive:hover, .btn-outline-olive.active { background: var(--preset-olive); color: #fff; }
+
+/* 介面區隔樣式 */
+.style-divider {
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 2px solid #eee;
+    margin: 1.5rem 0 1rem;
+    padding-bottom: 0.3rem;
+}

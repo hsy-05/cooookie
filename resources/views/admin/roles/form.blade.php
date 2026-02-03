@@ -1,18 +1,16 @@
 @extends('adminlte::page')
-@section('title', $pageTitle)
-@section('content_header') <h1>{{ $pageTitle }}</h1> @stop
 
-@section('css')
-    <style>
-        .permission-group { padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-        .group-title { font-weight: bold; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-    </style>
+@section('title', $pageTitle)
+
+@section('content_header')
+    <h1>{{ $pageTitle }}</h1>
 @stop
 
 @section('content')
 <x-admin.page-message>
     <form action="{{ $isEdit ? route('admin.roles.update', $role->id) : route('admin.roles.store') }}" method="POST">
-        @csrf @if($isEdit) @method('PUT') @endif
+        @csrf
+        @if($isEdit) @method('PUT') @endif
 
         <div class="card card-primary card-outline card-outline-tabs">
             <div class="card-header p-0 border-bottom-0">
@@ -21,72 +19,87 @@
                     <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#permission">權限控管</a></li>
                 </ul>
             </div>
+
             <div class="card-body">
                 <div class="tab-content">
-                    {{-- 一般資料 --}}
+                    {{-- 分頁1：一般資料 --}}
                     <div class="tab-pane fade show active" id="general">
                         <div class="form-group">
                             <label>角色名稱 <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" value="{{ $role->name }}" {{ $role->is_system ? 'readonly' : '' }}>
+                            <input type="text" name="name" class="form-control" value="{{ old('name', $role->name) }}" {{ $role->is_system ? 'readonly' : '' }} required>
                         </div>
                         <div class="form-group">
                             <label>描述</label>
-                            <textarea name="description" class="form-control" rows="3">{{ $role->description }}</textarea>
+                            <textarea name="description" class="form-control" rows="3">{{ old('description', $role->description) }}</textarea>
                         </div>
                     </div>
 
-                    {{-- 權限控管 --}}
-                    <div class="tab-pane fade" id="permission">
-                        @if($role->is_system)
-                            <div class="alert alert-info">此為系統最高權限角色，擁有所有權限。</div>
-                        @else
-                            <div class="mb-3">
-                                <button type="button" class="btn btn-secondary btn-sm" id="btn-check-all">全選所有權限</button>
-                                <button type="button" class="btn btn-light btn-sm" id="btn-uncheck-all">取消全選</button>
-                            </div>
+                    {{-- 分頁2：權限控管 --}}
+<div class="tab-pane fade" id="permission">
+    @if($role->is_system)
+        <div class="alert alert-info">此為系統最高權限角色，擁有所有權限。</div>
+    @else
+        <div class="mb-3">
+            <button type="button" class="btn btn-secondary btn-sm js-bulk-check" data-mode="all">全選所有</button>
+            <button type="button" class="btn btn-light btn-sm js-bulk-check" data-mode="none">取消全選</button>
+        </div>
 
-                            @foreach($permissionConfig as $modKey => $mod)
-                                <div class="permission-group">
-                                    <div class="group-title">
-                                        <span>{{ $mod['label'] }}</span>
-                                        <div class="custom-control custom-checkbox">
-                                            <input type="checkbox" class="custom-control-input group-select-all" id="group_all_{{ $modKey }}" data-target="group-{{ $modKey }}">
-                                            <label class="custom-control-label font-weight-normal" for="group_all_{{ $modKey }}">本區全選</label>
-                                        </div>
-                                    </div>
-                                    <div class="row group-{{ $modKey }}">
-                                        @foreach($mod['actions'] as $actKey => $actLabel)
-                                            @php
-                                                $permKey = "{$modKey}.{$actKey}";
-                                                // 取得該權限的依賴 (例如 delete 依賴 view)
-                                                // 格式轉換為 json 字串供 JS 使用: ["news.view"]
-                                                $depends = isset($mod['dependencies'][$actKey])
-                                                    ? array_map(fn($d) => "{$modKey}.{$d}", $mod['dependencies'][$actKey])
-                                                    : [];
-                                            @endphp
-                                            <div class="col-md-3 mb-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox"
-                                                           class="custom-control-input perm-checkbox"
-                                                           name="permissions[]"
-                                                           value="{{ $permKey }}"
-                                                           id="perm_{{ $permKey }}"
-                                                           data-depends='{{ json_encode($depends) }}'
-                                                           {{ in_array($permKey, $role->permissions ?? []) ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="perm_{{ $permKey }}">{{ $actLabel }}</label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endforeach
-                        @endif
+        <div class="permission-wrapper">
+            @foreach($permissions as $modKey => $mod)
+            {{-- 外層卡片：代表一個大選單分類（例如：消息管理） --}}
+            <div class="card card-outline card-secondary mb-4">
+                <div class="card-header">
+                    <h3 class="card-title font-weight-bold">{{ $mod['label'] }}</h3>
+                    <div class="card-tools">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input js-group-select" id="group_{{ $modKey }}" data-target="group-{{ $modKey }}">
+                            <label class="custom-control-label font-weight-normal" for="group_{{ $modKey }}">全選本區</label>
+                        </div>
                     </div>
                 </div>
+                <div class="card-body p-0 group-{{ $modKey }}">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            @foreach($mod['subs'] as $subKey => $sub)
+                            {{-- 內層：代表子選單（例如：最新消息） --}}
+                            <tr>
+                                <td width="200" class="bg-light font-weight-bold border-right">
+                                    {{ $sub['label'] }}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap">
+                                        @foreach($sub['actions'] as $action)
+                                        <div class="custom-control custom-checkbox mr-4 mb-2">
+                                            <input type="checkbox"
+                                                   name="permissions[]"
+                                                   value="{{ $action['key'] }}"
+                                                   id="perm_{{ str_replace('.', '_', $action['key']) }}"
+                                                   class="custom-control-input js-perm-cb"
+                                                   data-depends='{{ $action['depends'] }}'
+                                                   {{ in_array($action['key'], $role->permissions ?? []) ? 'checked' : '' }}>
+                                            <label class="custom-control-label font-weight-normal" for="perm_{{ str_replace('.', '_', $action['key']) }}">
+                                                {{ $action['label'] }}
+                                            </label>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="card-footer text-center">
-                <a href="{{ route('admin.roles.index') }}" class="btn btn-default">取消</a>
-                <button type="submit" class="btn btn-success">儲存設定</button>
+            @endforeach
+        </div>
+    @endif
+</div>
+                </div>
+            </div>
+
+            <div class="card-footer text-right">
+                <a href="{{ route('admin.roles.index') }}" class="btn btn-default mr-2">取消返回</a>
+                <button type="submit" class="btn btn-success px-4">儲存角色設定</button>
             </div>
         </div>
     </form>
@@ -95,54 +108,63 @@
 
 @section('js')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkAllBtn = document.getElementById('btn-check-all');
-        const uncheckAllBtn = document.getElementById('btn-uncheck-all');
-        const allCheckboxes = document.querySelectorAll('.perm-checkbox');
-        const groupSelectAlls = document.querySelectorAll('.group-select-all');
+$(function() {
+    /**
+     * 初始化：建立反向依賴地圖 (讓基礎權限知道「誰在依賴我」)
+     */
+    const $allCbs = $('.js-perm-cb');
+    const reverseMap = {};
 
-        // 1. 全選所有
-        if(checkAllBtn) {
-            checkAllBtn.addEventListener('click', () => {
-                allCheckboxes.forEach(cb => cb.checked = true);
-                groupSelectAlls.forEach(cb => cb.checked = true);
-            });
-        }
-        // 2. 取消全選
-        if(uncheckAllBtn) {
-            uncheckAllBtn.addEventListener('click', () => {
-                allCheckboxes.forEach(cb => cb.checked = false);
-                groupSelectAlls.forEach(cb => cb.checked = false);
-            });
-        }
-
-        // 3. 單區全選
-        groupSelectAlls.forEach(groupCb => {
-            groupCb.addEventListener('change', function() {
-                const targetClass = this.dataset.target;
-                const targetCbs = document.querySelectorAll('.' + targetClass + ' .perm-checkbox');
-                targetCbs.forEach(cb => cb.checked = this.checked);
-            });
-        });
-
-        // 4. 依賴邏輯 (Dependency Logic)
-        allCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                // 如果勾選了某個權限
-                if (this.checked) {
-                    // 讀取 data-depends (例如 ["news.view"])
-                    const depends = JSON.parse(this.dataset.depends || "[]");
-                    depends.forEach(depKey => {
-                        // 找到依賴的 checkbox 並勾選它
-                        const depCb = document.getElementById('perm_' + depKey);
-                        if (depCb) depCb.checked = true;
-                    });
-                } else {
-                    // (選擇性) 如果取消了基礎權限(如 view)，是否要取消進階權限(如 delete)?
-                    // 這邊邏輯比較複雜，通常建議單向連動(勾進階->自動勾基礎)即可，避免誤操作
-                }
-            });
+    $allCbs.each(function() {
+        const myKey = $(this).val();
+        const myDepends = $(this).data('depends') || [];
+        myDepends.forEach(parentKey => {
+            if (!reverseMap[parentKey]) reverseMap[parentKey] = [];
+            reverseMap[parentKey].push(myKey);
         });
     });
+
+    /**
+     * 核心邏輯：雙向權限聯動
+     */
+    $allCbs.on('change', function() {
+        const isChecked = $(this).is(':checked');
+        const currentKey = $(this).val();
+        const depends = $(this).data('depends') || [];
+
+        if (isChecked) {
+            // 【勾進階補基礎】：勾選刪除，自動勾檢視
+            depends.forEach(parentKey => {
+                const $parent = $(`.js-perm-cb[value="${parentKey}"]`);
+                if (!$parent.is(':checked')) {
+                    $parent.prop('checked', true).trigger('change');
+                }
+            });
+        } else {
+            // 【放基礎掉進階】：取消檢視，自動取消刪除/編輯
+            const children = reverseMap[currentKey] || [];
+            children.forEach(childKey => {
+                const $child = $(`.js-perm-cb[value="${childKey}"]`);
+                if ($child.is(':checked')) {
+                    $child.prop('checked', false).trigger('change');
+                }
+            });
+        }
+    });
+
+    /**
+     * 輔助 UI：全選 / 區域全選
+     */
+    $('.js-bulk-check').on('click', function() {
+        const checkAll = $(this).data('mode') === 'all';
+        $allCbs.prop('checked', checkAll).trigger('change');
+        $('.js-group-select').prop('checked', checkAll);
+    });
+
+    $('.js-group-select').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $(`.${$(this).data('target')} .js-perm-cb`).prop('checked', isChecked).trigger('change');
+    });
+});
 </script>
 @stop

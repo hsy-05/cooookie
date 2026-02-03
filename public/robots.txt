@@ -1,2 +1,31 @@
-User-agent: *
-Disallow:
+User-agent: YisouSpider
+Disallow: /
+
+User-agent: EasouSpider
+Disallow: /
+
+User-agent: EtaoSpider
+Disallow: /
+
+User-agent: findlinks
+Disallow: /
+
+User-agent: Ezooms
+Disallow: /
+
+# http://www.majestic12.co.uk/projects/dsearch/mj12bot.php
+User-agent: MJ12bot
+Disallow: /
+
+# "TurnitinBot/2.1 (http://www.turnitin.com/robot/crawlerinfo.html)"
+User-agent: TurnitinBot
+Disallow: /
+
+# "netEstate NE Crawler (+http://www.sengine.info/)"
+User-agent: netEstate NE Crawler
+Disallow: /
+
+User-Agent: *
+Allow: /
+
+Sitemap: https://www.cooookie.tw/sitemap.xml

@@ -10,7 +10,9 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class AdvertCategoryController extends BaseAdminController
 {
-    protected $pageTitle = '廣告分類';
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'advert_category';
+    protected $pageTitle = '廣告分類管理';
 
     /** 列表 */
     public function index(Request $request)

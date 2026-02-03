@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\ActionLog;
 use Illuminate\Http\Request;
+use App\Models\{ActionLog};
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth; // 1. 修正錯誤：必須引入 Auth Facade
+use Illuminate\Support\Facades\{Auth};
+use App\Helpers\{ContentHelper};
 
 class ActionLogController extends BaseAdminController
 {
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'logs';
+    protected $pageTitle = '操作日誌管理';
+
     public function index(Request $request)
     {
         // 自動清理舊資料 (簡單防呆)

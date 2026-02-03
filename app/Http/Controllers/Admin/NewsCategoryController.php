@@ -10,7 +10,9 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsCategoryController extends BaseAdminController
 {
-    protected $pageTitle = '消息分類';
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'news_category';
+    protected $pageTitle = '消息分類管理';
 
     /**
      * 圖片欄位尺寸設定

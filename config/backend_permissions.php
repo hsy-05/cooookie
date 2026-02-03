@@ -1,73 +1,61 @@
 <?php
-
+/*
+|--------------------------------------------------------------------------
+| 權限設定檔
+| 結構：大分類 (Group) -> 子功能 (Sub-module) -> 操作 (Actions)
+|--------------------------------------------------------------------------
+*/
 return [
-    // 模組定義
-    'advert' => [
+
+    'advert_management' => [ // 群組標籤
         'label' => '廣告管理',
-        'actions' => [
-            // key => label
-            'view'   => '瀏覽列表',
-            'create' => '新增/編輯', // 包含 update
-            'delete' => '刪除',
-        ],
-        // 定義依賴：勾選 key，必須自動勾選 value
-        'dependencies' => [
-            'create' => ['view'],
-            'delete' => ['view'],
-        ],
+        'subs' => [
+            'advert' => [
+                'label' => '廣告列表',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+            'advert_category' => [
+                'label' => '廣告分類',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+        ]
     ],
-    // 模組定義
-    'news' => [
+
+    'news_management' => [ // 群組標籤
         'label' => '消息管理',
-        'actions' => [
-            // key => label
-            'view'   => '瀏覽列表',
-            'create' => '新增/編輯', // 包含 update
-            'delete' => '刪除',
-        ],
-        // 定義依賴：勾選 key，必須自動勾選 value
-        'dependencies' => [
-            'create' => ['view'],
-            'delete' => ['view'],
-        ],
+        'subs' => [
+            'news' => [
+                'label' => '最新消息',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+            'news_category' => [
+                'label' => '消息分類',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+        ]
     ],
-    // 模組定義
-    'news_category' => [
-        'label' => '消息分類管理',
-        'actions' => [
-            // key => label
-            'view'   => '瀏覽列表',
-            'create' => '新增/編輯', // 包含 update
-            'delete' => '刪除',
-        ],
-        // 定義依賴：勾選 key，必須自動勾選 value
-        'dependencies' => [
-            'create' => ['view'],
-            'delete' => ['view'],
-        ],
-    ],
-    'roles' => [
-        'label' => '角色管理',
-        'actions' => [
-            'view'   => '瀏覽列表',
-            'create' => '新增/編輯',
-            'delete' => '刪除',
-        ],
-        'dependencies' => [
-            'create' => ['view'],
-            'delete' => ['view'],
-        ],
-    ],
-    'users' => [
-        'label' => '網站管理員',
-        'actions' => [
-            'view'   => '瀏覽列表',
-            'create' => '新增/編輯',
-            'delete' => '刪除',
-        ],
-        'dependencies' => [
-            'create' => ['view'],
-            'delete' => ['view'],
-        ],
+    'permission_setting' => [
+        'label' => '權限設定',
+        'subs' => [
+            'logs' => [
+                'label' => '操作紀錄',
+                'actions' => ['view' => '瀏覽', 'delete' => '刪除'],
+                'dependencies' => ['delete' => ['view']]
+            ],
+            'roles' => [
+                'label' => '角色管理',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+            'users' => [
+                'label' => '網站管理員',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+        ]
     ],
 ];

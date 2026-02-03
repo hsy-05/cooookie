@@ -11,8 +11,7 @@
     }
 
     $bodyClasses = "{$authType}-page";
-
-    if (! empty(config('adminlte.layout_dark_mode', null))) {
+    if (auth()->user()->preferences['dark_mode'] ?? config('adminlte.layout_dark_mode')) {
         $bodyClasses .= ' dark-mode';
     }
 @endphp

@@ -63,20 +63,20 @@ Route::get('/about', [AboutController::class, 'index'])
 | Profile（會員個人資料）
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+// Route::middleware('auth')->group(function () {
 
-    // 編輯個人資料頁
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
+//     // 編輯個人資料頁
+//     Route::get('/profile', [ProfileController::class, 'edit'])
+//         ->name('profile.edit');
 
-    // 更新個人資料
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
+//     // 更新個人資料
+//     Route::patch('/profile', [ProfileController::class, 'update'])
+//         ->name('profile.update');
 
-    // 刪除帳號
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
-});
+//     // 刪除帳號
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])
+//         ->name('profile.destroy');
+// });
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +99,14 @@ Route::middleware(['auth', 'verified'])
 
         // Roles & Users (假設管理員才能操作)
         Route::resource('roles', AdminRoleController::class);
+
+    // 1. 顯示個人資料頁 (用既有的 edit 方法，邏輯已通)
+    Route::get('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'profile'])
+        ->name('users.profile');
+
+    // 2. 【新增】儲存個人資料 (專屬路由，避開 Resource 的 update 權限鎖)
+    Route::put('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'updateProfile'])
+        ->name('users.updateProfile');
 
         Route::resource('users', AdminUserController::class);
         Route::get('users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');

@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\Language;
 use Illuminate\Support\Facades\DB;
 
-class LanguageController extends Controller
+class LanguageController extends BaseAdminController
 {
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'languages';
+    protected $pageTitle = '語系管理';
+
     // 列表頁：顯示所有語系
     public function index()
     {

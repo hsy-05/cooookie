@@ -8,29 +8,51 @@
     @yield('css')
 @stop
 
-@section('classes_body', $layoutHelper->makeBodyClasses())
+{{--
+    ⭐ 面試重點：伺服器端渲染 (SSR) 解決 FOUC 問題
+    我們直接在 PHP 層級組合 Body Classes，這樣頁面一出來就是深色/淺色，
+    使用者不會看到白色背景閃一下變黑的情況。
+--}}
+@php
+    // 取得使用者設定 (防呆：若無設定則給空陣列)
+    $userPrefs = auth()->user()->preferences ?? [];
+
+    // --- 1. Body Classes 處理 ---
+    $customBodyClasses = [];
+    if (!empty($userPrefs['dark_mode'])) $customBodyClasses[] = 'dark-mode';
+    if (!empty($userPrefs['sidebar_collapse'])) $customBodyClasses[] = 'sidebar-collapse';
+    if (!empty($userPrefs['accent_color'])) $customBodyClasses[] = $userPrefs['accent_color'];
+
+    $finalBodyClasses = $layoutHelper->makeBodyClasses() . ' ' . implode(' ', $customBodyClasses);
+
+    // --- 2. 準備傳給子元件的參數 (用於 Navbar 和 Sidebar) ---
+    // 這裡我們把設定存進變數，等等要在 @include 時傳進去
+    $prefNavbarColor = $userPrefs['navbar_color'] ?? 'navbar-white navbar-light';
+    $prefSidebarTheme = $userPrefs['sidebar_theme'] ?? 'sidebar-dark-primary';
+    $prefNavFlat = !empty($userPrefs['nav_flat']) ? 'nav-flat' : '';
+    $prefBrandColor = $userPrefs['brand_color'] ?? '';
+@endphp
+
+@section('classes_body', $finalBodyClasses)
 
 @section('body_data', $layoutHelper->makeBodyData())
 
 @section('body')
     <div class="wrapper">
-
-        {{-- Preloader Animation (fullscreen mode) --}}
+        {{-- Preloader Animation --}}
         @if ($preloaderHelper->isPreloaderEnabled())
             @include('adminlte::partials.common.preloader')
         @endif
 
         {{-- Top Navbar --}}
-        @if ($layoutHelper->isLayoutTopnavEnabled())
-            @include('adminlte::partials.navbar.navbar-layout-topnav')
-        @else
-            @include('adminlte::partials.navbar.navbar')
-        @endif
+        @include('adminlte::partials.navbar.navbar', ['prefNavbarColor' => $prefNavbarColor])
 
         {{-- Left Main Sidebar --}}
-        @if (!$layoutHelper->isLayoutTopnavEnabled())
-            @include('adminlte::partials.sidebar.left-sidebar')
-        @endif
+        @include('adminlte::partials.sidebar.left-sidebar', [
+            'prefSidebarTheme' => $prefSidebarTheme,
+            'prefNavFlat' => $prefNavFlat,
+            'prefBrandColor' => $prefBrandColor
+        ])
 
         {{-- Content Wrapper --}}
         @empty($iFrameEnabled)
@@ -39,23 +61,10 @@
             @include('adminlte::partials.cwrapper.cwrapper-iframe')
         @endempty
 
-        {{-- Footer Section --}}
-    @section('footer')
-        <div class="footer-content">
-            <p>© 2023 My Custom Footer. All rights reserved.</p>
-        </div>
-    @endsection
-
         {{-- Footer --}}
         @hasSection('footer')
             @include('adminlte::partials.footer.footer')
         @endif
-
-        {{-- Right Control Sidebar --}}
-        @if ($layoutHelper->isRightSidebarEnabled())
-            @include('adminlte::partials.sidebar.right-sidebar')
-        @endif
-
     </div>
 @stop
 
@@ -63,23 +72,32 @@
     @stack('js')
     @yield('js')
 
-    {{-- 引入 SweetAlert2 CDN --}}
+    {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        var toggleBooleanUrl = "{{ route('admin.toggle.boolean') }}"; // 在全域變數中儲存路由
-        var csrfToken = "{{ csrf_token() }}"; // 包含 CSRF token 以通過 Laravel 的 CSRF 保護
+        var toggleBooleanUrl = "{{ route('admin.toggle.boolean') }}";
+        var csrfToken = "{{ csrf_token() }}";
     </script>
 
-    <!-- 在 <head> 或者 <body> 底部引入 common.js -->
     <script src="{{ asset('js/admin/common.js') }}"></script>
+
+    {{-- 【關鍵修正】 --}}
+    {{-- 1. 使用 window.UserPrefs 儲存偏好 --}}
+    {{-- 2. 加上分號 ; 防止語法錯誤 --}}
+    {{-- 3. 使用 {!! !!} 與 json_encode 確保輸出標準 JSON 格式 --}}
     <script>
-        // 顯示成功提示 (來自 session)
+        window.UserPrefs = {!! json_encode(auth()->user()->preferences ?? []) !!};
+    </script>
+
+    {{-- 引入自訂主題 JS (需放在 UserPrefs 宣告之後) --}}
+    <script src="{{ asset('js/admin/theme.js') }}"></script>
+
+    <script>
+        // Session 訊息提示
         @if (session('form_success_swal'))
             showAlert('success', '成功', {!! json_encode(session('form_success_swal')) !!});
         @endif
-
-        // 顯示錯誤提示 (來自 session)
         @if (session('form_error_swal'))
             showAlert('error', '錯誤', {!! json_encode(session('form_error_swal')) !!});
         @endif

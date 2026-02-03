@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 
-class DashboardController extends Controller
+class DashboardController extends BaseAdminController
 {
     public function index()
     {

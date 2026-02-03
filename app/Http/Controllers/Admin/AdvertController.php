@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Storage;
 
 class AdvertController extends BaseAdminController
 {
-    protected $pageTitle = '廣告';
+    // 定義這個 Controller 屬於哪組權限
+    protected $permissionName = 'advert';
+    protected $pageTitle = '廣告管理';
 
     // 列表
     public function index(Request $request)

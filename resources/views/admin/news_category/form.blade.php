@@ -151,7 +151,7 @@
                 </div>
 
                 <!-- 提交按鈕 -->
-                <div class="text-center mt-3">
+                <div class="card-footer table-actions-container">
                     <a href="{{ route('admin.news_category.index') }}" class="btn btn-secondary">返回</a>
                     <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
                 </div>

@@ -26,10 +26,10 @@
             <h1 class="page-main-title">
                 <span class="title-text">{{ $pageTitle }}</span>
                 <i class="fas fa-angle-double-right divider-icon"></i>
-                <small class="action-label">
+                <span class="title-text action-label">
                     <i class="fas {{ $currentAction['icon'] }}"></i>
                     {{ $currentAction['text'] }}
-                </small>
+                </span>
             </h1>
         </div>
     </div>

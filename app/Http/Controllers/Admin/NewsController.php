@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Models\{News, NewsDesc, NewsCategory, Language, ActionLog};
+use App\Models\{News, NewsDesc, NewsCategory, ActionLog};
 use Illuminate\Support\Facades\{DB, Log, Auth};
 use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsController extends BaseAdminController
 {
-    // 設定權限名稱，自動綁定 news.view, news.create, news.delete
+    // 定義這個 Controller 屬於哪組權限
     protected $permissionName = 'news';
-
     protected $pageTitle = '最新消息';
 
     // 設定圖片配置，方便未來擴充
@@ -63,6 +61,8 @@ class NewsController extends BaseAdminController
                 // 2. 儲存多語系資料
                 $this->saveTranslations($news, $request->desc);
 
+                $news->writeLog('新增', $news->desc->title ?? '未知名消息');
+
                 // 回傳訊息
                 ContentHelper::showMsg(
                     0,
@@ -106,6 +106,8 @@ class NewsController extends BaseAdminController
                 // 2. 更新多語系資料
                 $this->saveTranslations($news, $request->desc);
 
+                $news->writeLog('編輯', $news->desc->title ?? '未知名消息');
+
                 // 回傳訊息
                 ContentHelper::showMsg(
                     0,
@@ -130,6 +132,10 @@ class NewsController extends BaseAdminController
      */
     public function destroy(News $news)
     {
+        // 刪除（刪之前抓）
+        $news->load('desc');
+        $news->writeLog('刪除', $news->desc->title ?? '未知名消息');
+
         // 刪除翻譯
         NewsDesc::where('news_id', $news->news_id)->delete();
 
@@ -238,26 +244,25 @@ class NewsController extends BaseAdminController
      * 批次刪除（依勾選）
      */
     public function batchDestroy(Request $request)
-{
-    $ids = $request->input('ids', []);
-    if (empty($ids)) return back()->with('error', '請選擇要刪除的消息');
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) return back()->with('error', '請選擇要刪除的消息');
 
-    $newsList = News::whereIn('news_id', $ids)->get();
+        $newsList = News::whereIn('news_id', $ids)->get();
 
-    News::withoutEvents(function () use ($newsList) {
-        foreach ($newsList as $news) {
-            foreach (array_keys($this->imageSizes) as $field) {
-                if ($news->$field) ImageHelper::deleteImage($news->$field, 'public');
+        News::withoutEvents(function () use ($newsList) {
+            foreach ($newsList as $news) {
+                foreach (array_keys($this->imageSizes) as $field) {
+                    if ($news->$field) ImageHelper::deleteImage($news->$field, 'public');
+                }
+                $news->descs()->delete();
+                $news->delete(); // 不會觸發 deleted 事件
             }
-            $news->descs()->delete();
-            $news->delete(); // 不會觸發 deleted 事件
-        }
-    });
+        });
 
-    // 寫 Batch Log
-    $this->writeBatchDeleteLog('消息管理', $newsList->count(), $ids);
+        // 寫 Batch Log
+        $this->writeBatchDeleteLog('消息管理', $newsList->count(), $ids);
 
-    return back()->with('form_success_swal', "已刪除 {$newsList->count()} 筆消息");
-}
-
+        return back()->with('form_success_swal', "已刪除 {$newsList->count()} 筆消息");
+    }
 }

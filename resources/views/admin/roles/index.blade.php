@@ -1,16 +1,21 @@
 @extends('adminlte::page')
-@section('title', '角色管理')
-@section('content_header') <h1>角色管理</h1> @stop
+
+@section('title', $pageTitle)
+
+@section('content_header') <h1>{{ $pageTitle }}</h1> @stop
 
 @section('content')
     <x-admin.page-message>
         <div class="card">
             <div class="card-body">
-                <div class="mb-3 text-right">
-                    <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> 新增角色
-                    </a>
-                </div>
+                {{-- 新增按鈕 --}}
+                @can('roles.create')
+                    <div class="mb-3 text-right">
+                        <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 新增角色
+                        </a>
+                    </div>
+                @endcan
 
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="thead-dark">
@@ -26,7 +31,7 @@
                             <tr>
                                 <td>
                                     {{ $role->name }}
-                                    @if ($role->is_system)
+                                    @if ($role->isSuperRole())
                                         <span class="badge badge-danger">系統</span>
                                     @endif
                                 </td>
@@ -39,7 +44,7 @@
                                 <td class="text-center">
                                     <div class="table-actions-container">
                                         {{-- 編輯按鈕 --}}
-                                        @can('news.edit')
+                                        @can('roles.edit')
                                             <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-sm btn-warning"
                                                 title="編輯">
                                                 <i class="fas fa-edit"></i>
@@ -47,9 +52,9 @@
                                         @endcan
 
                                         {{-- 刪除按鈕 --}}
-                                        @if (!$role->is_system && $role->users_count == 0)
+                                        @if (!$role->isSuperRole() && $role->users_count == 0)
                                             {{-- 只有非系統角色且沒有管理員的角色才顯示刪除按鈕 --}}
-                                            @can('news.delete')
+                                            @can('roles.delete')
                                                 <form action="{{ route('admin.roles.destroy', $role->id) }}" method="POST"
                                                     style="display:inline-block;" id="deleteForm{{ $role->id }}">
                                                     @csrf
