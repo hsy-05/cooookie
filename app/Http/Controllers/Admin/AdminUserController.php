@@ -325,7 +325,7 @@ class AdminUserController extends BaseAdminController
         });
     }
 
-    // --- 以下為輔助 Private Function，保持 Controller 主體整潔 ---
+    // --- 內部輔助方法 (Private Helper Methods) ---
 
     /**
      * 整理權限結構 (與您原本的邏輯相容)

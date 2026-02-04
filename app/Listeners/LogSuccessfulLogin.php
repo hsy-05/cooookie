@@ -13,7 +13,7 @@ class LogSuccessfulLogin
     {
         ActionLog::firstOrCreate([
             'user_id'    => $event->user->id,
-            'action'     => '登入',
+            'action'     => '登入123',
             'ip_address' => Request::ip(),
             'created_at' => now(),
         ], [

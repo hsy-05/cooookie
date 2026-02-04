@@ -100,13 +100,13 @@ Route::middleware(['auth', 'verified'])
         // Roles & Users (假設管理員才能操作)
         Route::resource('roles', AdminRoleController::class);
 
-    // 1. 顯示個人資料頁 (用既有的 edit 方法，邏輯已通)
-    Route::get('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'profile'])
-        ->name('users.profile');
+        // 1. 顯示個人資料頁 (用既有的 edit 方法，邏輯已通)
+        Route::get('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'profile'])
+            ->name('users.profile');
 
-    // 2. 【新增】儲存個人資料 (專屬路由，避開 Resource 的 update 權限鎖)
-    Route::put('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'updateProfile'])
-        ->name('users.updateProfile');
+        // 2. 【新增】儲存個人資料 (專屬路由，避開 Resource 的 update 權限鎖)
+        Route::put('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'updateProfile'])
+            ->name('users.updateProfile');
 
         Route::resource('users', AdminUserController::class);
         Route::get('users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
@@ -143,6 +143,7 @@ Route::middleware(['auth', 'verified'])
             ]);
         Route::resource('news_category', NewsCategoryController::class)
             ->parameters(['news_category' => 'category']);
+
         /*
         |--------------------------------------------------------------------------
         | 最新消息
@@ -152,6 +153,9 @@ Route::middleware(['auth', 'verified'])
         // 批次刪除（一定要放在 resource 之前）
         Route::delete('news/batch', [NewsController::class, 'batchDestroy'])
             ->name('news.batch_destroy');
+
+        // 刪除消息封面圖片
+        Route::post('news/delete-image/{news}', [NewsController::class, 'deleteImageField'])->name('news.delete-image');
 
         Route::resource('news', NewsController::class);
 
