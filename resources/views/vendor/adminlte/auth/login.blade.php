@@ -1,9 +1,5 @@
 @extends('adminlte::auth.auth-page', ['authType' => 'login'])
 
-@section('adminlte_css_pre')
-    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-@stop
-
 @php
     // 從 config/adminlte.php 取得各 URL
     $loginUrl       = View::getSection('login_url') ?? config('adminlte.login_url', 'login');
@@ -70,12 +66,18 @@
         {{-- Login field --}}
         <div class="row">
             <div class="col-7">
-                <div class="icheck-primary" title="{{ __('adminlte::adminlte.remember_me_hint') }}">
-                    <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                <div class="custom-control custom-checkbox" title="{{ __('adminlte::adminlte.remember_me_hint') }}">
 
-                    <label for="remember">
+                    <input type="checkbox"
+                        name="remember"
+                        id="remember"
+                        class="custom-control-input"
+                        {{ old('remember') ? 'checked' : '' }}>
+
+                    <label class="custom-control-label font-weight-normal" for="remember">
                         {{ __('adminlte::adminlte.remember_me') }}
                     </label>
+
                 </div>
             </div>
 

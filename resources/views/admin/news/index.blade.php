@@ -1,10 +1,8 @@
 @extends('adminlte::page')
+@section('title', $pageTitle)
 
-@section('title', '消息管理')
-
-@section('content_header')
-    <h1>消息管理</h1>
-@stop
+{{-- 麵包屑與標題組件 --}}
+@include('components.admin.page_content_header')
 
 @section('content')
     {{-- 系統訊息顯示（成功 / 錯誤） --}}
@@ -135,7 +133,7 @@
                                             {{-- 單筆刪除 --}}
                                             @can('news.delete')
                                                 <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
-                                                    style="display:inline-block;" id="deleteForm{{ $item->news_id }}">
+                                                     id="deleteForm{{ $item->news_id }}">
                                                     @csrf
                                                     @method('DELETE')
 
@@ -194,72 +192,4 @@
             </div>
         </div>
     </x-admin.page-message>
-@stop
-
-@section('js')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const checkAll = document.getElementById('checkAll');
-            const checkboxes = document.querySelectorAll('.row-checkbox');
-            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
-
-            // 更新批次刪除按鈕狀態
-            function updateButtonState() {
-                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-                batchDeleteBtn.disabled = checkedCount === 0;
-            }
-
-            // 全選
-            checkAll.addEventListener('change', function() {
-                checkboxes.forEach(cb => cb.checked = this.checked);
-                updateButtonState();
-            });
-
-            // 單筆勾選
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', updateButtonState);
-            });
-
-            // 批次刪除確認
-            batchDeleteBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const count = document.querySelectorAll('.row-checkbox:checked').length;
-
-                showAlert(
-                    'warning',
-                    '刪除確認',
-                    `您即將刪除 <b>${count}</b> 筆消息，刪除後無法恢復。`,
-                    false,
-                    'center',
-                    true,
-                    '確定刪除',
-                    0, {
-                        showCancelButton: true,
-                        cancelButtonText: '取消',
-                        preConfirm: () => {
-                            document.getElementById('batchDeleteForm').submit();
-                        }
-                    }
-                );
-            });
-
-
-            $(document).on('click', '.js-delete-btn', function() {
-                // 從 data 屬性抓取參數，若無則給予預設值
-                const id = $(this).data('id');
-                const title = $(this).data('title') || '確定刪除這筆資料嗎？';
-                const text = $(this).data('text') || '刪除後將無法恢復！';
-
-                if (!id) {
-                    console.warn('警告：刪除按鈕缺少 data-id 參數。');
-                    return;
-                }
-
-                confirmDelete(id, title, text);
-            });
-
-        });
-    </script>
 @stop

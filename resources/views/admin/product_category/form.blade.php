@@ -4,7 +4,6 @@
 
 @section('content_header')
     <h1>{{ isset($isEdit) ? '編輯分類' : '新增分類' }}</h1>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 @stop
 
 @section('content')

@@ -35,6 +35,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 */
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UploadController;
+use Faker\Provider\Base;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,7 +91,7 @@ require __DIR__ . '/auth.php';
 | Admin Routes（後台）
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中介軟體
     ->prefix('admin') //路由前綴
     ->name('admin.')
     ->group(function () {
@@ -110,6 +111,15 @@ Route::middleware(['auth', 'verified'])
 
         Route::resource('users', AdminUserController::class);
         Route::get('users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 富文本編輯器圖片刪除
+        |--------------------------------------------------------------------------
+        */
+        // 建議放在 admin 中間件群組內，確保安全性
+        Route::post('delete-editor-image', [BaseAdminController::class, 'deleteEditorImage']);
 
         /*
         |--------------------------------------------------------------------------
@@ -137,10 +147,9 @@ Route::middleware(['auth', 'verified'])
         | 最新消息分類
         |--------------------------------------------------------------------------
         */
-        Route::resource('news_category', NewsCategoryController::class)
-            ->parameters([
-                'news_category' => 'category'
-            ]);
+        // 刪除封面圖片
+        Route::post('news_category/delete-image/{category}', [NewsCategoryController::class, 'deleteImageField'])->name('news_category.delete-image');
+
         Route::resource('news_category', NewsCategoryController::class)
             ->parameters(['news_category' => 'category']);
 
@@ -154,7 +163,7 @@ Route::middleware(['auth', 'verified'])
         Route::delete('news/batch', [NewsController::class, 'batchDestroy'])
             ->name('news.batch_destroy');
 
-        // 刪除消息封面圖片
+        // 刪除封面圖片
         Route::post('news/delete-image/{news}', [NewsController::class, 'deleteImageField'])->name('news.delete-image');
 
         Route::resource('news', NewsController::class);
@@ -178,6 +187,9 @@ Route::middleware(['auth', 'verified'])
         | 廣告管理
         |--------------------------------------------------------------------------
         */
+        // 刪除封面圖片
+        Route::post('advert/delete-image/{advert}', [AdvertController::class, 'deleteImageField'])->name('advert.delete-image');
+
         Route::resource('advert', AdvertController::class);
 
         /*

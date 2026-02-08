@@ -1,15 +1,17 @@
 /**
- * AdminLTE Theme Engine
- * 修復說明：修正了局部顏色調整時會遺失「深色模式」狀態的問題。
+ * AdminLTE 介面預覽引擎
+ * 用途：專用於「網站管理員」設定頁面，提供即時動態預覽，不負責初始載入。
  */
 (function ($) {
     'use strict';
 
+    // 介面選擇器：統一管理，方便日後維護改名
     const SELECTORS = {
         body: 'body',
         navbar: '.main-header',
         sidebar: '.main-sidebar',
         navSidebar: '.nav-sidebar',
+        customTabs: '.card-outline-tabs', // 客製化頁籤
         inputs: {
             darkMode: '#pref_dark_mode',
             sidebarCollapse: '#pref_sidebar_collapse',
@@ -24,12 +26,19 @@
         }
     };
 
+    // 系統預設值：當使用者按下「重置」時套用
     const DEFAULTS = {
-        dark_mode: true, sidebar_collapse: false, nav_flat: false,
-        sidebar_fixed: true, text_sm: false,
-        navbar: 'navbar-white navbar-light', sidebar: 'sidebar-dark-primary', accent: 'accent-primary'
+        dark_mode: false,
+        sidebar_collapse: false,
+        nav_flat: false,
+        sidebar_fixed: true,
+        text_sm: false,
+        navbar: 'navbar-white navbar-light',
+        sidebar: 'sidebar-dark-primary',
+        accent: 'accent-primary'
     };
 
+    // 快速主題預設檔
     const THEME_PRESETS = {
         // 科技極夜
         'cyber': {
@@ -74,7 +83,7 @@
     };
 
     /**
-     * 獲取當前 UI 上的所有配置值
+     * 獲取目前畫面上表單的設定值
      */
     function getCurrentUIConfig() {
         const ins = SELECTORS.inputs;
@@ -91,97 +100,112 @@
     }
 
     /**
-     * 套用樣式主函數
+     * 核心功能：將設定值套用到當前 DOM 元素上（即時預覽）
      * @param {Object} c 配置物件
-     * @param {Boolean} syncUI 是否同步更新畫面上表單元件
+     * @param {Boolean} syncUI 是否要連動更新表單上的勾選狀態
      */
-    function applyStyles(c, syncUI = true) {
+    function previewStyles(c, syncUI = true) {
         const $body = $(SELECTORS.body);
 
-        // 1. 布林值功能切換：優先從參數取值，若無則從參數的 pref_ 前綴取，最後才讀取 DEFAULTS
-        $body.toggleClass('dark-mode', !!(c.dark_mode ?? c.pref_dark_mode ?? DEFAULTS.dark_mode));
-        $body.toggleClass('sidebar-collapse', !!(c.sidebar_collapse ?? c.pref_sidebar_collapse ?? DEFAULTS.sidebar_collapse));
-        $body.toggleClass('layout-fixed', !!(c.sidebar_fixed ?? c.pref_sidebar_fixed ?? DEFAULTS.sidebar_fixed));
-        $body.toggleClass('text-sm', !!(c.text_sm ?? c.pref_text_sm ?? DEFAULTS.text_sm));
-        $(SELECTORS.navSidebar).toggleClass('nav-flat', !!(c.nav_flat ?? c.pref_nav_flat ?? DEFAULTS.nav_flat));
+        // 1. 切換開關類 (Checkbox / Boolean)
+        // !! 是為了強制轉成布林值，防呆確保不會傳入奇怪的字串
+        $body.toggleClass('dark-mode', !!c.dark_mode);
+        $body.toggleClass('sidebar-collapse', !!c.sidebar_collapse);
+        $body.toggleClass('layout-fixed', !!c.sidebar_fixed);
+        $body.toggleClass('text-sm', !!c.text_sm);
+        $(SELECTORS.navSidebar).toggleClass('nav-flat', !!c.nav_flat);
 
-        // 2. 顏色類別切換
+        // 2. 切換顏色類 (Select / Class)
+        // 專業做法：先用 Regex 移除舊的相關 Class，再塞新的，避免 Class 堆疊
         const updateClass = ($el, regex, newClass) => {
+            if (!$el.length) return;
             $el.removeClass((i, className) => (className.match(regex) || []).join(' ')).addClass(newClass);
         };
 
+        // Navbar 預覽
         const navClass = c.navbar_color || c.navbar || DEFAULTS.navbar;
         updateClass($(SELECTORS.navbar), /(^|\s)(navbar-|bg-)\S+/g, 'main-header navbar navbar-expand ' + navClass);
 
+        // Sidebar 預覽
         const sideClass = c.sidebar_theme || c.sidebar || DEFAULTS.sidebar;
         updateClass($(SELECTORS.sidebar), /(^|\s)sidebar-(dark|light)-\S+/g, sideClass);
 
         const accentClass = c.accent_color || c.accent || '';
         updateClass($body, /(^|\s)accent-\S+/g, accentClass);
 
-        // 3. UI 同步 (只有在切換「快速主題」或「重置」時需要)
+        // 3. --- 客製化頁籤 (.card-outline-tabs) 連動處理 ---
+        const $targetCard = $(SELECTORS.customTabs);
+        if ($targetCard.length > 0) {
+            // 計算規則：accent-primary -> card-primary
+            const newCardColor = accentClass.replace('accent-', 'card-');
+
+            // 移除舊顏色，但確保保留 card-outline 與 card-outline-tabs 結構
+            $targetCard.removeClass((i, className) => {
+                const matches = className.match(/(^|\s)card-(?!outline)\S+/g);
+                return matches ? matches.join(' ') : '';
+            }).addClass(newCardColor);
+        }
+
+        // 4. 表單狀態同步
         if (syncUI) {
             const ins = SELECTORS.inputs;
-            $(ins.darkMode).prop('checked', !!(c.dark_mode ?? c.pref_dark_mode));
-            $(ins.sidebarCollapse).prop('checked', !!(c.sidebar_collapse ?? c.pref_sidebar_collapse));
-            $(ins.navFlat).prop('checked', !!(c.nav_flat ?? c.pref_nav_flat));
-            $(ins.sidebarFixed).prop('checked', !!(c.sidebar_fixed ?? c.pref_sidebar_fixed));
-            $(ins.textSm).prop('checked', !!(c.text_sm ?? c.pref_text_sm));
+            $(ins.darkMode).prop('checked', !!c.dark_mode);
+            $(ins.sidebarCollapse).prop('checked', !!c.sidebar_collapse);
+            $(ins.navFlat).prop('checked', !!c.nav_flat);
+            $(ins.sidebarFixed).prop('checked', !!c.sidebar_fixed);
+            $(ins.textSm).prop('checked', !!c.text_sm);
             $(ins.navbarVariant).val(navClass);
             $(ins.sidebarVariant).val(sideClass);
             $(ins.accentColor).val(accentClass);
         }
-
-        // --- 針對頁籤頂部線條 card-outline-tabs 的連動處理 ---
-        const $targetCard = $('.card-outline-tabs');
-
-        if ($targetCard.length > 0) {
-            // 移除舊顏色，保留結構
-            $targetCard.removeClass((i, className) => {
-                return (className.match(/(^|\s)card-(?!outline)\S+/g) || []).join(' ');
-            });
-
-            // 取得新顏色，預設 primary
-            let newCardColor = 'card-primary';
-            if (accentClass && accentClass.startsWith('accent-')) {
-                newCardColor = accentClass.replace('accent-', 'card-');
-            }
-
-            // 套用新顏色，頂部粗線就會變色
-            $targetCard.addClass(newCardColor + ' card-outline card-outline-tabs');
-        }
     }
 
-    /** 綁定事件 */
-    function bindEvents() {
+    /**
+     * 事件綁定：監聽操作行為
+     */
+    function bindPreviewEvents() {
         const ins = SELECTORS.inputs;
 
-        // 當開關類、下拉選單類變動時，直接讀取當前「所有」UI 狀態重新套用
+        // 監聽所有輸入項
         $(`${ins.darkMode}, ${ins.sidebarCollapse}, ${ins.navFlat}, ${ins.sidebarFixed}, ${ins.textSm}, ${ins.navbarVariant}, ${ins.sidebarVariant}, ${ins.accentColor}`).on('change', function() {
-            // 如果是手動調整顏色，取消快速主題的選中狀態
-            if ($(this).is('select')) {
+            // 若手動變更細節，取消快速主題的選取狀態
+            if (!$(this).is('input[name="theme_preset"]')) {
                 $(ins.themePreset).prop('checked', false).parent().removeClass('active');
             }
-            applyStyles(getCurrentUIConfig(), false);
+            previewStyles(getCurrentUIConfig(), false);
         });
 
-        // 快速主題
+        // 快速主題切換
         $(ins.themePreset).on('change', function() {
             const val = $(this).val();
-            if (THEME_PRESETS[val]) applyStyles(THEME_PRESETS[val], true);
+            if (THEME_PRESETS[val]) {
+                previewStyles(THEME_PRESETS[val], true);
+            }
         });
 
         // 重置
-        $(ins.resetBtn).on('click', (e) => {
+        $(ins.resetBtn).on('click', function(e) {
             e.preventDefault();
-            if(confirm('確定要還原為預設配置嗎？')) applyStyles(DEFAULTS, true);
+            if(confirm('確定要將預覽畫面還原為預設配置嗎？')) {
+                previewStyles(DEFAULTS, true);
+            }
         });
     }
 
+    /**
+     * 初始化：當 DOM 載入完成後執行
+     */
     $(function () {
-        // 初始化時，如果 window.UserPrefs 存在則使用，否則使用預設
-        const initialConfig = (window.UserPrefs && Object.keys(window.UserPrefs).length > 0) ? window.UserPrefs : DEFAULTS;
-        applyStyles(initialConfig, true);
-        bindEvents();
+        // 專業邏輯：
+        // 1. 我們不呼叫 previewStyles(initialConfig)，避免與 PHP 產生的 Class 衝突。
+        // 2. 但為了確保「頁籤」在頁面載入時擁有正確的初始 Class，我們可以執行一次輕量級的同步。
+        const currentAccent = $(SELECTORS.body).attr('class').match(/accent-\S+/);
+        if (currentAccent) {
+            const initialCardColor = currentAccent[0].replace('accent-', 'card-');
+            $(SELECTORS.customTabs).addClass(initialCardColor);
+        }
+
+        bindPreviewEvents();
     });
+
 })(jQuery);

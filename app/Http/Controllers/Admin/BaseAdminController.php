@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request; // 引入 Request
 use Illuminate\Support\Facades\{Validator, Log, Auth};
 use App\Models\{Language, ActionLog};
+use \App\Traits\HasImageFields; // 引入外掛
+use App\Helpers\ImageHelper; // 引入圖片處理 Helper
+
 
 class BaseAdminController extends Controller
 {
+    use HasImageFields; // 使用外掛
     /**
      * 定義該模組的權限名稱
      * 例如：'news', 'users', 'roles'
@@ -31,15 +35,15 @@ class BaseAdminController extends Controller
     {
         $prefix = $this->permissionName;
 
-        // 1. 瀏覽列表 -> 檢查是否擁有 .view 權限
+        // 瀏覽列表 -> 檢查是否擁有 .view 權限
         $this->middleware("admin.perm:{$prefix}.view")
             ->only(['index', 'show']);
 
-        // 2. 新增與編輯 -> 檢查是否擁有 .create 權限
+        // 新增與編輯 -> 檢查是否擁有 .create 權限
         $this->middleware("admin.perm:{$prefix}.create")
             ->only(['create', 'store', 'edit', 'update']);
 
-        // 3. 刪除 -> 檢查是否擁有 .delete 權限
+        // 刪除 -> 檢查是否擁有 .delete 權限
         $this->middleware("admin.perm:{$prefix}.delete")
             ->only(['destroy']);
 
@@ -72,7 +76,7 @@ class BaseAdminController extends Controller
      */
     public function toggleBoolean(Request $request)
     {
-        // 1. 驗證請求參數
+        // 驗證請求參數
         $validator = Validator::make($request->all(), [
             'model' => 'required|string', // 要更新的模型名稱 (例如 'Advert', 'News')
             'id' => 'required|integer',   // 要更新的記錄 ID
@@ -90,28 +94,28 @@ class BaseAdminController extends Controller
         $field = $request->input('field');
         $value = $request->input('value');
 
-        // 2. 檢查模型是否存在且有效
+        // 檢查模型是否存在且有效
         if (!class_exists($modelName)) {
             return response()->json(['success' => false, 'message' => '模型不存在。'], 404);
         }
 
         $model = new $modelName;
 
-        // 3. 查找記錄
+        // 查找記錄
         $record = $model->find($id);
 
         if (!$record) {
             return response()->json(['success' => false, 'message' => '記錄不存在。'], 404);
         }
 
-        // 4. 檢查欄位是否存在於模型中
+        // 檢查欄位是否存在於模型中
         // 這裡使用 array_key_exists 檢查屬性，更嚴謹的做法是檢查 fillable 或 guarded
         // 但對於 is_visible 這種常見欄位，直接檢查屬性通常足夠
         if (!array_key_exists($field, $record->getAttributes())) {
             return response()->json(['success' => false, 'message' => '欄位不存在或不允許更新。'], 400);
         }
 
-        // 5. 更新欄位值
+        // 更新欄位值
         try {
             $record->{$field} = $value;
             $record->save();
@@ -160,5 +164,37 @@ class BaseAdminController extends Controller
             'log_info'   => $info,
             'ip_address' => request()->ip(),
         ]);
+    }
+
+    /**
+     * AJAX 即時刪除編輯器內的圖片檔案
+     * 這裡是為了回應 Summernote 的「移除圖片」按鈕
+     */
+    public function deleteEditorImage(Request $request)
+    {
+        // 1. 抓取網址
+        $imageUrl = $request->input('image_url');
+
+        if (!$imageUrl) {
+            return response()->json(['status' => 'error', 'message' => '缺少網址'], 400);
+        }
+
+        // 2. 解析路徑 (只處理本站 storage 內的檔案)
+        $storageMarker = '/storage/';
+        if (str_contains($imageUrl, $storageMarker)) {
+            // 取得 /storage/ 之後的相對路徑 (例如: news/content/xxx.jpg)
+            $parts = explode($storageMarker, $imageUrl);
+            $relativePath = end($parts);
+
+            // 3. 調用你寫好的 ImageHelper 工具
+            // 它會自動判斷 exists() 並執行 Storage::delete()
+            $result = \App\Helpers\ImageHelper::deleteImage($relativePath, 'public');
+
+            if ($result) {
+                return response()->json(['status' => 'success', 'message' => '圖片刪除成功']);
+            }
+        }
+
+        return response()->json(['status' => 'error', 'message' => '檔案不存在或無法刪除'], 404);
     }
 }

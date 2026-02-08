@@ -42,23 +42,33 @@
     <td class="text-center">
         <div class="table-actions-container">
             {{-- 編輯按鈕 --}}
-            @can('news.edit')
+            @can('news_category.edit')
                 <a href="{{ route('admin.news_category.edit', $cat->cat_id) }}" class="btn btn-sm btn-warning" title="編輯">
                     <i class="fas fa-edit"></i>
                 </a>
             @endcan
 
-            {{-- 刪除按鈕 --}}
-            @can('news.delete')
-                <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST"
-                    style="display:inline-block;" id="deleteForm{{ $cat->cat_id }}">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button" class="btn btn-sm btn-danger js-delete-btn" data-id="{{ $cat->cat_id }}" title="刪除">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </form>
-            @endcan
+                {{-- 刪除按鈕 --}}
+                @can('news_category.delete')
+                    @if ($cat->children->isEmpty()) {{-- 這裡改成判斷當前分類的子項 --}}
+                        <form action="{{ route('admin.news_category.destroy', $cat->cat_id) }}" method="POST" id="deleteForm{{ $cat->cat_id }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-sm btn-danger js-delete-btn"
+                                    data-id="{{ $cat->cat_id }}"
+                                    data-title="確定刪除【{{ $cat->name }}】嗎？"
+                                    title="刪除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    @else
+                        {{-- 不可刪除的狀態：樣式改為 secondary 並加上 disabled --}}
+                        <button type="button" class="btn btn-sm btn-secondary" disabled
+                                title="該分類下仍有子分類，請先刪除或移動子分類。">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    @endif
+                @endcan
         </div>
     </td>
 </tr>

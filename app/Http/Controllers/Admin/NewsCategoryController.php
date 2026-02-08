@@ -15,12 +15,21 @@ class NewsCategoryController extends BaseAdminController
     protected $pageTitle = '消息分類管理';
 
     /**
-     * 圖片欄位尺寸設定
-     * key = input name
-     * value = [width, height]
+     * 頁面相關配置
      */
-    protected $imageSizes = [
-        'image' => [600, 400],
+    protected $pageCfg = [
+        // 定義哪些欄位需要處理檔案上傳
+        'files' => [
+            'image_url' => [
+                'path'   => 'news_category',     // 儲存路徑
+                'width'  => 736,               // 寬度 (若不縮圖可設為 null)
+                'height' => 736,               // 高度
+                'mode'   => 'scale_fill',     // 處理模式：center_crop, scale_fit
+                'bgColor'=> '#D6395C',        // 圖用淡灰底
+                'useOriginalName' => false,    // 是否使用原檔名 (false 代表自動生成唯一名稱)
+            ],
+            // 未來若有 PDF 或 縮圖，直接在這裡增加一組設定即可
+        ],
     ];
 
     /**
@@ -147,21 +156,29 @@ class NewsCategoryController extends BaseAdminController
 
     public function destroy(NewsCategory $category)
     {
-        // 業務邏輯檢查：若有子項目則禁止刪除
+        //  檢查：若有子項目則禁止刪除
         if ($category->news()->exists()) {
             return back()->with('error', '此分類已有消息使用，無法刪除。');
         }
 
-        DB::transaction(function () use ($category) {
-            // 刪除圖片檔案
-            foreach (array_keys($this->imageSizes) as $field) {
-                if ($category->$field) ImageHelper::deleteImage($category->$field, 'public');
-            }
-            $category->descs()->delete();
-            $category->delete();
-        });
+        // 先抓取標題供 Log 使用
+        $category->load('desc');
+        $title = $category->desc->title ?? '未知名分類';
 
-        return redirect()->route('admin.news_category.index')->with('form_success_swal', '分類已刪除');
+        // 刪除相關聯的所有實體檔案 (防呆：避免伺服器留下一堆廢圖)
+        foreach (array_keys($this->pageCfg['files']) as $field) {
+            if ($category->$field) {
+                ImageHelper::deleteImage($category->$field, 'public');
+            }
+        }
+
+        // 刪除資料庫紀錄
+        NewsCategoryDesc::where('cat_id', $category->cat_id)->delete();
+        $category->delete();
+
+        $category->writeLog('刪除', $title);
+
+        return redirect()->route('admin.news_category.index')->with('form_success_swal', '消息分類已刪除');
     }
 
     /* --- 內部輔助方法 (符合 NewsController 邏輯) --- */
@@ -196,6 +213,9 @@ class NewsCategoryController extends BaseAdminController
         // 獲取目前啟用的語系設定
         $langs = $this->getActiveLanguages();
 
+        // 將配置傳給前端，以便顯示建議尺寸提示
+        $fileConfigs = $this->pageCfg['files'];
+
         // 建立語系資料對照表，方便 View 使用 $descMap[語系ID] 直接抓到內容
         $descMap = [];
         if ($isEdit) {
@@ -205,14 +225,7 @@ class NewsCategoryController extends BaseAdminController
             }
         }
 
-        return $this->view('admin.news_category.form', [
-            'category'   => $category,
-            'isEdit'     => $isEdit,
-            'parents'    => $parentsList, // 這是處理好的「層級選單陣列」
-            'langs'      => $langs,
-            'descMap'    => $descMap,
-            'imageSizes' => $this->imageSizes // 傳遞圖片尺寸規範給前端參考
-        ]);
+        return $this->view('admin.news_category.form', compact('category', 'isEdit', 'parentsList', 'langs', 'descMap', 'fileConfigs', 'maxLevel'));
     }
 
     /**
@@ -310,17 +323,15 @@ class NewsCategoryController extends BaseAdminController
 
     private function handleImageUpload(Request $request, NewsCategory $category)
     {
-        foreach ($this->imageSizes as $field => [$width, $height]) {
+        foreach ($this->pageCfg['files'] as $field => $config) {
+            // 如果 Request 裡有這個檔案，才進行處理
             if ($request->hasFile($field)) {
-                if ($category->$field) ImageHelper::deleteImage($category->$field, 'public');
-
-                $file = $request->file($field);
-                $processed = ImageHelper::processImage($file, $width, $height, 'center_crop');
-                $filename = ImageHelper::generateUniqueFilename($file);
-                $fullPath = "news_category/{$filename}"; // 存放在不同資料夾
-
-                ImageHelper::saveProcessedImage($processed, $fullPath, 'public', 90, 'jpeg');
-                $category->$field = $fullPath;
+                $category->$field = ImageHelper::handleUpload(
+                    $request->file($field),
+                    $config['path'],
+                    $category->$field, // 傳入舊路徑以供刪除
+                    $config
+                );
             }
         }
     }
@@ -347,5 +358,17 @@ class NewsCategoryController extends BaseAdminController
             );
         }
     }
+
+    /**
+    * 刪除圖片欄位的通用方法
+    * 前端會傳入要刪除的欄位名稱 (例如 image_url)，這樣這個方法就可以通用於多個圖片欄位
+    */
+    public function deleteImageField(Request $request, NewsCategory $category)
+    {
+        // 調用 Trait 裡面的通用邏輯，傳入當前的 $category 模型實例
+        // 並明確告訴 Trait 要刪除的欄位名稱 (從前端傳來，或直接寫死在控制器)
+        return $this->deleteImageFieldGeneric($request, $category);
+    }
+
 
 }

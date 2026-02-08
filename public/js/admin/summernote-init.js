@@ -181,7 +181,8 @@ $(document).ready(function () {
         // 事件監聽
         callbacks: {
             /**
-             * 當使用者拖放或選擇圖片上傳時觸發
+             * 當使用者選擇圖片上傳時觸發
+             * files 是 FileList 物件，包含所有被選中的檔案
              */
             onImageUpload: function (files) {
                 if (files.length > 0) {
@@ -189,6 +190,23 @@ $(document).ready(function () {
                     uploadImage(files[0], $(this));
                 }
             },
+            /**
+             * 當圖片被刪除（例如使用 backspace 或 delete 鍵）時觸發
+             * target 是被刪除的圖片元素 jQuery 物件
+             */
+            onMediaDelete: function (target) {
+                // target[0].src 可以拿到圖片的完整 URL
+                const imageUrl = target[0].src;
+
+                // 防呆：如果是 Base64 格式（剛貼上還沒上傳的預覽圖），就不跑後端刪除
+                if (imageUrl.startsWith('data:')) {
+                    console.log("預覽圖已移除，無需處理伺服器檔案");
+                    return;
+                }
+
+                // 呼叫 AJAX 刪除函式
+                deleteImageFromServer(imageUrl);
+            }
         },
     });
 
@@ -235,6 +253,31 @@ $(document).ready(function () {
 
                 alert(msg);
             },
+        });
+    }
+
+    /**
+     * AJAX 刪除伺服器上的圖片檔案
+     * @param {string} url 圖片的完整網址
+     */
+    function deleteImageFromServer(url) {
+        $.ajax({
+            url: `${BASE_URL}/admin/delete-editor-image`, // 指向後端刪除接口
+            method: "POST",
+            data: {
+                image_url: url,
+            },
+            headers: {
+                "X-CSRF-TOKEN": CSRF_TOKEN, // Laravel 安全驗證必備
+            },
+            success: function (response) {
+                // 成功時僅在 console 記錄，不跳 Alert 影響使用者體驗
+                console.log("伺服器圖片清理成功:", response.message);
+            },
+            error: function (xhr) {
+                // 失敗時記錄錯誤，通常是因為檔案已被手動刪除或路徑錯誤
+                console.warn("伺服器圖片清理失敗:", xhr.responseJSON ? xhr.responseJSON.message : "未知錯誤");
+            }
         });
     }
 

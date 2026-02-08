@@ -39,7 +39,7 @@
                                                                         <label class="custom-control-label font-weight-normal" for="perm_{{ str_replace('.', '_', $action['key']) }}">
                                                                             {{ $action['label'] }}
                                                                             {{-- 角色已有標籤 --}}
-                                                                            <span class="role-owned-badge badge badge-light border ml-1 text-secondary" style="display:none;">角色已有</span>
+                                                                            <span class="role-owned-badge badge bg-secondary border ml-1 text-secondary" style="display:none;">角色已有</span>
                                                                         </label>
                                                                     </div>
                                                                 @endforeach

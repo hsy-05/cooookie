@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'csrf' => \App\Http\Middleware\VerifyCsrfToken::class,
             'cookies' => \App\Http\Middleware\EncryptCookies::class,
             'admin.perm' => \App\Http\Middleware\CheckBackendPermission::class,
+            'admin.theme' => \App\Http\Middleware\AdminThemeMiddleware::class,
         ]);
 
         // 加入 Laravel web group middleware 堆疊

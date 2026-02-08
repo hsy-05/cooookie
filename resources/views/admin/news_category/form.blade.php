@@ -18,80 +18,116 @@
                 @method('PUT')
             @endif
 
-            <!-- 表單頁籤 -->
-            <div class="card card-primary card-outline card-outline-tabs">
-                <div class="card-header p-0 border-bottom-0">
-                    <ul class="nav nav-tabs" id="role-tab" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#general">一般資料</a></li>
-                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#content">內容</a></li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content" id="form-tabs-content">
-                        <!-- 一般資料頁籤 -->
-                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                            <!-- 語系頁籤 -->
-                            <div class="nav-tabs-custom mt-3">
-                                <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
+            <div class="col-md-12">
+                <x-admin.card-tabs>
+                    {{-- 頁籤標題區 --}}
+                    <x-slot:tabs>
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="pill" href="#tab-general" role="tab">一般資料</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="pill" href="#tab-content" role="tab">內容設定</a>
+                        </li>
+                    </x-slot:tabs>
+
+                    {{-- 頁籤內容區 --}}
+                    <x-slot:content>
+                        {{-- 一般資料頁籤 --}}
+                        <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                            {{-- 語言切換內容 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
                                     @foreach ($langs as $lang)
                                         <li class="nav-item">
                                             <a class="nav-link {{ $loop->first ? 'active' : '' }}"
                                                 id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
-                                                href="#lang-{{ $lang->lang_id }}" role="tab"
-                                                aria-controls="lang-{{ $lang->lang_id }}"
-                                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                                href="#lang-{{ $lang->lang_id }}" role="tab">
                                                 {{ $lang->name }} ({{ $lang->code }})
                                             </a>
                                         </li>
                                     @endforeach
                                 </ul>
 
-                                <div class="tab-content" id="language-tabs-content">
+                                <div class="tab-content mt-3">
                                     @foreach ($langs as $lang)
-                                        @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
                                         <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                            id="lang-{{ $lang->lang_id }}" role="tabpanel"
-                                            aria-labelledby="lang-{{ $lang->lang_id }}-tab">
+                                            id="lang-{{ $lang->lang_id }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label for="name_{{ $lang->lang_id }}">分類名稱</label>
+                                                <label for="name_{{ $lang->lang_id }}">標題</label>
                                                 <input type="text" id="name_{{ $lang->lang_id }}"
-                                                    name="desc[{{ $lang->lang_id }}][name]" class="form-control"
-                                                    value="{{ $desc->name ?? '' }}">
+                                                    name="desc[{{ $lang->lang_id }}][name]"
+                                                    class="form-control required-field"
+                                                    value="{{ $descMap[$lang->lang_id]->name ?? '' }}">
                                             </div>
-                                            <!-- 簡述欄位 -->
                                             <div class="form-group">
                                                 <label for="description_{{ $lang->lang_id }}">簡述</label>
                                                 <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
-                                                    maxlength="25" rows="3" placeholder="最多 25 個字">{{ $desc->description ?? '' }}</textarea>
+                                                    maxlength="25" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
                             </div>
 
-                            <!-- 共同設定 -->
-                            <div class="card mt-3">
-                                <div class="card-header">
-                                    <h5>共同設定</h5>
-                                </div>
+                            <div class="card m-3 mt-0">
+                                <div class="card-header"><h5>共同設定</h5></div>
                                 <div class="card-body">
                                     <div class="form-row">
+                                        {{-- 圖片上傳區塊 --}}
+                                        <div class="col-md-6 form-group">
+                                            <label for="image_url">
+                                                封面圖片
+                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
+                                                @if (isset($fileConfigs['image_url']))
+                                                <i class="fas fa-question-circle text-muted"
+                                                data-toggle="tooltip"
+                                                title="建議尺寸：{{ $fileConfigs['image_url']['width'] }} x {{ $fileConfigs['image_url']['height'] }} px ，格式：JPG, PNG, WebP"></i>
+                                                @endif
+                                            </label>
+
+                                            <div class="input-group">
+                                                <input type="file" id="image_url" name="image_url"
+                                                    class="form-control image-upload-input"
+                                                    accept="image/*">
+
+                                                {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
+                                                <div class="input-group-append {{ ($isEdit && $category->image_url) ? '' : 'd-none' }}"
+                                                    id="image-action-group-image_url">
+                                                    @if ($isEdit && $category->image_url)
+                                                        <button type="button"
+                                                                class="btn btn-info js-open-preview"
+                                                                data-url="{{ $UPLOAD_PATH . '/' . $category->image_url }}">
+                                                            瀏覽
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger btn-delete-image"
+                                                                data-url="{{ route('admin.news_category.delete-image', $category->cat_id) }}"
+                                                                data-field="image_url">
+                                                            刪除
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            {{-- 檔案資訊顯示區 --}}
+                                            <div id="stats-adv_img_url" class="mt-1 small text-secondary upload-stats"></div>
+                                        </div>
+
                                         <div class="col-md-3 form-group">
                                             <label for="parent_id">父類 (Parent)</label>
                                             <select id="parent_id" name="parent_id" class="form-control">
                                                 <option value="0">無 (最頂層)</option>
-                                                @foreach ($parents as $p)
+                                                @foreach ($parentsList as $parent)
                                                     {{--
-                防呆邏輯：
-                1. 如果該項目的 can_be_parent 為 false，則加上 disabled 禁止選取。
-                2. 同時在名稱後面加註「(層級限制)」，對使用者更友善。
-            --}}
-                                                    <option value="{{ $p->cat_id }}"
-                                                        {{ old('parent_id', $category->parent_id ?? '') == $p->cat_id ? 'selected' : '' }}
-                                                        {{ !$p->can_be_parent ? 'disabled' : '' }}>
-                                                        {{ $p->name }}
-                                                        {{ !$p->can_be_parent ? '(已達層級上限)' : '' }} (ID:
-                                                        {{ $p->cat_id }})
+                                                        防呆邏輯：
+                                                        1. 如果該項目的 can_be_parent 為 false，則加上 disabled 禁止選取。
+                                                        2. 同時在名稱後面加註「(層級限制)」，對使用者更友善。
+                                                    --}}
+                                                    <option value="{{ $parent->cat_id }}"
+                                                        {{ old('parent_id', $category->parent_id ?? '') == $parent->cat_id ? 'selected' : '' }}
+                                                        {{ !$parent->can_be_parent ? 'disabled' : '' }}>
+                                                        {{ $parent->name }}
+                                                        {{ !$parent->can_be_parent ? '(已達層級上限)' : '' }} (ID:
+                                                        {{ $parent->cat_id }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -121,40 +157,40 @@
                             </div>
                         </div>
 
-                        <!-- 分類內容頁籤 -->
-                        <div class="tab-pane fade" id="content">
-                            <!-- 語系內容的分頁 -->
-                            <ul class="nav nav-tabs mt-2" role="tablist">
-                                @foreach ($langs as $lang)
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
-                                            href="#content-{{ $lang->lang_id }}">{{ $lang->name }}
-                                            ({{ $lang->code }})
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                        {{-- 內容頁籤 --}}
+                        <div class="tab-pane fade" id="tab-content" role="tabpanel">
+                        {{-- 語言切換內容 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
+                                                href="#lang-cnt-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
 
-                            <div class="tab-content mt-3">
-                                @foreach ($langs as $lang)
-                                    @php $desc = $descMap[$lang->lang_id] ?? null; @endphp
-                                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                        id="content-{{ $lang->lang_id }}">
-                                        <div class="form-group">
-                                            <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $desc->content ?? '' }}</textarea>
+                                <div class="tab-content mt-3">
+                                    @foreach ($langs as $lang)
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-cnt-{{ $lang->lang_id }}" role="tabpanel">
+                                            <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $descMap[$lang->lang_id]->content ?? '' }}</textarea>
                                         </div>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 提交按鈕 -->
-                <div class="card-footer table-actions-container">
-                    <a href="{{ route('admin.news_category.index') }}" class="btn btn-secondary">返回</a>
-                    <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
-                </div>
+                        </div>
+                    </x-slot:content>
+
+                    {{-- 底部按鈕區 --}}
+                    <x-slot:footer>
+                        <a href="{{ route('admin.news_category.index') }}" class="btn btn-secondary">返回</a>
+                        <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
+                    </x-slot:footer>
+                </x-admin.card-tabs>
             </div>
         </form>
     </x-admin.page-message>

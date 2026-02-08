@@ -3,164 +3,196 @@
 
 @section('title', $pageTitle)
 
+{{-- 麵包屑與標題組件：統一由外部傳入變數控制 --}}
 @include('components.admin.page_content_header')
 
 @section('content')
     <x-admin.page-message>
-        <form id="advertForm"
-            action="{{ isset($isEdit) && $isEdit ? route('admin.advert.update', $advert->adv_id) : route('admin.advert.store') }}"
+        {{-- 表單提交路徑：透過 $isEdit 判斷 --}}
+        <form id="advertForm" name="the-form"
+            action="{{ $isEdit ? route('admin.advert.update', $advert->adv_id) : route('admin.advert.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
-            @if (isset($isEdit) && $isEdit)
+            @if ($isEdit)
                 @method('PUT')
             @endif
 
-            <!-- 表單頁籤 -->
-            <div class="card card-primary card-outline card-outline-tabs">
-                <div class="card-header p-0 border-bottom-0">
-                    <ul class="nav nav-tabs" id="role-tab" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#general">一般資料</a></li>
-                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#preview">其他／預覽</a></li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content" id="form-tabs-content">
-                        <!-- 一般資料頁籤 -->
-                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                            <!-- 語系頁籤 -->
-                            <div class="nav-tabs-custom mt-3">
-                                <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
+            <div class="col-md-12">
+                <x-admin.card-tabs>
+                    {{-- 1. 頁籤定義區 --}}
+                    <x-slot:tabs>
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="pill" href="#tab-general" role="tab">一般資料</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="pill" href="#tab-preview" role="tab">其他／預覽</a>
+                        </li>
+                    </x-slot:tabs>
+
+                    {{-- 2. 頁籤內容區 --}}
+                    <x-slot:content>
+                        {{-- 一般資料：含多語系與共同設定 --}}
+                        <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+
+                            {{-- A. 多語系標題區 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
                                     @foreach ($langs as $lang)
                                         <li class="nav-item">
                                             <a class="nav-link {{ $loop->first ? 'active' : '' }}"
-                                                id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
-                                                href="#lang-{{ $lang->lang_id }}" role="tab"
-                                                aria-controls="lang-{{ $lang->lang_id }}"
-                                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
-                                                ({{ $lang->code }})
+                                               id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                               href="#lang-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
                                             </a>
                                         </li>
                                     @endforeach
                                 </ul>
 
-                                <div class="tab-content" id="lang-tabs-content">
+                                <div class="tab-content mt-3">
                                     @foreach ($langs as $lang)
-                                        @php $d = $descMap[$lang->lang_id] ?? null; @endphp
                                         <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                            id="lang-{{ $lang->lang_id }}" role="tabpanel"
-                                            aria-labelledby="lang-{{ $lang->lang_id }}-tab">
-
-                                            <!-- 語系標題 -->
+                                             id="lang-{{ $lang->lang_id }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label>標題（{{ $lang->code }}）</label>
-                                                <input type="text" name="desc[{{ $lang->lang_id }}][adv_name]"
-                                                    class="form-control"
-                                                    value="{{ old('desc.' . $lang->lang_id . '.adv_name', $d->adv_name ?? '') }}">
+                                                <label for="adv_name_{{ $lang->lang_id }}">廣告標題 ({{ $lang->code }})</label>
+                                                <input type="text"
+                                                       id="adv_name_{{ $lang->lang_id }}"
+                                                       name="desc[{{ $lang->lang_id }}][adv_name]"
+                                                       class="form-control required-field"
+                                                       placeholder="請輸入標題"
+                                                       value="{{ old('desc.' . $lang->lang_id . '.adv_name', $descMap[$lang->lang_id]->adv_name ?? '') }}">
                                             </div>
-
-                                            <!-- 語系圖片（如需要不同語系圖片，可取消註解） -->
-                                            {{-- <div class="form-group">
-                                            <label>圖片（{{ $lang->code }}）</label>
-                                            <input type="file" name="desc[{{ $lang->lang_id }}][image]"
-                                                   class="form-control">
-                                        </div> --}}
                                         </div>
                                     @endforeach
                                 </div>
                             </div>
 
-                            <!-- 共同設定區 -->
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h5>共同設定</h5>
-                                </div>
+                            {{-- B. 共同設定區 (廣告核心邏輯) --}}
+                            <div class="card m-3 mt-0 shadow-none border">
+                                <div class="card-header bg-light"><h5>共同設定</h5></div>
                                 <div class="card-body">
 
-                                    <!-- 分類獨立一行，寬度 col-md-6 -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="cat_id">分類</label>
-                                            <select name="cat_id" id="cat_id" class="form-control" required>
-                                                <option value="">-- 選擇分類 --</option>
+                                    {{-- 分類選擇：驅動下方欄位顯示/隱藏的關鍵 --}}
+                                    <div class="form-row mb-3">
+                                        <div class="col-md-6 form-group">
+                                            <label for="cat_id">廣告分類</label>
+                                            <select name="cat_id" id="cat_id" class="form-control select2 required-field">
+                                                <option value="">-- 請選擇分類 --</option>
                                                 @foreach ($cats as $cat)
                                                     <option value="{{ $cat->cat_id }}"
+                                                        {{-- 將後端邏輯透過 JSON 傳給前端，不混雜在 HTML 屬性中 --}}
                                                         data-func='@json($cat->cat_func_scope)'
                                                         data-params='@json($cat->cat_params)'
-                                                        {{ old('cat_id', $advert->cat_id ?? '') == $cat->cat_id ? 'selected' : '' }}>
-                                                        {{ $cat->cat_code }}
-                                                        @if (optional($cat->descs->first())->cat_name)
-                                                            - {{ optional($cat->descs->first())->cat_name }}
-                                                        @endif
+                                                        {{ (old('cat_id', $advert->cat_id ?? '') == $cat->cat_id) ? 'selected' : '' }}>
+                                                        [{{ $cat->cat_code }}] {{ optional($cat->descs->first())->cat_name }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
+                                    {{-- 圖片上傳區塊 --}}
+                                    <div class="form-row">
 
-                                    <!-- 圖片區塊 -->
-                                    <div class="row">
-                                        <!-- 電腦版圖片 -->
-                                        <div class="col-md-6 mb-4 field field-adv_img_url">
-                                            <label>廣告圖-電腦版</label>
+                                        {{-- 1. 廣告圖 - 電腦版 --}}
+                                        <div class="col-md-6 form-group field field-adv_img_url d-none">
+                                            <label for="adv_img_url">
+                                                廣告圖 (電腦版)
+                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
+                                                @if (isset($fileConfigs['adv_img_url']))
+                                                <i class="fas fa-question-circle text-muted"
+                                                data-toggle="tooltip"
+                                                title="建議尺寸：{{ $fileConfigs['adv_img_url']['width'] }} x {{ $fileConfigs['adv_img_url']['height'] }} px
+                                                        ，格式：JPG, PNG, WebP"></i>
+                                                @endif
+                                            </label>
                                             <div class="input-group">
-                                                <input type="file" name="adv_img_url" class="form-control">
-                                                @if (isset($isEdit) && $advert->adv_img_url)
-                                                    <div class="input-group-append">
-                                                        <button type="button" class="btn btn-info btn-browse-image"
-                                                            data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_url }}">
+                                                <input type="file" id="adv_img_url" name="adv_img_url"
+                                                    class="form-control image-upload-input"
+                                                    accept="image/*">
+
+                                                {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
+                                                <div class="input-group-append {{ ($isEdit && $advert->adv_img_url) ? '' : 'd-none' }}"
+                                                    id="image-action-group-adv_img_url">
+                                                    @if ($isEdit && $advert->adv_img_url)
+                                                        <button type="button"
+                                                                class="btn btn-info js-open-preview"
+                                                                data-url="{{ $UPLOAD_PATH . '/' . $advert->adv_img_url }}">
                                                             瀏覽
                                                         </button>
-                                                    </div>
-                                                @endif
+                                                        <button type="button" class="btn btn-danger btn-delete-image"
+                                                                data-url="{{ route('admin.advert.delete-image', $advert->adv_id) }}"
+                                                                data-field="adv_img_url">
+                                                            刪除
+                                                        </button>
+                                                    @endif
+                                                </div>
                                             </div>
-                                            <small class="form-text text-muted field-hint"></small>
-                                            <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
+
+                                            {{-- 檔案資訊顯示區 --}}
+                                            <div id="stats-adv_img_url" class="mt-1 small text-secondary upload-stats"></div>
                                         </div>
 
-                                        <!-- 手機版圖片 -->
-                                        <div class="col-md-6 mb-4 field field-adv_img_m_url">
-                                            <label>廣告圖-手機版</label>
+                                        {{-- 2. 廣告圖 - 手機版 --}}
+                                        <div class="col-md-6 form-group field field-adv_img_m_url d-none">
+                                            <label for="adv_img_m_url">
+                                                廣告圖 (手機版)
+                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
+                                                @if (isset($fileConfigs['adv_img_url']))
+                                                <i class="fas fa-question-circle text-muted"
+                                                data-toggle="tooltip"
+                                                title="建議尺寸：{{ $fileConfigs['adv_img_url']['width'] }} x {{ $fileConfigs['adv_img_url']['height'] }} px
+                                                        ，格式：JPG, PNG, WebP"></i>
+                                                @endif
+                                            </label>
+
                                             <div class="input-group">
-                                                <input type="file" name="adv_img_m_url" class="form-control">
-                                                @if (isset($isEdit) && $advert->adv_img_m_url)
-                                                    <div class="input-group-append">
-                                                        <button type="button" class="btn btn-info btn-browse-image"
-                                                            data-image="{{ $UPLOAD_PATH . '/' . $advert->adv_img_m_url }}">
+                                                <input type="file" id="adv_img_m_url" name="adv_img_m_url"
+                                                    class="form-control image-upload-input"
+                                                    accept="image/*">
+
+                                                <div class="input-group-append {{ ($isEdit && $advert->adv_img_m_url) ? '' : 'd-none' }}"
+                                                    id="image-action-group-adv_img_m_url">
+                                                    @if ($isEdit && $advert->adv_img_m_url)
+                                                        <button type="button"
+                                                                class="btn btn-info js-open-preview"
+                                                                data-url="{{ $UPLOAD_PATH . '/' . $advert->adv_img_m_url }}">
                                                             瀏覽
                                                         </button>
-                                                    </div>
-                                                @endif
+                                                        <button type="button" class="btn btn-danger btn-delete-image"
+                                                                data-url="{{ route('admin.advert.delete-image', $advert->adv_id) }}"
+                                                                data-field="adv_img_m_url">
+                                                            刪除
+                                                        </button>
+                                                    @endif
+                                                </div>
                                             </div>
-                                            <small class="form-text text-muted field-hint"></small>
-                                            <img class="preview-img img-fluid mt-2 d-none" alt="預覽">
+
+                                            <div id="stats-adv_img_m_url" class="mt-1 small text-secondary upload-stats"></div>
                                         </div>
                                     </div>
 
-                                    <!-- 廣告連結 -->
-                                    <div class="row">
-                                        <div class="col-md-12 mb-4 field field-adv_link_url">
-                                            <label>廣告連結</label>
-                                            <input type="url" name="adv_link_url" class="form-control"
-                                                value="{{ old('adv_link_url', $advert->adv_link_url ?? '') }}">
-                                            <small class="form-text text-muted field-hint">請輸入完整網址 (https://...)</small>
+                                    {{-- 連結設定 --}}
+                                    <div class="form-row field field-adv_link_url d-none">
+                                        <div class="col-md-12 form-group">
+                                            <label for="adv_link_url">廣告跳轉連結</label>
+                                            <input type="url" id="adv_link_url" name="adv_link_url" class="form-control"
+                                                   placeholder="https://..." value="{{ old('adv_link_url', $advert->adv_link_url ?? '') }}">
+                                            <small class="text-muted">請輸入包含 http(s):// 的完整網址</small>
                                         </div>
                                     </div>
 
-                                    <!-- 排序與是否顯示 -->
-                                    <div class="row">
-                                        <div class="col-md-6 form-group">
-                                            <label for="display_order">排序</label>
-                                            <input type="number" id="display_order" name="display_order"
-                                                class="form-control"
-                                                @if (isset($isEdit)) value="{{ $advert->display_order }}" @endif>
+                                    {{-- 顯示狀態與排序 --}}
+                                    <div class="form-row border-top pt-3">
+                                        <div class="col-md-4 form-group">
+                                            <label for="display_order">顯示排序</label>
+                                            <input type="number" id="display_order" name="display_order" class="form-control"
+                                                   value="{{ old('display_order', $advert->display_order ?? 0) }}">
                                         </div>
-                                        <div class="col-md-2 form-group ml-3">
-                                            <label for="is_visible">是否顯示</label>
+                                        <div class="col-md-4 form-group px-md-5">
+                                            <label>是否前台顯示</label>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input" id="is_visible"
-                                                    name="is_visible" value="1"
-                                                    {{ isset($isEdit) && $advert->is_visible ? 'checked' : 'checked' }}>
-                                                <label class="custom-control-label" for="is_visible"></label>
+                                                       name="is_visible" value="1" {{ old('is_visible', $advert->is_visible ?? 1) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="is_visible">啟動顯示</label>
                                             </div>
                                         </div>
                                     </div>
@@ -168,101 +200,80 @@
                             </div>
                         </div>
 
-                        <!-- 第二頁籤：其他／預覽 -->
-                        <div class="tab-pane fade p-3" id="preview" role="tabpanel" aria-labelledby="tab-preview">
-                            <p class="text-muted">這邊可以擺放預覽功能或其他進階設定區塊。</p>
+                        {{-- 其他／預覽頁籤 --}}
+                        <div class="tab-pane fade p-3" id="tab-preview" role="tabpanel">
+                            <div class="callout callout-info">
+                                <h5><i class="fas fa-info"></i> 預覽說明</h5>
+                                <p>存檔後，您可以至前台對應分類區塊確認廣告呈現效果。</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </x-slot:content>
 
-
-                <!-- 提交按鈕 -->
-                <div class="text-center mt-3">
-                    <a href="{{ route('admin.advert.index') }}" class="btn btn-secondary">返回</a>
-                    <button type="submit" class="btn btn-success">
-                        {{ isset($isEdit) ? '更新' : '新增' }}
-                    </button>
-                </div>
+                    {{-- 3. 底部動作按鈕 --}}
+                    <x-slot:footer>
+                        <a href="{{ route('admin.advert.index') }}" class="btn btn-secondary shadow-sm">
+                            <i class="fas fa-chevron-left mr-1"></i>返回列表
+                        </a>
+                        <button type="submit" class="btn btn-success px-4 shadow-sm">
+                            <i class="fas fa-save mr-1"></i>{{ $isEdit ? '儲存更新' : '確認新增' }}
+                        </button>
+                    </x-slot:footer>
+                </x-admin.card-tabs>
             </div>
         </form>
     </x-admin.page-message>
 
-    <!-- 共用 圖片預覽 Modal -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">圖片預覽</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="imageModalImg" src="" class="img-fluid" alt="圖片">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
-                </div>
-            </div>
-        </div>
-    </div>
 @stop
 
 @section('js')
     <script>
-        (function($) {
-            function parseJSONRaw(v) {
-                if (!v) return null;
-                if (typeof v === 'object') return v;
-                try {
-                    return JSON.parse(v);
-                } catch (e) {
-                    return null;
-                }
-            }
+        /**
+         * 廣告管理模組表單邏輯
+         * 負責：分類連動欄位、圖片預覽、表單防呆
+         */
+        $(function() {
+            const $form = $('form[name="the-form"]');
+            const $catSelect = $('#cat_id');
 
-            function applyCategoryScope(option) {
+            // --- 1. 分類連動邏輯 (Category Scope) ---
+
+            function updateFieldScope() {
+                const $selected = $catSelect.find('option:selected');
+                const funcScope = $selected.data('func') || [];
+                const params = $selected.data('params') || {};
+
+                // 先隱藏所有動態欄位並清空提示
                 $('.field').addClass('d-none');
                 $('.field-hint').text('');
-                if (!option || !option.value) return;
-                const func = parseJSONRaw($(option).attr('data-func')) || [];
-                const params = parseJSONRaw($(option).attr('data-params')) || {};
-                func.forEach(name => {
-                    const $el = $('.field-' + name);
-                    if ($el.length) {
-                        $el.removeClass('d-none');
-                        const hint = params.fields?.[name];
-                        if (hint?.width && hint?.height) {
-                            $el.find('.field-hint').text(`建議尺寸：${hint.width} x ${hint.height}`);
+
+                // 根據選取的分類開啟對應欄位
+                funcScope.forEach(fieldName => {
+                    const $fieldContainer = $(`.field-${fieldName}`);
+                    if ($fieldContainer.length) {
+                        $fieldContainer.removeClass('d-none');
+
+                        // 注入建議尺寸提示 (如果後端有傳 params)
+                        const config = params.fields ? params.fields[fieldName] : null;
+                        if (config && config.width) {
+                            $fieldContainer.find('.field-hint').text(`💡 建議尺寸：${config.width} x ${config.height} px`);
                         }
                     }
                 });
             }
 
-            $(function() {
-                applyCategoryScope($('#cat_id option:selected')[0]);
-                $('#cat_id').on('change', function() {
-                    applyCategoryScope(this.options[this.selectedIndex]);
-                });
-                $(document).on('click', '.btn-browse-image', function() {
-                    const img = $(this).data('image');
-                    if (!img) return alert('此項目尚無圖片可預覽');
-                    $('#imageModalImg').attr('src', img);
-                    $('#imageModal').modal('show');
-                });
-                $(document).on('change', 'input[type=file]', function() {
-                    const file = this.files?.[0];
-                    const $preview = $(this).closest('.field').find('.preview-img');
-                    if (!file) {
-                        return $preview.addClass('d-none').attr('src', '');
-                    }
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        $preview.removeClass('d-none').attr('src', evt.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                });
+            // 初始化與變更事件觸發
+            $catSelect.on('change', updateFieldScope);
+            updateFieldScope();
+
+            // --- 3. 表單防呆與提交 ---
+
+            $form.on('submit', function(e) {
+                // 調用全域通用驗證函數 (需確認 admin 專案中有定義 validateRequiredFields)
+                if (typeof validateRequiredFields === "function" && !validateRequiredFields(this)) {
+                    e.preventDefault();
+                    return false;
+                }
             });
-        })(jQuery);
+        });
     </script>
 @stop

@@ -1,13 +1,8 @@
 @extends('adminlte::page')
+@section('title', $pageTitle)
 
-@section('title', '消息分類管理')
-
-@section('content_header')
-    <h1>消息分類管理</h1>
-@stop
-
-@section('css')
-@stop
+{{-- 麵包屑與標題組件 --}}
+@include('components.admin.page_content_header')
 
 @section('content')
     <x-admin.page-message>
@@ -43,87 +38,4 @@
             </div>
         </div>
     </x-admin.page-message>
-@stop
-
-@section('js')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            /**
-             * 刪除按鈕監聽
-             */
-
-            /**
-             * 刪除按鈕監聽（統一寫法）
-             */
-            const deleteButtons = document.querySelectorAll('.js-delete-btn');
-
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-
-                    const id = this.dataset.id;
-                    const title = this.dataset.title || '確定刪除這筆資料嗎？';
-                    const text = this.dataset.text || '刪除後無法恢復！';
-
-                    /**
-                     * 防呆：檢查是否有子分類
-                     * 若沒有樹狀資料，length 會是 0
-                     */
-                    const hasChildren = $(`.tree-row[data-parent="${id}"]`).length > 0;
-
-                    if (hasChildren) {
-                        showAlert(
-                            'warning',
-                            '無法刪除',
-                            '該分類下仍有子分類，請先刪除或移動子分類後再試。',
-                            false,
-                            'center',
-                            true,
-                            '我知道了',
-                            0
-                        );
-                        return;
-                    }
-
-                    confirmDelete(id, title, text);
-                });
-            });
-
-
-            /**
-             * 樹狀摺疊切換
-             */
-            $(document).on('click', '.btn-toggle-tree', function() {
-                const $icon = $(this);
-                const catId = $icon.data('id');
-                const $children = $(`.tree-row[data-parent="${catId}"]`);
-
-                if ($children.is(':visible')) {
-                    // 如果目前是顯示的 -> 隱藏所有子孫
-                    recursiveHide(catId);
-                    $icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
-                } else {
-                    // 如果目前是隱藏的 -> 只顯示直接子代
-                    $children.fadeIn(200);
-                    $icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
-                }
-            });
-
-            /**
-             * 遞迴隱藏函式：確保父層關閉時，底下的所有層級都一起關閉
-             */
-            function recursiveHide(parentId) {
-                const $children = $(`.tree-row[data-parent="${parentId}"]`);
-                $children.each(function() {
-                    const childId = $(this).data('id');
-                    $(this).hide();
-
-                    // 把子層的圖示也轉回「右箭頭」狀態
-                    const $subIcon = $(this).find('.btn-toggle-tree');
-                    $subIcon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
-
-                    recursiveHide(childId); // 繼續往更深層隱藏
-                });
-            }
-        });
-    </script>
 @stop

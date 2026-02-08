@@ -9,15 +9,12 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class NewsController extends BaseAdminController
 {
-    use \App\Traits\HasImageFields; // 引入外掛
-
     // 定義這個 Controller 屬於哪組權限與標題
     protected $permissionName = 'news';
     protected $pageTitle = '最新消息';
 
     /**
-     * 頁面相關配置 (配置驅動設計)
-     * 這裡設定好，後面的程式碼就會自動抓取，非常方便維護。
+     * 頁面相關配置
      */
     protected $pageCfg = [
         // 定義哪些欄位需要處理檔案上傳
@@ -58,30 +55,30 @@ class NewsController extends BaseAdminController
 
     public function store(Request $request)
     {
-        // 1. 基礎驗證
+        // 基礎驗證
         $this->validateRequest($request);
 
         return DB::transaction(function () use ($request) {
             try {
                 $news = new News();
 
-                // 2. 處理檔案/圖片上傳
+                // 處理檔案/圖片上傳
                 $this->handleFileUploads($request, $news);
 
-                // 3. 儲存主表資料
+                // 儲存主表資料
                 $news->fill([
                     'cat_id'        => $request->cat_id,
                     'is_visible'    => $request->has('is_visible'),
                     'display_order' => $request->display_order ?? 0,
                 ])->save();
 
-                // 4. 儲存多語系資料
+                // 儲存多語系資料
                 $this->saveTranslations($news, $request->desc);
 
-                // 5. 紀錄操作日誌
+                // 紀錄操作日誌
                 $news->writeLog('新增', $news->desc->title ?? '未知名消息');
 
-                // 6. 成功回傳 (使用自定義 ContentHelper)
+                // 成功回傳 (使用自定義 ContentHelper)
                 ContentHelper::showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
@@ -107,17 +104,17 @@ class NewsController extends BaseAdminController
 
         return DB::transaction(function () use ($request, $news) {
             try {
-                // 1. 處理檔案/圖片更新 (會自動判斷舊檔並刪除)
+                // 處理檔案/圖片更新 (會自動判斷舊檔並刪除)
                 $this->handleFileUploads($request, $news);
 
-                // 2. 更新主表
+                // 更新主表
                 $news->update([
                     'cat_id'        => $request->cat_id,
                     'is_visible'    => $request->has('is_visible'),
                     'display_order' => $request->display_order ?? 0,
                 ]);
 
-                // 3. 更新多語系資料
+                // 更新多語系資料
                 $this->saveTranslations($news, $request->desc);
 
                 $news->writeLog('編輯', $news->desc->title ?? '未知名消息');
@@ -137,18 +134,18 @@ class NewsController extends BaseAdminController
 
     public function destroy(News $news)
     {
-        // 1. 先抓取標題供 Log 使用
+        // 先抓取標題供 Log 使用
         $news->load('desc');
         $title = $news->desc->title ?? '未知名消息';
 
-        // 2. 刪除相關聯的所有實體檔案 (防呆：避免伺服器留下一堆廢圖)
+        // 刪除相關聯的所有實體檔案 (防呆：避免伺服器留下一堆廢圖)
         foreach (array_keys($this->pageCfg['files']) as $field) {
             if ($news->$field) {
                 ImageHelper::deleteImage($news->$field, 'public');
             }
         }
 
-        // 3. 刪除資料庫紀錄
+        // 刪除資料庫紀錄
         NewsDesc::where('news_id', $news->news_id)->delete();
         $news->delete();
 

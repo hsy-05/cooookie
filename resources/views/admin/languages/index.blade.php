@@ -59,7 +59,7 @@
                                         {{-- 刪除按鈕 --}}
                                         @can('languages.delete')
                                             <form action="{{ route('admin.languages.destroy', $lang->lang_id) }}"
-                                                method="POST" style="display:inline-block;"
+                                                method="POST"
                                                 id="deleteForm{{ $lang->lang_id }}">
                                                 @csrf
                                                 @method('DELETE')

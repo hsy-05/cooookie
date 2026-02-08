@@ -48,7 +48,7 @@
                         <a class="btn btn-sm btn-warning"
                             href="{{ route('admin.advert_category.edit', $row->cat_id) }}">編輯</a>
                         <form action="{{ route('admin.advert_category.destroy', $row->cat_id) }}" method="POST"
-                            style="display:inline-block;" onsubmit="return confirm('確定要刪除嗎？')">
+                             onsubmit="return confirm('確定要刪除嗎？')">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-danger">刪除</button>
                         </form>

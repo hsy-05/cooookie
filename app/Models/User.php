@@ -4,10 +4,25 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Traits\Loggable; // 引入 Trait
 
 class User extends Authenticatable
 {
+    use Loggable; // 使用 Trait
     use Notifiable;
+
+    // 🔴 關閉自動監聽，改在 Controller 手動紀錄，確保標題正確
+    public $enableAutoLog = false;
+
+    // 定義 Log 顯示的模組名稱
+    public $logName = '網站管理員';
+
+    // 告訴 Trait 標題要抓 'log_title' 這個屬性
+    public $logTitle = 'log_title';
+
+    // 指定操作的資料表名稱
+    protected $table = 'users';
+
 
     /**
      * 特殊權限常數（避免 magic string）
@@ -141,7 +156,21 @@ class User extends Authenticatable
      */
     public function getPreference($key, $default = null)
     {
-        return data_get($this->preferences, $key, $default);
+        // 定義一套系統級別的預設樣式
+        $systemDefaults = [
+            'dark_mode' => false,
+            'sidebar_collapse' => false,
+            'sidebar_fixed' => true,
+            'navbar_color' => 'navbar-white navbar-light',
+            'sidebar_theme' => 'sidebar-dark-primary',
+            'accent_color' => 'accent-primary',
+            'text_sm' => false,
+        ];
+
+        // 如果沒傳入 $default，就從系統預設裡面找，再找不到才給 null
+        $finalDefault = $default ?? data_get($systemDefaults, $key);
+
+        return data_get($this->preferences, $key, $finalDefault);
     }
 
 
@@ -173,5 +202,14 @@ class User extends Authenticatable
     {
         // 假設我們用角色名稱作為描述，或是其他用戶資料字段
         return $this->role->name ?? '未設定角色'; // 如果有角色，則顯示角色名稱，否則顯示預設文字
+    }
+
+
+    /**
+     * 更新操作紀錄中的標題
+     */
+    public function getLogTitleAttribute()
+    {
+        return $this->name ?? '未命名管理員';
     }
 }
