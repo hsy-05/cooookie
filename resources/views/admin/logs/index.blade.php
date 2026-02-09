@@ -94,11 +94,13 @@
                                 </td>
                                 <td>{{ $log->user->name }}</td>
                                 <td>
-                                    <span
-                                        class="badge badge-{{ $log->action == '刪除' ? 'danger' : ($log->action == '新增' ? 'success' : 'info') }}">
+                                    {{-- 使用 Model 定義的 action_color 存取器，取得對應的顏色 --}}
+                                    <span class="badge badge-{{ $log->action_color }}">
                                         {{ $log->action }}
                                     </span>
-                                    {{ str_replace($log->action, '', $log->log_info) }}
+
+                                    {{-- 使用 Model 定義的 action_log_info 存取器，確保文字不重複且不誤刪中間字眼 --}}
+                                    {{ $log->action_log_info }}
                                 </td>
                                 <td class="text-center hidden-md">{{ $log->ip_address }}</td>
                                 <td class="text-center">{{ $log->created_at }}</td>

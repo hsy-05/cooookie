@@ -42,7 +42,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt(
-            $this->only('email', 'password') + ['is_active' => 1],
+            $this->only('email', 'password') + ['is_active' => 1], // 只有「啟用中」的帳號能登入
             $this->boolean('remember')
         )) {
             RateLimiter::hit($this->throttleKey());

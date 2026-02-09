@@ -17,7 +17,7 @@ class ActionLogController extends BaseAdminController
     public function index(Request $request)
     {
         // 自動清理舊資料 (簡單防呆)
-        ActionLog::where('created_at', '<', Carbon::now()->subMonths(3))->delete();
+        // ActionLog::where('created_at', '<', Carbon::now()->subMonths(3))->delete();
 
         // 處理日期快速篩選
         if ($request->has('quick_date')) {

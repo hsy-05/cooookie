@@ -1,7 +1,7 @@
 @echo off
 
 set TARGET_DIR=%~dp0
-set OUTPUT_FILE=%~dp0blade-files.txt
+set OUTPUT_FILE=%~dp0blade-files-list.txt
 
 if exist "%OUTPUT_FILE%" del "%OUTPUT_FILE%"
 

@@ -16,7 +16,7 @@ trait Loggable
      */
     public function writeLog(string $action, string $title = '')
     {
-        if (!Auth::check()) {
+        if (!Auth::check() && $action === '登入') {
             return;
         }
 

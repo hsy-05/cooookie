@@ -3,39 +3,110 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class ActionLog
+ * * @package App\Models
+ * @description 系統操作紀錄模型，負責紀錄並格式化管理員的操作行為。
+ */
 class ActionLog extends Model
 {
-    // 設定可以被寫入的欄位
-    protected $fillable = ['user_id', 'action', 'log_info', 'ip_address'];
+    /**
+     * 可批量寫入的欄位
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'action',
+        'log_info',
+        'ip_address'
+    ];
 
-    // 關聯 User，讓我們知道 user_id 是誰
-    public function user()
+    /*
+    |--------------------------------------------------------------------------
+    | 關聯設定 (Relationships)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 關聯至管理員帳號
+     * * @return BelongsTo
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withDefault([
-            'name' => '未知/系統' // 防呆：如果 user_id 是 null，顯示這個名字
+            'name' => '系統自動執行'
         ]);
     }
 
-    // 搜尋過濾器 (Scope)，讓 Controller 程式碼保持乾淨
+    /*
+    |--------------------------------------------------------------------------
+    | 存取器 (Accessors) - 格式化顯示邏輯
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 操作紀錄內容
+     * 規則：若 log_info 開頭包含 action 名稱，則將其移除以避免重複顯示。
+     * 例如：「編輯」-「編輯消息: XX」 -> 「編輯」-「消息: XX」
+     * * @return string
+     */
+    public function getActionLogInfoAttribute(): string
+    {
+        if (!$this->action) return $this->log_info;
+
+        // 使用 preg_replace 僅匹配字串開頭的動作名稱，u 修正位元組問題
+        return preg_replace('/^' . preg_quote($this->action, '/') . '\s*/u', '', $this->log_info);
+    }
+
+    /**
+     * 取得動作對應的 Bootstrap 顏色樣式
+     * * @return string
+     */
+    public function getActionColorAttribute(): string
+    {
+        return match($this->action) {
+            '新增' => 'success',
+            '刪除' => 'danger',
+            '編輯' => 'info',
+            '登入' => 'primary',
+            '登出' => 'secondary',
+            default => 'dark',
+        };
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 查詢作用域 (Scopes)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * 操作紀錄過濾器
+     * * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param array $filters 篩選參數
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function scopeFilter($query, $filters)
     {
-        // 搜尋關鍵字
-        if (isset($filters['search']) && $filters['search']) {
+        // 關鍵字搜尋 (支援 內容、IP、操作者姓名)
+        if (!empty($filters['search'])) {
             $query->where(function($q) use ($filters) {
-                $q->where('log_info', 'like', '%'.$filters['search'].'%')
-                  ->orWhere('ip_address', 'like', '%'.$filters['search'].'%')
-                  ->orWhereHas('user', function($u) use ($filters){
-                      $u->where('name', 'like', '%'.$filters['search'].'%');
+                $search = $filters['search'];
+                $q->where('log_info', 'like', "%{$search}%")
+                  ->orWhere('ip_address', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
                   });
             });
         }
 
-        // 搜尋日期區間
-        if (isset($filters['start_date']) && $filters['start_date']) {
+        // 日期區間篩選
+        if (!empty($filters['start_date'])) {
             $query->whereDate('created_at', '>=', $filters['start_date']);
         }
-        if (isset($filters['end_date']) && $filters['end_date']) {
+        if (!empty($filters['end_date'])) {
             $query->whereDate('created_at', '<=', $filters['end_date']);
         }
 

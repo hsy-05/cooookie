@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request; // 引入 Request
+use Symfony\Component\HttpKernel\Exception\HttpException; // 引入 HttpException
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,7 +32,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\VerifyCsrfToken::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })
-    ->create();
+    ->withExceptions(function (Exceptions $exceptions) {
+        // 渲染異常時的邏輯
+        $exceptions->render(function (HttpException $e, Request $request) {
+            // 如果狀態碼是 419 (CSRF 過期)
+            if ($e->getStatusCode() === 419) {
+                // 專業做法：導回登入頁，並帶上一個閃存訊息 (Flash Message)
+                return redirect()->route('login')->with('warning', '頁面已過期，請重新登入。');
+            }
+        });
+    })->create();
