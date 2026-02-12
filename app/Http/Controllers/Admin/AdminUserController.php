@@ -335,6 +335,7 @@ class AdminUserController extends BaseAdminController
             'dark_mode'        => true,
             'sidebar_collapse' => false,
             'navbar_color'     => 'navbar-white navbar-light',
+            'accent_color'     => '',
             'sidebar_theme'    => 'sidebar-dark-primary',
         ], $admin->preferences ?? []);
 

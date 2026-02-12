@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    // 在 config/site.php (或 app.php)
+    'upload_url' => env('APP_URL') . '/storage',
 ];

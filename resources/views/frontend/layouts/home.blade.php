@@ -18,10 +18,10 @@
                         <div class="swiper-slide">
                             <a href="{{ $banner->adv_link_url ?? '#' }}" class="d-block w-100 h-100 position-relative">
                                 {{-- 電腦版圖片 --}}
-                                <img src="{{ asset($UPLOAD_PATH . '/' . $banner->adv_img_url) }}" alt="banner"
+                                <img src="{{ asset('storage/' . $banner->adv_img_url) }}" alt="banner"
                                     class="banner-bg-img d-none d-md-block" />
                                 {{-- 手機版圖片 --}}
-                                <img src="{{ asset($UPLOAD_PATH . '/' . ($banner->adv_img_m_url ?? $banner->adv_img_url)) }}"
+                                <img src="{{ asset('storage/' . ($banner->adv_img_m_url ?? $banner->adv_img_url)) }}"
                                     alt="banner-mobile" class="banner-bg-img d-block d-md-none" />
                             </a>
                             <div class="banner-content-overlay">
