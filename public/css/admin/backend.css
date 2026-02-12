@@ -25,7 +25,20 @@
     --search-bg-light: #e9ecef; /* 搜尋區塊背景（亮色模式） */
     --search-bg-dark: #495057;  /* 搜尋區塊背景（深色模式） */
 }
+/* public/css/admin-custom.css */
 
+/* 側邊欄快捷按鈕組微調 */
+.btn-group-sm > .btn {
+    padding: 0.5rem; /* 讓點擊區域夠大 */
+    border-radius: 4px !important; /* 強制一點圓角感 */
+    margin: 0 2px; /* 按鈕間留一點呼吸空間 */
+    transition: transform 0.2s; /* 增加一點互動感 */
+}
+
+.btn-group-sm > .btn:hover {
+    transform: translateY(-2px); /* 懸浮時輕微往上跳 */
+    z-index: 10;
+}
 
 /* =========================
    瀏覽器自動填入 (Autofill) 修正
