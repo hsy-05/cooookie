@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('action_logs', function (Blueprint $table) {
             $table->id();
             // 誰操作的？允許 null (防呆：若員工離職被刪除，紀錄還在)
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('admin_id')->nullable()->constrained()->nullOnDelete();
             // 做了什麼動作？(新增/修改/刪除/登入)
             $table->string('action');
             // 詳細內容 (例如：新增消息: 2026春節餅乾禮盒)
@@ -23,7 +23,7 @@ return new class extends Migration
 
             // 建立索引 (Index)，讓之後搜尋變快
             $table->index('created_at');
-            $table->index('user_id');
+            $table->index('admin_id');
         });
     }
 

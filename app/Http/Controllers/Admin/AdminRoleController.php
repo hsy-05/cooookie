@@ -15,7 +15,7 @@ class AdminRoleController extends BaseAdminController
     public function index()
     {
         // 取得所有角色並統計人數，分頁顯示
-        $roles = AdminRole::withCount('users')->paginate(10);
+        $roles = AdminRole::withCount('admins')->paginate(10);
         return $this->view('admin.roles.index', compact('roles'));
     }
 
@@ -105,8 +105,8 @@ class AdminRoleController extends BaseAdminController
 
     public function update(Request $request, $id)
     {
-        /** @var User $user */
-        $user = Auth::user();
+        /** @var User $admin */
+        $admin = Auth::user();
 
         $role = AdminRole::findOrFail($id);
         $request->validate(['name' => 'required|unique:admin_roles,name,' . $id]);
@@ -115,7 +115,7 @@ class AdminRoleController extends BaseAdminController
 
         // 防呆：如果不是開發者，過濾掉開頭為 system. 的核心權限（保護系統）
         $submittedPerms = $request->input('permissions', []);
-        if (!$user->isDeveloper()) {
+        if (!$admin->isDeveloper()) {
             $submittedPerms = array_filter($submittedPerms, fn($p) => !str_starts_with($p, 'system.'));
         }
 
@@ -128,15 +128,15 @@ class AdminRoleController extends BaseAdminController
 
     public function destroy($id)
     {
-        /** @var User $user */
-        $user = Auth::user();
+        /** @var User $admin */
+        $admin = Auth::user();
         $role = AdminRole::findOrFail($id);
 
-        if ($role->users()->exists()) {
+        if ($role->admins()->exists()) {
             return back()->with('error', '該角色尚有管理員使用中，無法刪除');
         }
 
-        if (!$user->isDeveloper() && $role->isSuperRole()) {
+        if (!$admin->isDeveloper() && $role->isSuperRole()) {
             return back()->with('error', '您沒有權限刪除最高管理者角色');
         }
 

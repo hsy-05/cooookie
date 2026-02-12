@@ -15,7 +15,7 @@ class BaseAdminController extends Controller
     use HasImageFields; // 使用外掛
     /**
      * 定義該模組的權限名稱
-     * 例如：'news', 'users', 'roles'
+     * 例如：'news', 'admins', 'roles'
      * 子類別必須複寫此屬性
      */
     protected $permissionName = '';
@@ -159,7 +159,7 @@ class BaseAdminController extends Controller
         }
 
         ActionLog::create([
-            'user_id'    => Auth::id(),
+            'admin_id'    => Auth::id(),
             'action'     => '刪除',
             'log_info'   => $info,
             'ip_address' => request()->ip(),

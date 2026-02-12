@@ -10,7 +10,7 @@
 <x-admin.page-message>
 
     <form method="POST" enctype="multipart/form-data"
-          action="{{ ($isSelf && isset($fromProfile)) ? route('admin.users.updateProfile') : ($isEdit ? route('admin.users.update', $user->id) : route('admin.users.store')) }}">
+          action="{{ ($isSelf && isset($fromProfile)) ? route('admin.admins.updateProfile') : ($isEdit ? route('admin.admins.update', $admin->id) : route('admin.admins.store')) }}">
         @csrf
         {{-- 如果是 updateProfile，也是用 PUT --}}
         @if($isEdit || ($isSelf && isset($fromProfile))) @method('PUT') @endif
@@ -58,11 +58,11 @@
                                     <div class="row">
                                         <div class="col-md-6 form-group">
                                             <label for="name">真實姓名 <span class="text-danger">*</span></label>
-                                            <input type="text" id="name" name="name" class="form-control" value="{{ $user->name }}" required>
+                                            <input type="text" id="name" name="name" class="form-control" value="{{ $admin->name }}" required>
                                         </div>
                                         <div class="col-md-6 form-group">
                                             <label for="email">登入帳號 (Email) <span class="text-danger">*</span></label>
-                                            <input type="email" id="email" name="email" class="form-control" value="{{ $user->email }}" required {{ $isEdit ? 'readonly' : '' }}>
+                                            <input type="email" id="email" name="email" class="form-control" value="{{ $admin->email }}" required {{ $isEdit ? 'readonly' : '' }}>
                                         </div>
                                     </div>
 
@@ -77,7 +77,7 @@
                                         <div class="col-md-6 form-group">
                                             <label for="password_confirmation">確認密碼</label>
                                             <input type="password" id="password_confirmation" name="password_confirmation" class="form-control">
-                                            <small id="password-error" class="text-danger font-weight-bold d-none-soft">
+                                            <small id="password-error" class="text-danger font-weight-bold d-none">
                                                 <i class="fas fa-exclamation-circle"></i> 密碼輸入不一致
                                             </small>
                                         </div>
@@ -95,7 +95,7 @@
                                                 <option value="">請選擇</option>
                                                 @foreach ($roles as $role)
                                                     <option value="{{ $role->id }}"
-                                                        {{ $user->role_id == $role->id ? 'selected' : '' }}
+                                                        {{ $admin->role_id == $role->id ? 'selected' : '' }}
                                                         data-permissions='{{ json_encode($role->permissions ?? []) }}'>
                                                         {{ $role->name }}
                                                     </option>
@@ -107,7 +107,7 @@
                                             <select name="parent_id" class="form-control">
                                                 <option value="">-- 設定為頂層 --</option>
                                                 @foreach ($parents as $parent)
-                                                    <option value="{{ $parent->id }}" {{ $user->parent_id == $parent->id ? 'selected' : '' }}>
+                                                    <option value="{{ $parent->id }}" {{ $admin->parent_id == $parent->id ? 'selected' : '' }}>
                                                         {{ $parent->name }}
                                                     </option>
                                                 @endforeach
@@ -115,7 +115,7 @@
                                         </div>
                                         <div class="col-md-12">
                                             <div class="custom-control custom-switch">
-                                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1" {{ $user->is_active || !$isEdit ? 'checked' : '' }}>
+                                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1" {{ $admin->is_active || !$isEdit ? 'checked' : '' }}>
                                                 <label class="custom-control-label" for="is_active">啟用此帳號</label>
                                             </div>
                                         </div>
@@ -127,7 +127,7 @@
                                 <div class="col-md-4 text-center border-left">
                                     <label>個人頭像</label>
                                     <div class="mb-3">
-                                        <img src="{{ $user->avatar_url ? asset('storage/'.$user->avatar_url) : asset('images/admin/default-avatar.png') }}"
+                                        <img src="{{ $admin->avatar_url ? asset('storage/'.$admin->avatar_url) : asset('images/admin/default-avatar.png') }}"
                                             class="profile-user-img img-fluid img-circle elevation-2 avatar-preview"
                                             alt="User Avatar">
                                     </div>
@@ -148,7 +148,7 @@
                                 灰色勾選項目為「角色既有權限」，不可修改。您可在此為該用戶開放額外特例。
                             </div>
                             {{-- 引入權限列表 Partial --}}
-                            @include('admin.users._permission_list')
+                            @include('admin.admins.permission_list')
                         </div>
                         @endif
 
@@ -182,23 +182,23 @@
                                 <div class="col-md-5">
                                     <div class="style-divider">介面功能</div>
                                         <div class="custom-control custom-switch mb-2">
-                <input type="checkbox" class="custom-control-input" id="pref_dark_mode" name="pref_dark_mode" @checked($userPrefs['dark_mode'] ?? false)>
+                <input type="checkbox" class="custom-control-input" id="pref_dark_mode" name="pref_dark_mode" @checked($adminPrefs['dark_mode'] ?? false)>
                 <label class="custom-control-label font-weight-normal" for="pref_dark_mode">深色模式</label>
             </div>
             <div class="custom-control custom-switch mb-2">
-                <input type="checkbox" class="custom-control-input" id="pref_sidebar_collapse" name="pref_sidebar_collapse" @checked($userPrefs['sidebar_collapse'] ?? false)>
+                <input type="checkbox" class="custom-control-input" id="pref_sidebar_collapse" name="pref_sidebar_collapse" @checked($adminPrefs['sidebar_collapse'] ?? false)>
                 <label class="custom-control-label font-weight-normal" for="pref_sidebar_collapse">自動收合選單</label>
             </div>
             <div class="custom-control custom-switch mb-2">
-                <input type="checkbox" class="custom-control-input" id="pref_nav_flat" name="pref_nav_flat" @checked($userPrefs['nav_flat'] ?? false)>
+                <input type="checkbox" class="custom-control-input" id="pref_nav_flat" name="pref_nav_flat" @checked($adminPrefs['nav_flat'] ?? false)>
                 <label class="custom-control-label font-weight-normal" for="pref_nav_flat">扁平化樣式</label>
             </div>
             <div class="custom-control custom-switch mb-2">
-                <input type="checkbox" class="custom-control-input" id="pref_sidebar_fixed" name="pref_sidebar_fixed" @checked($userPrefs['sidebar_fixed'] ?? false)>
+                <input type="checkbox" class="custom-control-input" id="pref_sidebar_fixed" name="pref_sidebar_fixed" @checked($adminPrefs['sidebar_fixed'] ?? false)>
                 <label class="custom-control-label font-weight-normal" for="pref_sidebar_fixed">固定側邊欄</label>
             </div>
             <div class="custom-control custom-switch mb-2">
-                <input type="checkbox" class="custom-control-input" id="pref_text_sm" name="pref_text_sm" @checked($userPrefs['text_sm'] ?? false)>
+                <input type="checkbox" class="custom-control-input" id="pref_text_sm" name="pref_text_sm" @checked($adminPrefs['text_sm'] ?? false)>
                 <label class="custom-control-label font-weight-normal" for="pref_text_sm">緊湊文字 (Text-SM)</label>
                                         </div>
                                 </div>
@@ -212,18 +212,18 @@
                                         <div class="col-sm-7">
                                             <select name="pref_navbar_variant" id="pref_navbar_variant" class="form-control form-control-sm">
                         <optgroup label="基礎色">
-                            <option value="navbar-white navbar-light" {{ ($userPrefs['navbar_color'] == 'navbar-white navbar-light') ? 'selected' : '' }}>淺色 (White)</option>
-                            <option value="navbar-dark navbar-dark" {{ ($userPrefs['navbar_color'] == 'navbar-dark navbar-dark') ? 'selected' : '' }}>純深色 (Dark)</option>
+                            <option value="navbar-white navbar-light" {{ ($adminPrefs['navbar_color'] == 'navbar-white navbar-light') ? 'selected' : '' }}>淺色 (White)</option>
+                            <option value="navbar-dark navbar-dark" {{ ($adminPrefs['navbar_color'] == 'navbar-dark navbar-dark') ? 'selected' : '' }}>純深色 (Dark)</option>
                         </optgroup>
                         <optgroup label="品牌色">
-                            <option value="navbar-dark navbar-olive" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-olive')>橄欖綠</option>
-                            <option value="navbar-dark navbar-navy" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-navy')>海軍深藍</option>
-                            <option value="navbar-dark navbar-purple" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-purple')>皇家紫</option>
-                            <option value="navbar-light navbar-warning" @selected($userPrefs['navbar_color'] == 'navbar-light navbar-warning')>經典暖陽</option>
-                            <option value="navbar-dark navbar-pink" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-pink')>玫紅色</option>
-                            <option value="navbar-dark navbar-success" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-success')>森林靜謐</option>
-                            <option value="navbar-dark navbar-info" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-info')>海洋藍</option>
-                            <option value="navbar-dark navbar-primary" @selected($userPrefs['navbar_color'] == 'navbar-dark navbar-primary')>科技藍</option>
+                            <option value="navbar-dark navbar-olive" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-olive')>橄欖綠</option>
+                            <option value="navbar-dark navbar-navy" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-navy')>海軍深藍</option>
+                            <option value="navbar-dark navbar-purple" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-purple')>皇家紫</option>
+                            <option value="navbar-light navbar-warning" @selected($adminPrefs['navbar_color'] == 'navbar-light navbar-warning')>經典暖陽</option>
+                            <option value="navbar-dark navbar-pink" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-pink')>玫紅色</option>
+                            <option value="navbar-dark navbar-success" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-success')>森林靜謐</option>
+                            <option value="navbar-dark navbar-info" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-info')>海洋藍</option>
+                            <option value="navbar-dark navbar-primary" @selected($adminPrefs['navbar_color'] == 'navbar-dark navbar-primary')>科技藍</option>
                         </optgroup>
                     </select>
                 </div>
@@ -233,15 +233,15 @@
                 <label class="col-sm-5 col-form-label-sm">側邊欄樣式 (Sidebar)</label>
                 <div class="col-sm-7">
                     <select name="pref_sidebar_variant" id="pref_sidebar_variant" class="form-control form-control-sm">
-                        <option value="sidebar-dark-purple" @selected($userPrefs['sidebar_theme'] == 'sidebar-dark-purple')>深色 - 皇家紫</option>
-                        <option value="sidebar-dark-warning" @selected($userPrefs['sidebar_theme'] == 'sidebar-dark-warning')>深色 - 經典暖陽</option>
-                        <option value="sidebar-dark-pink" @selected($userPrefs['sidebar_theme'] == 'sidebar-dark-pink')>深色 - 玫紅色</option>
-                        <option value="sidebar-dark-olive" {{ ($userPrefs['sidebar_theme'] == 'sidebar-dark-olive') ? 'selected' : '' }}>深色 - 橄欖綠</option>
-                        <option value="sidebar-dark-success" @selected($userPrefs['sidebar_theme'] == 'sidebar-dark-success')>深色 - 森林靜謐</option>
-                        <option value="sidebar-dark-primary" @selected($userPrefs['sidebar_theme'] == 'sidebar-dark-primary')>深色 - 簡約藍</option>
-                        <option value="sidebar-light-primary" @selected($userPrefs['sidebar_theme'] == 'sidebar-light-primary')>淺色 - 簡約藍</option>
-                        <option value="sidebar-light-navy" @selected($userPrefs['sidebar_theme'] == 'sidebar-light-navy')>淺色 - 海軍藍</option>
-                        <option value="sidebar-light-info" @selected($userPrefs['sidebar_theme'] == 'sidebar-light-info')>淺色 - 海洋藍</option>
+                        <option value="sidebar-dark-purple" @selected($adminPrefs['sidebar_theme'] == 'sidebar-dark-purple')>深色 - 皇家紫</option>
+                        <option value="sidebar-dark-warning" @selected($adminPrefs['sidebar_theme'] == 'sidebar-dark-warning')>深色 - 經典暖陽</option>
+                        <option value="sidebar-dark-pink" @selected($adminPrefs['sidebar_theme'] == 'sidebar-dark-pink')>深色 - 玫紅色</option>
+                        <option value="sidebar-dark-olive" {{ ($adminPrefs['sidebar_theme'] == 'sidebar-dark-olive') ? 'selected' : '' }}>深色 - 橄欖綠</option>
+                        <option value="sidebar-dark-success" @selected($adminPrefs['sidebar_theme'] == 'sidebar-dark-success')>深色 - 森林靜謐</option>
+                        <option value="sidebar-dark-primary" @selected($adminPrefs['sidebar_theme'] == 'sidebar-dark-primary')>深色 - 簡約藍</option>
+                        <option value="sidebar-light-primary" @selected($adminPrefs['sidebar_theme'] == 'sidebar-light-primary')>淺色 - 簡約藍</option>
+                        <option value="sidebar-light-navy" @selected($adminPrefs['sidebar_theme'] == 'sidebar-light-navy')>淺色 - 海軍藍</option>
+                        <option value="sidebar-light-info" @selected($adminPrefs['sidebar_theme'] == 'sidebar-light-info')>淺色 - 海洋藍</option>
                     </select>
                 </div>
             </div>
@@ -250,16 +250,16 @@
                 <label class="col-sm-5 col-form-label-sm">強調色 (Accent)</label>
                 <div class="col-sm-7">
                     <select name="pref_accent_color" id="pref_accent_color" class="form-control form-control-sm">
-                        <option value="" @selected(empty($userPrefs['accent_color']))>無</option>
-                        <option value="accent-primary" @selected($userPrefs['accent_color'] == 'accent-primary')>簡約藍 (Primary)</option>
-                        <option value="accent-success" @selected($userPrefs['accent_color'] == 'accent-success')>森林靜謐 (Success)</option>
-                        <option value="accent-navy" @selected($userPrefs['accent_color'] == 'accent-navy')>海軍藍 (Navy)</option>
-                        <option value="accent-warning" @selected($userPrefs['accent_color'] == 'accent-warning')>經典暖陽 (Warning)</option>
-                        <option value="accent-danger" @selected($userPrefs['accent_color'] == 'accent-danger')>烈焰紅 (Danger)</option>
-                        <option value="accent-purple" @selected($userPrefs['accent_color'] == 'accent-purple')>皇家紫 (purple)</option>
-                        <option value="accent-pink" @selected($userPrefs['accent_color'] == 'accent-pink')>玫紅色 (Pink)</option>
-                        <option value="accent-olive" @selected($userPrefs['accent_color'] == 'accent-olive')>橄欖綠 (Olive)</option>
-                        <option value="accent-info" @selected($userPrefs['accent_color'] == 'accent-info')>海洋藍 (Info)</option>
+                        <option value="" @selected(empty($adminPrefs['accent_color']))>無</option>
+                        <option value="accent-primary" @selected($adminPrefs['accent_color'] == 'accent-primary')>簡約藍 (Primary)</option>
+                        <option value="accent-success" @selected($adminPrefs['accent_color'] == 'accent-success')>森林靜謐 (Success)</option>
+                        <option value="accent-navy" @selected($adminPrefs['accent_color'] == 'accent-navy')>海軍藍 (Navy)</option>
+                        <option value="accent-warning" @selected($adminPrefs['accent_color'] == 'accent-warning')>經典暖陽 (Warning)</option>
+                        <option value="accent-danger" @selected($adminPrefs['accent_color'] == 'accent-danger')>烈焰紅 (Danger)</option>
+                        <option value="accent-purple" @selected($adminPrefs['accent_color'] == 'accent-purple')>皇家紫 (purple)</option>
+                        <option value="accent-pink" @selected($adminPrefs['accent_color'] == 'accent-pink')>玫紅色 (Pink)</option>
+                        <option value="accent-olive" @selected($adminPrefs['accent_color'] == 'accent-olive')>橄欖綠 (Olive)</option>
+                        <option value="accent-info" @selected($adminPrefs['accent_color'] == 'accent-info')>海洋藍 (Info)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -273,7 +273,7 @@
                     {{-- 3. 定義底部按鈕 (Footer) --}}
                     <x-slot:footer>
                         @if(!(isset($fromProfile) && $fromProfile))
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">返回列表</a>
+                            <a href="{{ route('admin.admins.index') }}" class="btn btn-secondary">返回列表</a>
                         @endif
                         <button type="submit" class="btn btn-success ml-1">
                             <i class="fas fa-save mr-1"></i> 儲存設定
@@ -327,7 +327,7 @@ $(function() {
 
                 // 3. 視覺防呆：顯示紅字與紅框
                 $('#password_confirmation').addClass('is-invalid-border');
-                $('#password-error').removeClass('d-none-soft'); // 移除隱藏類別
+                $('#password-error').removeClass('d-none'); // 移除隱藏類別
 
                 return false;
             }
@@ -345,7 +345,7 @@ $(function() {
         // 如果輸入一致了，或是清空了，就隱藏警告
         if (pass === confirm || confirm === '') {
             $('#password_confirmation').removeClass('is-invalid-border');
-            $('#password-error').addClass('d-none-soft');
+            $('#password-error').addClass('d-none');
         }
     });
 
@@ -394,11 +394,13 @@ $(function() {// 只有在顯示權限 Tab 時才執行同步邏輯
                 if (hasAccess) {
                     // 角色已有的：勾選、鎖定(disabled)、顯示標籤
                     $cb.prop('checked', true).prop('disabled', true);
-                    $badge.show();
+
+                    $badge.removeClass('d-none');// 顯示標籤
                 } else {
                     // 角色沒有的：解除鎖定、隱藏標籤
                     $cb.prop('disabled', false);
-                    $badge.hide();
+
+                    $badge.addClass('d-none');// 隱藏標籤
 
                     // 注意：這裡不強制將 checked 設為 false，因為「額外賦予」的權限應保留
                 }

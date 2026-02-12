@@ -102,15 +102,15 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         Route::resource('roles', AdminRoleController::class);
 
         // 1. 顯示個人資料頁 (用既有的 edit 方法，邏輯已通)
-        Route::get('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'profile'])
-            ->name('users.profile');
+        Route::get('admins/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'profile'])
+            ->name('admins.profile');
 
         // 2. 【新增】儲存個人資料 (專屬路由，避開 Resource 的 update 權限鎖)
-        Route::put('users/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'updateProfile'])
-            ->name('users.updateProfile');
+        Route::put('admins/profile', [App\Http\Controllers\Admin\AdminUserController::class, 'updateProfile'])
+            ->name('admins.updateProfile');
 
-        Route::resource('users', AdminUserController::class);
-        Route::get('users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
+        Route::resource('admins', AdminUserController::class);
+        Route::get('admins/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('admins.impersonate');
 
 
         /*

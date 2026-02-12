@@ -51,7 +51,7 @@ return [
                 'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
                 'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
             ],
-            'users' => [
+            'admins' => [
                 'label' => '網站管理員',
                 'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
                 'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]

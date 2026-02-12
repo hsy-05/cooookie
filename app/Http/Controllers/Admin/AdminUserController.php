@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Models\{User, AdminRole};
+use App\Models\{Admin, AdminRole};
 use Illuminate\Support\Facades\{DB, Hash, Auth, Log};
 use App\Helpers\{ContentHelper, ImageHelper};
 
 class AdminUserController extends BaseAdminController
 {
     // 定義權限模組名稱，用於 Middleware 自動檢查 (除了 edit/update 我們會手動處理例外)
-    protected $permissionName = 'users';
+    protected $permissionName = 'admins';
     protected $pageTitle = '網站管理員';
 
     /**
@@ -20,7 +20,7 @@ class AdminUserController extends BaseAdminController
     protected $pageCfg = [
         'files' => [
             'avatar_url' => [
-                'path'   => 'users',         // 儲存路徑
+                'path'   => 'admins',         // 儲存路徑
                 'width'  => 600,             // 寬度
                 'height' => 400,             // 高度
                 'mode'   => 'center_crop',   // 處理模式
@@ -34,11 +34,11 @@ class AdminUserController extends BaseAdminController
      */
     public function index(Request $request)
     {
-        /** @var User $currentUser */
+        /** @var Admin $currentUser */
         $currentUser = Auth::user();
 
         // 使用 with 預先載入關聯資料，避免 N+1 問題 (提升效能)
-        $query = User::with(['role', 'childrenRecursive.role']);
+        $query = Admin::with(['role', 'childrenRecursive.role']);
 
         // 權限分級顯示邏輯：開發者看全部，其餘看下屬或自己
         if (!$currentUser->isDeveloper()) {
@@ -57,9 +57,9 @@ class AdminUserController extends BaseAdminController
             $query->whereNull('parent_id');
         }
 
-        $users = $query->get();
+        $admins = $query->get();
 
-        return $this->view('admin.users.index', compact('users'));
+        return $this->view('admin.admins.index', compact('admins'));
     }
 
     /**
@@ -67,15 +67,15 @@ class AdminUserController extends BaseAdminController
      */
     public function create()
     {
-        $user = new User();
+        $admin = new Admin();
         // 預設給予一些基礎設定值，避免前端 JS 報錯
-        $user->preferences = [
+        $admin->preferences = [
             'dark_mode' => true,
             'sidebar_collapse' => false,
             'theme_color' => 'default'
         ];
 
-        return $this->renderForm($user, false);
+        return $this->renderForm($admin, false);
     }
 
     /**
@@ -86,15 +86,15 @@ class AdminUserController extends BaseAdminController
         // 驗證表單資料
         $this->validateRequest($request, false);
 
-        /** @var User $currentUser */
+        /** @var Admin $currentUser */
         $currentUser = Auth::user();
 
         return DB::transaction(function () use ($request, $currentUser) {
             try {
-                $user = new User();
+                $admin = new Admin();
 
                 // 處理頭像檔案上傳 (套用萬用檔案處理邏輯)
-                $this->handleFileUploads($request, $user);
+                $this->handleFileUploads($request, $admin);
 
                 // 排除不直接儲存的欄位，保持資料乾淨
                 $data = $request->except(['password', 'avatar_url', 'permissions', 'preferences']);
@@ -111,18 +111,18 @@ class AdminUserController extends BaseAdminController
                     $data['parent_id'] = $currentUser->id;
                 }
 
-                $user->fill($data)->save();
+                $admin->fill($data)->save();
 
                 // 紀錄操作日誌
-                if (method_exists($user, 'writeLog')) {
-                    $user->writeLog('新增', "建立管理員：{$user->name}");
+                if (method_exists($admin, 'writeLog')) {
+                    $admin->writeLog('新增', "建立管理員：{$admin->name}");
                 }
 
                 ContentHelper::showMsg(0, '新增完成', [
-                    ['text' => '返回列表', 'href' => route('admin.users.index')],
+                    ['text' => '返回列表', 'href' => route('admin.admins.index')],
                 ], true);
 
-                return redirect()->route('admin.users.index');
+                return redirect()->route('admin.admins.index');
             } catch (\Exception $e) {
                 Log::error("AdminUser Store Error: " . $e->getMessage());
                 return redirect()->back()->withInput()->with('error', '新增失敗');
@@ -135,15 +135,15 @@ class AdminUserController extends BaseAdminController
      */
     public function profile()
     {
-        /** @var User $user */
-        $user = Auth::user();
+        /** @var Admin $admin */
+        $admin = Auth::user();
 
-        if (!$user) {
+        if (!$admin) {
             abort(403, '未經授權訪問');
         }
 
         // 直接調用編輯方法，傳入自己的 ID 並註記這是 profile 路由
-        return $this->edit($user->id, true);
+        return $this->edit($admin->id, true);
     }
 
     /**
@@ -152,12 +152,13 @@ class AdminUserController extends BaseAdminController
      */
     public function edit($id, $isProfileRoute = false)
     {
-        $user = User::findOrFail($id);
-        /** @var User $currentUser */
+        $admin = Admin::findOrFail($id);
+
+        /** @var Admin $currentUser */
         $currentUser = Auth::user();
 
         // 判斷當前操作是否為「修改本人」
-        $isSelf = ($user->id === $currentUser->id);
+        $isSelf = ($admin->id === $currentUser->id);
 
         // 安全防呆：如果走 profile 路由但查出來的不是自己則擋掉
         if ($isProfileRoute && !$isSelf) {
@@ -165,11 +166,11 @@ class AdminUserController extends BaseAdminController
         }
 
         // 權限檢查：不是本人且沒有編輯權限 -> 擋掉
-        if (!$isSelf && !$currentUser->canDo('users.edit')) {
+        if (!$isSelf && !$currentUser->canDo('admins.edit')) {
             abort(403, '您沒有權限編輯此管理員。');
         }
 
-        return $this->renderForm($user, $isSelf, $isProfileRoute);
+        return $this->renderForm($admin, $isSelf, $isProfileRoute);
     }
 
     /**
@@ -177,8 +178,8 @@ class AdminUserController extends BaseAdminController
      */
     public function updateProfile(Request $request)
     {
-        $user = Auth::user();
-        return $this->update($request, $user->id);
+        $admin = Auth::user();
+        return $this->update($request, $admin->id);
     }
 
     /**
@@ -186,25 +187,25 @@ class AdminUserController extends BaseAdminController
      */
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-        $isProfileRoute = ($request->route()->named('admin.users.updateProfile'));
+        $admin = Admin::findOrFail($id);
+        $isProfileRoute = ($request->route()->named('admin.admins.updateProfile'));
 
-        /** @var User $currentUser */
+        /** @var Admin $currentUser */
         $currentUser = Auth::user();
-        $isSelf = ($user->id === $currentUser->id);
+        $isSelf = ($admin->id === $currentUser->id);
 
         // 權限防線：非本人且非 Profile 路由且無權限時攔截
-        if (!$isProfileRoute && !$isSelf && !$currentUser->canDo('users.edit')) {
+        if (!$isProfileRoute && !$isSelf && !$currentUser->canDo('admins.edit')) {
             abort(403, '您沒有權限執行此操作。');
         }
 
         // 驗證請求資料
         $this->validateRequest($request, true);
 
-        return DB::transaction(function () use ($request, $user, $isSelf, $isProfileRoute, $currentUser) {
+        return DB::transaction(function () use ($request, $admin, $isSelf, $isProfileRoute, $currentUser) {
             try {
                 // 處理檔案/圖片更新 (自動判斷舊檔並刪除)
-                $this->handleFileUploads($request, $user);
+                $this->handleFileUploads($request, $admin);
 
                 // 排除非直接更新的欄位與介面偏好 input
                 $data = $request->except([
@@ -228,7 +229,7 @@ class AdminUserController extends BaseAdminController
 
                 // 個人化介面設定處理 (僅限「本人」修改時生效)
                 if ($isSelf) {
-                    $currentPrefs = $user->preferences ?? [];
+                    $currentPrefs = $admin->preferences ?? [];
                     $newPrefs = [
                         'dark_mode'        => $request->has('pref_dark_mode'),
                         'sidebar_collapse' => $request->has('pref_sidebar_collapse'),
@@ -244,20 +245,20 @@ class AdminUserController extends BaseAdminController
                     $data['preferences'] = array_merge($currentPrefs, array_filter($newPrefs, fn($v) => !is_null($v)));
                 }
 
-                $user->update($data);
+                $admin->update($data);
 
                 // 紀錄操作日誌
-                if (method_exists($user, 'writeLog')) {
-                    $user->writeLog('編輯', "更新帳號：{$user->name}");
+                if (method_exists($admin, 'writeLog')) {
+                    $admin->writeLog('編輯', "更新帳號：{$admin->name}");
                 }
 
                 // 完成後的導向按鈕邏輯
                 $buttons = [
-                    ['text' => '繼續編輯', 'href' => $isSelf ? route('admin.users.profile') : route('admin.users.edit', $user->id)],
+                    ['text' => '繼續編輯', 'href' => $isSelf ? route('admin.admins.profile') : route('admin.admins.edit', $admin->id)],
                 ];
 
-                if (!($isProfileRoute && $isSelf && $currentUser->canDo('users.edit'))) {
-                    $buttons[] = ['text' => '返回列表', 'href' => route('admin.users.index')];
+                if (!($isProfileRoute && $isSelf && $currentUser->canDo('admins.edit'))) {
+                    $buttons[] = ['text' => '返回列表', 'href' => route('admin.admins.index')];
                 }
 
                 ContentHelper::showMsg(0, '資料更新完成', $buttons, true);
@@ -270,36 +271,81 @@ class AdminUserController extends BaseAdminController
         });
     }
 
+    /**
+     * 刪除管理員
+     * 使用 Route Model Binding 直接注入 Admin 物件
+     */
+    public function destroy(Admin $admin)
+    {
+        /** @var Admin $currentUser */
+        $currentUser = Auth::user();
+
+        // 判斷當前操作是否為「修改本人」
+        $isSelf = ($admin->id === $currentUser->id);
+
+        // 【安全性防呆】絕對不能刪除目前登入的自己
+        if ($isSelf) {
+            return back()->with('form_error_swal', '操作失敗：您無法刪除目前的登入帳號。');
+        }
+
+        //【業務邏輯防呆】檢查是否有子帳號 (下屬)
+        // 這是為了確保樹狀結構的完整性，避免產生孤兒資料
+        if ($admin->children()->exists()) {
+            return back()->with('form_error_swal', '操作失敗：該帳號下仍有管理員，請先處理下屬。');
+        }
+
+        //【資源清理】刪除頭像圖檔 (參考 ImageHelper 寫法)
+        // 防呆：避免資料庫刪了，但硬碟留下一堆垃圾圖檔
+        if ($admin->avatar_url) {
+            // 假設你的管理員頭像欄位叫 avatar_url，磁碟區是 public
+            ImageHelper::deleteImage($admin->avatar_url, 'public');
+        }
+
+        //【關聯清理】如果管理員有額外的權限紀錄或其他關聯資料，要在這裡先處理
+        // 例如：$admin->permissions()->delete();
+
+        //【執行刪除】
+        $adminName = $admin->name; // 先存起來，等下 Log 要用
+        $admin->delete();
+
+        //【紀錄軌跡】專業系統必備：誰在什麼時候刪除了誰
+        // 假設你的 Admin Model 也有寫 writeLog 方法
+        $admin->writeLog('刪除', "管理員帳號: {$adminName}");
+
+        //【回傳結果】統一使用 swal 提示增加使用者體驗
+        return redirect()->route('admin.admins.index')->with('form_success_swal', '管理員帳號已移除');
+    }
+
     /* --- 內部輔助方法 (Private Helper Methods) --- */
 
     /**
      * 渲染表單通用邏輯 (萃取重複代碼)
      */
-    private function renderForm(User $user, $isSelf, $fromProfile = false)
+    private function renderForm(Admin $admin, $isSelf, $fromProfile = false)
     {
-        $isEdit = $user->exists;
+        $isEdit = $admin->exists;
 
         // 防呆：避免將子孫設定為自己的上層，造成樹狀結構死循環
-        $descendantIds = $this->getDescendantIds($user);
-        $descendantIds[] = $user->id;
-        $parents = User::whereNotIn('id', $descendantIds)->get();
+        $descendantIds = $this->getDescendantIds($admin);
+        $descendantIds[] = $admin->id;
+        $parents = Admin::whereNotIn('id', $descendantIds)->get();
 
         // 整理個人偏好設定與預設值合併
-        $userPrefs = array_merge([
+        $adminPrefs = array_merge([
             'dark_mode'        => true,
             'sidebar_collapse' => false,
             'navbar_color'     => 'navbar-white navbar-light',
             'sidebar_theme'    => 'sidebar-dark-primary',
-        ], $user->preferences ?? []);
+        ], $admin->preferences ?? []);
 
-        return $this->view('admin.users.form', [
-            'user'            => $user,
+        return $this->view('admin.admins.form', [
+            'admin'            => $admin,
             'roles'           => AdminRole::all(),
             'parents'         => $parents,
             'isEdit'          => $isEdit,
             'pageTitle'       => $isSelf ? '個人資料設定' : ($isEdit ? '編輯管理員' : '新增管理員'),
-            'permissions'     => $this->preparePermissions($user),
-            'userPrefs'       => $userPrefs,
+            'permissions'     => $this->preparePermissions($admin),
+            'adminPrefs'       => $adminPrefs,
             'showPermissions' => !$isSelf,
             'showPersonal'    => $isSelf,
             'isSelf'          => $isSelf,
@@ -314,17 +360,17 @@ class AdminUserController extends BaseAdminController
      */
     private function validateRequest(Request $request, $isUpdate)
     {
-        // 【防呆邏輯】精準取得當前要排除的 User ID
-        // 優先順序：路由參數(user/id) > 網址直接傳入的參數 > 當前登入者 ID (針對 profile 修改)
-        $userId = $request->route('user')
+        // 【防呆邏輯】精準取得當前要排除的 Admin ID
+        // 優先順序：路由參數(admin/id) > 網址直接傳入的參數 > 當前登入者 ID (針對 profile 修改)
+        $adminId = $request->route('admin')
                   ?? $request->route('id')
                   ?? $request->id
-                  ?? ($request->route()->named('admin.users.updateProfile') ? Auth::id() : null);
+                  ?? ($request->route()->named('admin.admins.updateProfile') ? Auth::id() : null);
 
         $rules = [
             'name'  => 'required|string|max:100',
             // unique 規則：資料表, 欄位, 要排除的 ID
-            'email' => 'required|email|unique:users,email,' . ($userId ?: 'NULL'),
+            'email' => 'required|email|unique:admins,email,' . ($adminId ?: 'NULL'),
         ];
 
         // 根據「新增」或「更新」切換密碼必填狀態
@@ -352,14 +398,14 @@ class AdminUserController extends BaseAdminController
     /**
      * 萬用檔案上傳處理邏輯 (與最新消息架構完全一致)
      */
-    private function handleFileUploads(Request $request, User $user)
+    private function handleFileUploads(Request $request, Admin $admin)
     {
         foreach ($this->pageCfg['files'] as $field => $config) {
             if ($request->hasFile($field)) {
-                $user->$field = ImageHelper::handleUpload(
+                $admin->$field = ImageHelper::handleUpload(
                     $request->file($field),
                     $config['path'],
-                    $user->$field, // 傳入舊檔路徑供自動清理
+                    $admin->$field, // 傳入舊檔路徑供自動清理
                     $config
                 );
             }
@@ -369,7 +415,7 @@ class AdminUserController extends BaseAdminController
     /**
      * 整理權限顯示結構
      */
-    private function preparePermissions($user)
+    private function preparePermissions($admin)
     {
         $rawConfig = config('backend_permissions') ?? [];
         $processed = [];
@@ -382,7 +428,7 @@ class AdminUserController extends BaseAdminController
                     $actions[] = [
                         'key'     => $permKey,
                         'label'   => $actLabel,
-                        'checked' => in_array($permKey, $user->permissions ?? []),
+                        'checked' => in_array($permKey, $admin->permissions ?? []),
                         'depends' => isset($sub['dependencies'][$actKey])
                             ? array_map(fn($d) => "{$subKey}.{$d}", $sub['dependencies'][$actKey])
                             : []
@@ -398,10 +444,10 @@ class AdminUserController extends BaseAdminController
     /**
      * 遞迴取得所有子帳號 ID
      */
-    private function getDescendantIds(User $user): array
+    private function getDescendantIds(Admin $admin): array
     {
         $ids = [];
-        foreach ($user->children as $child) {
+        foreach ($admin->children as $child) {
             $ids[] = $child->id;
             $ids = array_merge($ids, $this->getDescendantIds($child));
         }

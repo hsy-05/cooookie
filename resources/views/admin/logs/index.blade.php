@@ -92,7 +92,7 @@
                                 <td class="table-check-col">
                                     <input type="checkbox" name="ids[]" value="{{ $log->id }}" class="row-checkbox">
                                 </td>
-                                <td>{{ $log->user->name }}</td>
+                                <td>{{ $log->admin->name }}</td>
                                 <td>
                                     {{-- 使用 Model 定義的 action_color 存取器，取得對應的顏色 --}}
                                     <span class="badge badge-{{ $log->action_color }}">
@@ -128,12 +128,6 @@
                 </table>
             </form>
 
-            {{-- 3. 隱藏的單筆刪除表單 --}}
-            <form id="singleDeleteForm" method="POST" action="" style="display:none;">
-                @csrf
-                @method('DELETE')
-            </form>
-
             <div class="mt-3">
                 {{ $logs->appends(request()->all())->links('pagination::bootstrap-4') }}
             </div>
@@ -149,7 +143,6 @@
             const deleteRange = document.getElementById('delete_range');
             const batchDeleteBtn = document.getElementById('batchDeleteBtn');
             const singleDeleteButtons = document.querySelectorAll('.js-delete-btn');
-            const singleDeleteForm = document.getElementById('singleDeleteForm');
 
             // --- 1. 批次刪除按鈕狀態控制 ---
             function updateButtonState() {

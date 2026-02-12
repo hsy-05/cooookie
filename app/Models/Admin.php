@@ -6,7 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\Loggable; // 引入 Trait
 
-class User extends Authenticatable
+class Admin extends Authenticatable
 {
     use Loggable; // 使用 Trait
     use Notifiable;
@@ -65,12 +65,12 @@ class User extends Authenticatable
 
     public function parent()
     {
-        return $this->belongsTo(User::class, 'parent_id');
+        return $this->belongsTo(Admin::class, 'parent_id');
     }
 
     public function children()
     {
-        return $this->hasMany(User::class, 'parent_id');
+        return $this->hasMany(Admin::class, 'parent_id');
     }
 
     public function childrenRecursive()

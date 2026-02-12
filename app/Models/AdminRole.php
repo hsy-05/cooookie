@@ -18,7 +18,7 @@ class AdminRole extends Model
     /**
      * 關聯：一個角色擁有多個管理員
      */
-    public function users()
+    public function admins()
     {
         return $this->hasMany(User::class, 'role_id');
     }

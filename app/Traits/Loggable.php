@@ -23,7 +23,7 @@ trait Loggable
         $modelName = $this->logName ?? class_basename($this);
 
         ActionLog::create([
-            'user_id'    => Auth::id(),
+            'admin_id'    => Auth::id(),
             'action'     => $action,
             'log_info'   => "{$action}{$modelName}: {$title}",
             'ip_address' => Request::ip(),

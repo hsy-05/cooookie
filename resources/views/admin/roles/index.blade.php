@@ -6,7 +6,7 @@
 
 @section('content')
     <x-admin.page-message>
-        <div class="card">
+        <div class="card card-outline card-primary shadow-sm">
             <div class="card-body">
                 {{-- 新增按鈕 --}}
                 @can('roles.create')
@@ -36,7 +36,7 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge badge-info px-2 py-1">{{ $role->users_count }}</span>
+                                    <span class="badge badge-info px-2 py-1">{{ $role->admins_count }}</span>
                                 </td>
                                 <td>{{ $role->description }}</td>
 
@@ -52,7 +52,7 @@
                                         @endcan
 
                                         {{-- 刪除按鈕 --}}
-                                        @if (!$role->isSuperRole() && $role->users_count == 0)
+                                        @if (!$role->isSuperRole() && $role->admins_count == 0)
                                             {{-- 只有非系統角色且沒有管理員的角色才顯示刪除按鈕 --}}
                                             @can('roles.delete')
                                                 <form action="{{ route('admin.roles.destroy', $role->id) }}" method="POST"

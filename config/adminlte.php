@@ -442,9 +442,9 @@ return [
                 ],
                 [
                     'text' => '管理員設定',
-                    'url'  => 'admin/users',
-                    'active' => ['regex:@^admin/users($|/)@'], // 可用陣列 / 通配符
-                    'can'  => 'users.view',
+                    'url'  => 'admin/admins',
+                    'active' => ['regex:@^admin/admins($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'admins.view',
                 ],
             ],
         ],

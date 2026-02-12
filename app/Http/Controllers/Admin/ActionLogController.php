@@ -12,7 +12,7 @@ class ActionLogController extends BaseAdminController
 {
     // 定義這個 Controller 屬於哪組權限
     protected $permissionName = 'logs';
-    protected $pageTitle = '操作日誌管理';
+    protected $pageTitle = '操作紀錄';
 
     public function index(Request $request)
     {
@@ -31,7 +31,7 @@ class ActionLogController extends BaseAdminController
             if ($date) $request->merge(['start_date' => $date->toDateString()]);
         }
 
-        $logs = ActionLog::with('user')
+        $logs = ActionLog::with('admin')
             ->filter($request->all())
             ->latest()
             ->paginate($request->input('per_page', 8));
@@ -49,7 +49,7 @@ class ActionLogController extends BaseAdminController
 
         // 雖然是刪除，還是要記一筆 Audit Log
         ActionLog::create([
-            'user_id'    => Auth::id(),
+            'admin_id'    => Auth::id(),
             'action'     => '刪除',
             'log_info'   => "刪除單筆操作紀錄 ID: {$id}",
             'ip_address' => request()->ip(),

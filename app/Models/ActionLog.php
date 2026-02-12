@@ -17,7 +17,7 @@ class ActionLog extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id',
+        'admin_id',
         'action',
         'log_info',
         'ip_address'
@@ -33,7 +33,7 @@ class ActionLog extends Model
      * 關聯至管理員帳號
      * * @return BelongsTo
      */
-    public function user(): BelongsTo
+    public function admin(): BelongsTo
     {
         return $this->belongsTo(User::class)->withDefault([
             'name' => '系統自動執行'
@@ -96,7 +96,7 @@ class ActionLog extends Model
                 $search = $filters['search'];
                 $q->where('log_info', 'like', "%{$search}%")
                   ->orWhere('ip_address', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($u) use ($search) {
+                  ->orWhereHas('admin', function($u) use ($search) {
                       $u->where('name', 'like', "%{$search}%");
                   });
             });

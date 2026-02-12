@@ -517,7 +517,7 @@ function confirmDelete(id, title, text) {
                 const form = document.getElementById("deleteForm" + id);
 
                 if (!form) {
-                    console.error("找不到刪除表單：deleteForm" + id);
+                    console.error("找不到刪除表單：deleteForm：" + id);
                     return false; // 防呆
                 }
 

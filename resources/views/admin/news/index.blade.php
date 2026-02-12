@@ -1,8 +1,18 @@
 @extends('adminlte::page')
 @section('title', $pageTitle)
 
-{{-- 麵包屑與標題組件 --}}
-@include('components.admin.page_content_header')
+{{-- 共用頁首 --}}
+@component('components.admin.page_content_header', ['pageTitle' => '最新消息'])
+    @slot('actions')
+        @if(auth()->user()->canDo('news.create'))
+            <a href="{{ route('admin.news.create') }}"
+               class="btn btn-primary shadow-sm px-4">
+                <i class="fas fa-plus mr-1"></i>
+                新增
+            </a>
+        @endif
+    @endslot
+@endcomponent
 
 @section('content')
     {{-- 系統訊息顯示（成功 / 錯誤） --}}
@@ -38,35 +48,12 @@
                         @endforeach
                     </form>
 
-                    {{-- 新增按鈕 --}}
-                    @can('news.create')
-                        <a href="{{ route('admin.news.create') }}" class="btn btn-primary ml-auto">
-                            新增消息
-                        </a>
-                    @endcan
                 </div>
 
                 {{-- ===== 2. 批次刪除表單 ===== --}}
                 <form action="{{ route('admin.news.batch_destroy') }}" method="POST" id="batchDeleteForm">
                     @csrf
                     @method('DELETE')
-
-                    {{-- 批次刪除工具列 --}}
-                    <div class="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded">
-                        <div class="form-inline">
-                            <label class="mr-2 text-danger">
-                                <i class="fas fa-trash-alt"></i> 批次刪除
-                            </label>
-
-                            <button type="button" class="btn btn-danger" id="batchDeleteBtn" disabled>
-                                執行刪除
-                            </button>
-                        </div>
-
-                        <div class="text-muted small">
-                            * 請勾選要刪除的消息
-                        </div>
-                    </div>
 
                     {{-- ===== 3. 資料列表 ===== --}}
                     <table class="table table-bordered table-striped table-hover">
@@ -155,6 +142,25 @@
                             @endforelse
                         </tbody>
                     </table>
+
+
+                    {{-- 批次刪除工具列 --}}
+                    <div class="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded">
+                        <div class="form-inline">
+                            <label class="mr-2 text-danger">
+                                <i class="fas fa-trash-alt"></i> 批次刪除
+                            </label>
+
+                            <button type="button" class="btn btn-danger" id="batchDeleteBtn" disabled>
+                                執行刪除
+                            </button>
+                        </div>
+
+                        <div class="text-muted small">
+                            * 請勾選要刪除的消息
+                        </div>
+                    </div>
+
                 </form>
 
                 {{-- ===== 4. 分頁設定 ===== --}}

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('admins', function (Blueprint $table) {
             // 用來儲存個人特例權限，預設為 null (代表完全遵照角色設定)
             $table->json('preferences')->nullable()->after('role_id')->comment('個人化設定');
         });
@@ -16,7 +16,7 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('admins', function (Blueprint $table) {
             $table->dropColumn('preferences');
         });
     }
