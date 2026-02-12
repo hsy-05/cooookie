@@ -172,7 +172,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <img src="{{ $UPLOAD_PATH . '/' . $product->image }}" class="img-fluid" alt="封面圖片">
+                        <img src="{{ asset('storage/' . $product->image) }}" class="img-fluid" alt="封面圖片">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>

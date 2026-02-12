@@ -115,7 +115,7 @@
                                                     @if ($isEdit && $advert->adv_img_url)
                                                         <button type="button"
                                                                 class="btn btn-info js-open-preview"
-                                                                data-url="{{ $UPLOAD_PATH . '/' . $advert->adv_img_url }}">
+                                                                data-url="{{ asset('storage/' . $advert->adv_img_url) }}">
                                                             瀏覽
                                                         </button>
                                                         <button type="button" class="btn btn-danger btn-delete-image"
@@ -154,7 +154,7 @@
                                                     @if ($isEdit && $advert->adv_img_m_url)
                                                         <button type="button"
                                                                 class="btn btn-info js-open-preview"
-                                                                data-url="{{ $UPLOAD_PATH . '/' . $advert->adv_img_m_url }}">
+                                                                data-url="{{ asset('storage/' . $advert->adv_img_m_url) }}">
                                                             瀏覽
                                                         </button>
                                                         <button type="button" class="btn btn-danger btn-delete-image"

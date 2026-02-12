@@ -96,7 +96,7 @@
                                                     @if ($isEdit && $category->image_url)
                                                         <button type="button"
                                                                 class="btn btn-info js-open-preview"
-                                                                data-url="{{ $UPLOAD_PATH . '/' . $category->image_url }}">
+                                                                data-url="{{ asset('storage/' . $category->image_url) }}">
                                                             瀏覽
                                                         </button>
                                                         <button type="button" class="btn btn-danger btn-delete-image"
