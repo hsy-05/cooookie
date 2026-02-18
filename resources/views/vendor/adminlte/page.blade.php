@@ -73,8 +73,6 @@
         var csrfToken = "{{ csrf_token() }}";
     </script>
 
-    <script src="{{ asset('js/admin/common.js') }}"></script>
-
     <script>
         // Session 訊息提示
         @if (session('form_success_swal'))

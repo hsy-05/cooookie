@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Models\{NewsCategory, NewsCategoryDesc, Language};
+use App\Http\Requests\Admin\NewsCategoryRequest; // 引入 Request
+use App\Models\{NewsCategory, NewsCategoryDesc};
 use Illuminate\Support\Facades\{DB, Log};
 use App\Helpers\{ContentHelper, ImageHelper};
 
@@ -37,13 +38,13 @@ class NewsCategoryController extends BaseAdminController
      */
     public function index(Request $request)
     {
-        // 1. 取得搜尋關鍵字
+        // 取得搜尋關鍵字
         $search = $request->input('search');
 
-        // 2. 建立查詢基礎：預載語言描述與子分類
+        // 建立查詢基礎：預載語言描述與子分類
         $query = NewsCategory::with(['children.descs', 'descs']);
 
-        // 3. 處理搜尋與層級邏輯
+        // 處理搜尋與層級邏輯
         if ($search) {
             // 如果有搜尋，通常會打破樹狀結構，直接列出所有符合的項目
             $categories = $query->whereHas('descs', function ($q) use ($search) {
@@ -70,28 +71,26 @@ class NewsCategoryController extends BaseAdminController
         return $this->renderForm(new NewsCategory(), false);
     }
 
-    public function store(Request $request)
+    public function store(NewsCategoryRequest $request)
     {
-        $validRes = $this->validateRequest($request);
-        // 如果有回傳 Redirect 物件，代表防呆觸發了，必須立刻 return 回去給瀏覽器
-        if ($validRes) {
-            return $validRes;
-        }
+        // 【防呆加強】先進行層級深度判斷，如果不通過，直接回傳錯誤
+        $levelError = $this->checkLevelLimit($request->parent_id);
+        if ($levelError) return $levelError;
+
         return DB::transaction(function () use ($request) {
             try {
                 $category = new NewsCategory();
 
-                // 1. 處理圖片 (預留功能)
+                // 處理圖片 (預留功能)
                 $this->handleImageUpload($request, $category);
 
-                // 2. 儲存主表
-                $category->fill([
-                    'parent_id'     => $request->parent_id ?: null,
-                    'is_visible'    => $request->has('is_visible'),
-                    'display_order' => $request->display_order ?? 0,
-                ])->save();
+                // 儲存主表
+                $category->fill($request->validated());
+                $category->parent_id = $request->parent_id ?: null;
+                $category->is_visible = $request->has('is_visible');
+                $category->save();
 
-                // 3. 儲存多語系資料
+                // 儲存多語系資料
                 $this->saveTranslations($category, $request->desc);
 
                 ContentHelper::showMsg(0, '分類新增完成', [
@@ -103,7 +102,7 @@ class NewsCategoryController extends BaseAdminController
                 return redirect()->back();
             } catch (\Exception $e) {
                 Log::error("Category Store Error: " . $e->getMessage());
-                return redirect()->back()->withInput()->with('error', '新增失敗');
+                return redirect()->back()->withInput()->with('form_error_swal', '新增失敗');
             }
         });
     }
@@ -119,27 +118,31 @@ class NewsCategoryController extends BaseAdminController
     /**
      * 更新表單
      */
-    public function update(Request $request, NewsCategory $category)
+    public function update(NewsCategoryRequest $request, NewsCategory $category)
     {
-        $validRes = $this->validateRequest($request);
-        // 如果有回傳 Redirect 物件，代表防呆觸發了，必須立刻 return 回去給瀏覽器
-        if ($validRes) {
-            return $validRes;
-        }
+        // 【防呆加強】編輯時也檢查層級
+        $levelError = $this->checkLevelLimit($request->parent_id);
+        if ($levelError) return $levelError;
+
         return DB::transaction(function () use ($request, $category) {
             try {
-                // 1. 更新圖片 (預留功能)
+                // 更新圖片 (預留功能)
                 $this->handleImageUpload($request, $category);
 
-                // 2. 更新主表
-                $category->update([
-                    'parent_id'     => $request->parent_id ?: null,
-                    'is_visible' => $request->input('is_visible') === '1',
-                    'display_order' => $request->display_order ?? 0,
-                ]);
+                // 更新主表
+                $category->update($request->validated());
+                $category->parent_id = $request->parent_id ?: null;
+                $category->is_visible = $request->has('is_visible');
+                $category->save();
 
-                // 3. 更新多語系資料
+                // 更新多語系資料
                 $this->saveTranslations($category, $request->desc);
+
+                // 紀錄操作紀錄
+                $category->writeLog('編輯', $category->desc->name ?? '未知名分類', [
+                    'cat_id' => $category->cat_id,
+                    'updated_fields' => array_keys($request->validated()),
+                ]);
 
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
@@ -149,7 +152,7 @@ class NewsCategoryController extends BaseAdminController
                 return redirect()->back();
             } catch (\Exception $e) {
                 Log::error("Category Update Error: " . $e->getMessage());
-                return redirect()->back()->withInput()->with('error', '更新失敗');
+                return redirect()->back()->withInput()->with('form_error_swal', '更新失敗');
             }
         });
     }
@@ -158,7 +161,12 @@ class NewsCategoryController extends BaseAdminController
     {
         //  檢查：若有子項目則禁止刪除
         if ($category->news()->exists()) {
-            return back()->with('error', '此分類已有消息使用，無法刪除。');
+            return back()->with('form_error_swal', '此分類已有消息使用，無法刪除。');
+        }
+
+        // 防呆：如果有子分類，也要禁止刪除
+        if ($category->children()->exists()) {
+            return back()->with('form_error_swal', '請先刪除底下的子分類。');
         }
 
         // 先抓取標題供 Log 使用
@@ -173,15 +181,56 @@ class NewsCategoryController extends BaseAdminController
         }
 
         // 刪除資料庫紀錄
-        NewsCategoryDesc::where('cat_id', $category->cat_id)->delete();
+        $category->descs()->delete();
         $category->delete();
 
+        // 紀錄操作紀錄
         $category->writeLog('刪除', $title);
 
         return redirect()->route('admin.news_category.index')->with('form_success_swal', '消息分類已刪除');
     }
 
     /* --- 內部輔助方法 (符合 NewsController 邏輯) --- */
+
+    /**
+     * 專業防呆：獨立出的層級深度檢查邏輯
+     * 這裡完整保留了你原本的 ContentHelper 與 while 迴圈判斷
+     */
+    private function checkLevelLimit($parentId)
+    {
+        // 如果是設為第一層，就不需要檢查深度
+        if (empty($parentId) || $parentId == 0) {
+            return null;
+        }
+
+        $parent = NewsCategory::find($parentId);
+        $backUrl = url()->previous();
+
+        if (!$parent) {
+            ContentHelper::showMsg(1, '找不到指定的父分類', [['text' => '返回表單', 'href' => $backUrl]], true);
+            return redirect()->back();
+        }
+
+        // 使用你原本的 while 迴圈，逐層往上找，計算目前的深度
+        $parentLevel = 1;
+        $tempParent = $parent;
+        while ($tempParent->parent_id > 0) {
+            $tempParent = NewsCategory::find($tempParent->parent_id);
+            if (!$tempParent) break;
+            $parentLevel++;
+        }
+
+        // 從設定檔讀取上限 (防呆預設為 2)
+        $maxLimit = config('site_settings.category_levels.news', 2);
+
+        // 如果「父層深度 + 我自己這一層」超過限制
+        if (($parentLevel + 1) > $maxLimit) {
+            ContentHelper::showMsg(1, "違反層級限制：消息分類最高僅允許 {$maxLimit} 層", [['text' => '返回表單', 'href' => $backUrl]], true);
+            return redirect()->back();
+        }
+
+        return null; // 代表沒問題
+    }
 
     /**
      * 處理表單顯示邏輯：準備新增或編輯所需的資料

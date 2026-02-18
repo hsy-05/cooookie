@@ -19,9 +19,9 @@
         @endif
 
         {{-- 3. 分類名稱 (粗體由 CSS 根據 data-level="0" 決定) --}}
-        @foreach ($cat->descs as $d)
+        @foreach ($cat->descs as $desc)
             <span class="category-name-text">
-                {{ $d->name }}
+                {{ $desc->name }}
             </span>
         @endforeach
     </td>
@@ -56,7 +56,6 @@
                             @method('DELETE')
                             <button type="button" class="btn btn-sm btn-danger js-delete-btn"
                                     data-id="{{ $cat->cat_id }}"
-                                    data-title="確定刪除【{{ $cat->name }}】嗎？"
                                     title="刪除">
                                 <i class="fas fa-trash"></i>
                             </button>

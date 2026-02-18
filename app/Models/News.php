@@ -3,13 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Loggable; // 引入 Trait
+use App\Traits\Loggable;       // 引入日誌 Trait
+use App\Traits\HasImageFields; // 引入圖片處理 Trait
 
 class News extends Model
 {
-    use Loggable; // 使用 Trait
+    use Loggable, HasImageFields; // 同時使用多個 Trait
 
-    // 🔴 關閉自動監聽，改在 Controller 手動紀錄，確保標題正確
+    /**
+     * 【關鍵優化】定義圖片欄位
+     * 當此 Model 執行 delete() 時，HasImageFields Trait 會自動讀取此陣列，
+     * 並將硬碟中對應的檔案刪除，無需在 Controller 手動處理。
+     */
+    protected array $imageFields = ['image_url'];
+
+    // 關閉自動監聽，改在 Controller 手動紀錄，確保標題正確
     public $enableAutoLog = false;
 
     // 定義 Log 顯示的模組名稱
@@ -41,7 +49,7 @@ class News extends Model
     ];
 
     /**
-     * 一則資料會有多個語系描述
+     * 關聯：一則資料會有多個語系描述
      */
     public function descs()
     {
@@ -49,12 +57,11 @@ class News extends Model
     }
 
     /**
-     * 取得目前語系的一筆描述資料
-     * 當你要抓語系內容時可以直接使用：
-     * $news->desc->title
+     * 關聯：取得目前語系的一筆描述資料
      */
     public function desc()
     {
+        // 優先從 Session 抓取，若無則預設為 1
         $langId = session('lang_id') ?? 1;
 
         return $this->hasOne(NewsDesc::class, 'news_id', 'news_id')
@@ -62,7 +69,7 @@ class News extends Model
     }
 
     /**
-     * 每則資料屬於某一個分類
+     * 關聯：每則資料屬於某一個分類
      */
     public function category()
     {
@@ -70,34 +77,33 @@ class News extends Model
     }
 
     /**
-     * !! 目前無使用此功能，但未來可能會用到 !!
-     * 動態屬性：自動取得目前語系的標題
-     * 讓你可以用 $news->title，而不是 $news->desc->title
-     *
+     * 存取器：自動取得目前語系的標題 (Accessor)
+     * 用法：$news->title
      */
     public function getTitleAttribute()
     {
-        // 取得 app locale，例如 "zh-TW"
         $locale = app()->getLocale();
 
-        // 靜態快取語系 ID，不用每次查資料庫
+        // 靜態快取語系 ID，避免在同一 Request 內重複查詢資料庫
         static $langIdCache = null;
         if ($langIdCache === null) {
             $langIdCache = \App\Models\Language::where('code', $locale)->value('lang_id');
         }
 
-        // 回傳符合語系的一筆 desc（效能最佳：使用 query，不抓整包 descs）
-        return optional(
-            $this->descs()->where('lang_id', $langIdCache)->first()
-        )->title;
+        // 效能優化：如果已經 load 了 descs，就直接從 collection 找，不額外查 DB
+        if ($this->relationLoaded('descs')) {
+            return optional($this->descs->firstWhere('lang_id', $langIdCache))->title;
+        }
+
+        return optional($this->descs()->where('lang_id', $langIdCache)->first())->title;
     }
 
     /**
-     * 更新操作紀錄中的標題
+     * 操作紀錄中的標題來源
      */
     public function getLogTitleAttribute()
     {
-        // dd($this->desc);
-        return $this->descs->first()->title ?? '未命名消息';
+        // 優先抓取目前關聯到的 desc 標題，若無則抓第一個語系
+        return $this->desc->title ?? ($this->descs->first()->title ?? '未命名消息');
     }
 }

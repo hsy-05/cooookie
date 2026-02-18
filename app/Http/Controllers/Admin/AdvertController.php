@@ -41,16 +41,19 @@ class AdvertController extends BaseAdminController
     {
         $search = $request->input('search');
 
+        // 取得統一的分頁數
+        $perPage = $this->getPerPage($request);
+
         // 使用 Eager Loading (with) 減少資料庫查詢壓力
-        $adverts = Advert::with(['descs', 'category'])
+        $advertList = Advert::with(['descs', 'category'])
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('descs', fn($q) => $q->where('adv_name', 'like', "%{$search}%"));
             })
             ->orderByDesc('display_order')
             ->orderByDesc('adv_id')
-            ->paginate($request->input('per_page', 8));
+            ->paginate($perPage);
 
-        return $this->view('admin.advert.index', compact('adverts', 'search'));
+        return $this->view('admin.advert.index', compact('advertList', 'search'));
     }
 
     public function create()

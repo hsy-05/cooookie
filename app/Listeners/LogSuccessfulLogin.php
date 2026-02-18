@@ -4,52 +4,49 @@ namespace App\Listeners;
 
 use Illuminate\Auth\Events\Login;
 use App\Models\ActionLog;
-use App\Models\Admin;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
-
-use Illuminate\Support\Facades\{Log};
+use Illuminate\Support\Facades\Log;
 
 class LogSuccessfulLogin
 {
     /**
-     * 當管理員登入時，紀錄操作紀錄
-     * 透過 Session 標籤防止分頁重複讀取導致重複寫入
+     * 處理管理員登入成功後的紀錄行為
+     * (利用 Session 標籤防止重複寫入，避免 F5 重新整理產生多筆垃圾紀錄)
+     *
+     * @param Login $event Laravel 內建的登入事件物件
+     * @return void
      */
     public function handle(Login $event): void
     {
-
-        // Session 防重複寫入檢查
+        // 1. 防重複機制：這回合 Session 已經記過登入了，就直接收工
         if (Session::has('login_logged')) {
             return;
         }
 
-        // 1. 防呆與身分判定：確保現在登入的人真的是我們定義的 Admin 模型
-        // $event->user 雖然叫 user，但它裝的其實是你剛登入的 Admin 實例
-        $admin = $event->user;
+        $user = $event->user;
 
-        // 檢查是否為 User 模型 (根據你的 Log，現在是 User)
-        if (!$admin instanceof \App\Models\User) {
-            Log::warning('身分判定失敗', ['class' => get_class($admin)]);
+        // 2. 身份防呆：確保觸發登入的是我們的「後台管理員/使用者」模型
+        // (避免前台一般會員登入時，也跑來寫後台的 ActionLog 導致報錯)
+        if (!$user instanceof \App\Models\User) {
+            Log::warning('登入紀錄失敗：未知的 User 模型類別', ['class' => get_class($user)]);
             return;
         }
 
-        // 如果你只想紀錄「有權限進後台」的人，可以加一個簡單判斷
-        // 例如檢查 role_id 或其他欄位
-        if (empty($admin->role_id)) {
+        // 3. 權限防呆：只有具備 role_id (代表是後台人員) 才需要被記錄
+        if (empty($user->role_id)) {
             return;
         }
 
-        // ... 寫入資料庫
-        \App\Models\ActionLog::create([
-            'admin_id'   => $admin->id, // 這裡欄位名若叫 admin_id 沒關係，存的是 ID
+        // 4. 正式寫入資料庫
+        ActionLog::create([
+            'admin_id'   => $user->id,
             'action'     => '登入',
             'log_info'   => '管理者登入成功',
-            'ip_address' => \Illuminate\Support\Facades\Request::ip(),
+            'ip_address' => Request::ip() ?? '127.0.0.1',
         ]);
 
-        // 3. 在 Session 存入一個標籤，直到使用者登出或 Session 到期為止
-        // 這樣同一個 Session 不管重新整理幾次，都不會再進到這裡寫入
+        // 5. 貼上 Session 護身符，直到使用者登出前，都不會再重複記錄
         Session::put('login_logged', true);
     }
 }

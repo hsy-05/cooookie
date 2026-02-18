@@ -88,7 +88,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($adverts as $item)
+                            @forelse ($advertList as $item)
                                 <tr>
                                     {{-- 勾選框 --}}
                                     <td class="text-center">
@@ -171,38 +171,8 @@
                     </table>
                 </form>
 
-                {{-- ===== 4. 分頁設定 ===== --}}
-                <div class="d-flex justify-content-between align-items-center mt-3">
-
-                    {{-- 每頁筆數切換 --}}
-                    <form id="perPageForm" method="GET" class="form-inline">
-                        <label for="per_page" class="mr-2">每頁筆數：</label>
-                        <select name="per_page" id="per_page" class="form-control"
-                            onchange="document.getElementById('perPageForm').submit()">
-                            @foreach ([2, 8, 15, 30, 50] as $size)
-                                <option value="{{ $size }}"
-                                    {{ request('per_page', 8) == $size ? 'selected' : '' }}>
-                                    {{ $size }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        {{-- 切換筆數時保留搜尋關鍵字 --}}
-                        @foreach (request()->except('per_page', 'page') as $key => $value)
-                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                        @endforeach
-                    </form>
-
-                    <div>
-                        總計 {{ $adverts->total() }} 筆，
-                        第 {{ $adverts->currentPage() }} / {{ $adverts->lastPage() }} 頁
-                    </div>
-                </div>
-
-                {{-- 分頁按鈕 --}}
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $adverts->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
-                </div>
+                {{-- ===== 分頁與工具區塊 ===== --}}
+                @include('components.admin.pagination_tools', ['items' => $advertList])
 
             </div>
         </div>

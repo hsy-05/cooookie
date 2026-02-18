@@ -6,6 +6,8 @@ $.ajaxSetup({
 });
 
 $(function () {
+    console.log('Admin common.js loaded');
+
     // === 執行初始化功能 ===
     initGlobalDelete();         // 單筆刪除 (含分類防呆)
     initTreeToggle();           // 樹狀分類摺疊邏輯
@@ -14,7 +16,36 @@ $(function () {
     initAsyncImageDelete();   // 初始化異步圖片刪除
     initImageUploadStats();   // 初始化上傳資訊更新
     handleToggleBooleanSwitch(); // 初始化開關切換
+    initQuickClear(); // 新增一個清除快取的初始化
 });
+
+/**
+ * 清除系統快取功能
+ */
+function initQuickClear() {
+    // 使用 document 委派，確保動態產生的元素也能觸發
+    $(document).on('click', '#btn-quick-clear', function(e) {
+        e.preventDefault();
+
+        const $btn = $(this);
+        const apiUrl = $btn.data('url') || '/admin/clear-cache'; // 優先抓 data-url
+
+        if (!confirm('確定要清除所有系統快取嗎？')) return;
+
+        $btn.prop('disabled', true).find('i').addClass('fa-spin'); // 防呆：禁用並轉圈圈
+
+        $.post(apiUrl)
+            .done(function(res) {
+                alert(res.message || '清除成功');
+            })
+            .fail(function() {
+                alert('系統錯誤，請稍後再試');
+            })
+            .always(function() {
+                $btn.prop('disabled', false).find('i').removeClass('fa-spin'); // 恢復
+            });
+    });
+}
 
 /**
  * 1. 全域單筆刪除監聽 (關鍵：包含分類子項檢查)

@@ -19,5 +19,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        $this->call([
+        // ... 其他原本的 Seeder (例如 UserSeeder)
+        AdminSystemSettingSeeder::class,
+    ]);
     }
 }

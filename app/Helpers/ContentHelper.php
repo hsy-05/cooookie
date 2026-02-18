@@ -40,33 +40,25 @@ class ContentHelper
 
     /**
      * 顯示提示訊息
-     *
-     * @param integer    $msgType        消息類型，0消息，1錯誤，2詢問
-     * @param string     $msgContent     訊息內容
-     * @param array      $links          連結選項
-     * @param bool       $autoRedirect   是否自動跳轉（預設 true，跳轉到第一個連結）
+     ** @param int    $msgType      消息類型: 0=消息, 1=錯誤, 2=詢問
+     * @param string $msgContent   訊息內容
+     * @param array  $links        連結選項 [['text' => '...', 'href' => '...']]
+     * @param bool   $autoRedirect 是否自動跳轉
      */
-    public static function showMsg(int $msgType = 0, string $msgContent, array $links = [], bool $autoRedirect = true)
+    public static function showMsg(int $msgType = 0, string $msgContent = '', array $links = [], bool $autoRedirect = true)
     {
-        if (($linkNum = count($links)) == 0) {
-            $links[0]['text'] = '返回上一頁';
-            $links[0]['href'] = 'javascript:history.go(-1);';
-        }
-
-        if ($linkNum > 1) {
+        // 如果沒有提供任何連結，預設給予「返回上一頁」
+        if (empty($links)) {
+            $links[] = [
+                'text' => '返回上一頁',
+                'href' => 'javascript:history.go(-1);'
+            ];
+        } else {
             // 依照鍵名進行排序 (數值越負，代表排序順序越後面)
-            uksort(
-                $links,
-                function ($a, $b) use ($linkNum) {
-                    $a < 0 && $a = $linkNum + abs($a);
-                    $b < 0 && $b = $linkNum + abs($b);
-
-                    return ($b < $a) ? 1 : -1;
-                }
-            );
+            $links = array_values($links);
         }
 
-        // 提示頁面：\resources\views\components\admin\page-message.blade.php
+        // 對應你的 admin.page-message 元件所需的格式
         session()->flash('form_success', [
             'msg_type'     => $msgType,
             'title'        => $msgContent,

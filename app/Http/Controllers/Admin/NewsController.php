@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Models\{News, NewsDesc, NewsCategory, ActionLog};
-use Illuminate\Support\Facades\{DB, Log, Auth};
-use App\Helpers\{ContentHelper, ImageHelper};
+use App\Http\Requests\Admin\NewsRequest;
+use App\Models\{News, NewsDesc, NewsCategory};
+use Illuminate\Support\Facades\{DB, Log};
+use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper};
 
 class NewsController extends BaseAdminController
 {
-    // 定義這個 Controller 屬於哪組權限與標題
+    // 定義權限與標題
     protected $permissionName = 'news';
     protected $pageTitle = '最新消息';
 
@@ -17,7 +18,6 @@ class NewsController extends BaseAdminController
      * 頁面相關配置
      */
     protected $pageCfg = [
-        // 定義哪些欄位需要處理檔案上傳
         'files' => [
             'image_url' => [
                 'path'   => 'news',     // 儲存路徑
@@ -34,14 +34,16 @@ class NewsController extends BaseAdminController
     {
         $search = $request->input('search');
 
-        // 使用 Eager Loading (with) 減少資料庫查詢壓力 (解決 N+1 問題)
+        // 取得統一的分頁數
+        $perPage = $this->getPerPage($request);
+
         $newsList = News::with(['descs', 'category'])
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('descs', fn($q) => $q->where('title', 'like', "%{$search}%"));
             })
             ->orderByDesc('display_order')
             ->orderByDesc('news_id')
-            ->paginate($request->input('per_page', 8));
+            ->paginate($perPage);
 
         $langs = $this->getActiveLanguages();
 
@@ -50,40 +52,41 @@ class NewsController extends BaseAdminController
 
     public function create()
     {
+        // 👇 打開頁面時，先大掃除上次可能遺留的廢棄圖片
+        SummernoteImageHelper::cleanAbandonedImages();
+
         return $this->renderForm(new News());
     }
 
-    public function store(Request $request)
+    public function store(NewsRequest $request)
     {
-        // 基礎驗證
-        $this->validateRequest($request);
-
         return DB::transaction(function () use ($request) {
             try {
                 $news = new News();
 
-                // 處理檔案/圖片上傳
+                // 填充資料
+                $news->fill($request->safe()->except(['image_url']));
+
+                // 處理檔案上傳 (ImageHelper 已優化安全性)
                 $this->handleFileUploads($request, $news);
 
-                // 儲存主表資料
-                $news->fill([
-                    'cat_id'        => $request->cat_id,
-                    'is_visible'    => $request->has('is_visible'),
-                    'display_order' => $request->display_order ?? 0,
-                ])->save();
+                $news->is_visible = $request->has('is_visible');
+                $news->save();
+                // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片
+                SummernoteImageHelper::commitTempImages();
 
-                // 儲存多語系資料
+                // 儲存多語系
                 $this->saveTranslations($news, $request->desc);
 
-                // 紀錄操作日誌
+                // 紀錄紀錄
                 $news->writeLog('新增', $news->desc->title ?? '未知名消息');
 
-                // 成功回傳 (使用自定義 ContentHelper)
+                // 成功回傳
                 ContentHelper::showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
                     ['text' => '返回列表', 'href' => route('admin.news.index')],
-                ], true);
+                ]);
 
                 return redirect()->back();
             } catch (\Exception $e) {
@@ -95,24 +98,27 @@ class NewsController extends BaseAdminController
 
     public function edit(News $news)
     {
+        // 👇 編輯頁面也順手清一下
+        SummernoteImageHelper::cleanAbandonedImages();
+
         return $this->renderForm($news);
     }
 
-    public function update(Request $request, News $news)
+    public function update(NewsRequest $request, News $news)
     {
-        $this->validateRequest($request);
-
         return DB::transaction(function () use ($request, $news) {
             try {
-                // 處理檔案/圖片更新 (會自動判斷舊檔並刪除)
+                $news->fill($request->safe()->except(['image_url']));
+
+                // 處理更新 (會自動清理舊圖)
                 $this->handleFileUploads($request, $news);
 
                 // 更新主表
-                $news->update([
-                    'cat_id'        => $request->cat_id,
-                    'is_visible'    => $request->has('is_visible'),
-                    'display_order' => $request->display_order ?? 0,
-                ]);
+                $news->is_visible = $request->has('is_visible');
+                $news->save();
+
+                // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片
+                SummernoteImageHelper::commitTempImages();
 
                 // 更新多語系資料
                 $this->saveTranslations($news, $request->desc);
@@ -122,7 +128,7 @@ class NewsController extends BaseAdminController
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
                     ['text' => '返回列表', 'href' => route('admin.news.index')],
-                ], true);
+                ]);
 
                 return redirect()->back();
             } catch (\Exception $e) {
@@ -132,21 +138,18 @@ class NewsController extends BaseAdminController
         });
     }
 
+    /**
+     * 刪除消息 (優化寫法)
+     */
     public function destroy(News $news)
     {
-        // 先抓取標題供 Log 使用
         $news->load('desc');
         $title = $news->desc->title ?? '未知名消息';
 
-        // 刪除相關聯的所有實體檔案 (防呆：避免伺服器留下一堆廢圖)
-        foreach (array_keys($this->pageCfg['files']) as $field) {
-            if ($news->$field) {
-                ImageHelper::deleteImage($news->$field, 'public');
-            }
-        }
+        // 注意：這裡不再需要手動用 ImageHelper::deleteImage 了！
+        // 因為 News Model 掛載了 HasImageFields Trait，
+        // 只要執行 delete()，Trait 會自動根據 $imageFields 屬性清理檔案。
 
-        // 刪除資料庫紀錄
-        NewsDesc::where('news_id', $news->news_id)->delete();
         $news->delete();
 
         $news->writeLog('刪除', $title);
@@ -154,48 +157,35 @@ class NewsController extends BaseAdminController
         return redirect()->route('admin.news.index')->with('form_success_swal', '消息已刪除');
     }
 
-    /* --- 內部輔助方法 (Private Helper Methods) --- */
-
     /**
-     * 渲染表單通用邏輯
+     * 單獨刪除圖片欄位 (AJAX)
      */
+    public function deleteImageField(Request $request, News $news)
+    {
+        // 直接調用優化後的 Trait 方法
+        return $news->deleteImageFieldGeneric($request);
+    }
+
+    /* --- 內部輔助方法 --- */
+
     private function renderForm(News $news)
     {
         $isEdit = (bool)$news->exists;
         $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderByDesc('display_order')->get();
         $langs = $this->getActiveLanguages();
-
-        // 將配置傳給前端，以便顯示建議尺寸提示
         $fileConfigs = $this->pageCfg['files'];
 
         $descMap = [];
         if ($isEdit) {
             $news->load('descs');
             foreach ($news->descs as $desc) {
-                // 解碼內容中的動態網址 (Summernote 用)
+                // 還原內容中的動態網址
                 $desc->content = ContentHelper::decodeSiteUrl($desc->content);
                 $descMap[$desc->lang_id] = $desc;
             }
         }
 
         return $this->view('admin.news.form', compact('news', 'isEdit', 'categories', 'langs', 'descMap', 'fileConfigs'));
-    }
-
-    /**
-     * 驗證請求
-     */
-    private function validateRequest(Request $request)
-    {
-        $request->validate([
-            'cat_id'             => 'required|exists:news_category,cat_id',
-            'is_visible'         => 'nullable|boolean',
-            'display_order'      => 'nullable|integer',
-            'image_url'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'desc'               => 'nullable|array',
-            'desc.*.title'       => 'required_with:desc.*|string|max:255',
-            'desc.*.description' => 'nullable|string|max:255',
-            'desc.*.content'     => 'nullable|string',
-        ]);
     }
 
     /**
@@ -217,20 +207,6 @@ class NewsController extends BaseAdminController
         }
     }
 
-    /**
-    * 刪除圖片欄位的通用方法
-    * 前端會傳入要刪除的欄位名稱 (例如 image_url)，這樣這個方法就可以通用於多個圖片欄位
-    */
-    public function deleteImageField(Request $request, News $news)
-    {
-        // 調用 Trait 裡面的通用邏輯，傳入當前的 $news 模型實例
-        // 並明確告訴 Trait 要刪除的欄位名稱 (從前端傳來，或直接寫死在控制器)
-        return $this->deleteImageFieldGeneric($request, $news);
-    }
-
-    /**
-     * 儲存/更新多語系描述
-     */
     private function saveTranslations(News $news, ?array $descData)
     {
         if (!$descData) return;
@@ -243,14 +219,13 @@ class NewsController extends BaseAdminController
             }
 
             // 使用 updateOrInsert 簡化邏輯 (有則更，無則增)
-            DB::table('news_desc')->updateOrInsert(
+            NewsDesc::updateOrInsert(
                 ['news_id' => $news->news_id, 'lang_id' => $langId],
                 [
                     'title'       => $data['title'],
                     'description' => $data['description'] ?? null,
                     // Summernote 內容需編碼網址，避免換網域時圖片破圖
                     'content'     => ContentHelper::encodeSiteUrl($data['content'] ?? ''),
-                    'updated_at'  => now(),
                 ]
             );
         }
@@ -267,11 +242,7 @@ class NewsController extends BaseAdminController
         $newsList = News::whereIn('news_id', $ids)->get();
 
         foreach ($newsList as $news) {
-            // 批次刪除時也要確實清理檔案
-            foreach (array_keys($this->pageCfg['files']) as $field) {
-                if ($news->$field) ImageHelper::deleteImage($news->$field, 'public');
-            }
-            $news->descs()->delete();
+            // 同理，這也會觸發 Trait 的自動刪除檔案邏輯
             $news->delete();
         }
 

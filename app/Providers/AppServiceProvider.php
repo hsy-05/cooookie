@@ -6,6 +6,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use App\Models\AdminSystemSetting;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,5 +33,16 @@ class AppServiceProvider extends ServiceProvider
             // return $user->hasRole('admin') ? true : null; // 範例：超級管理員直接放行
             return method_exists($user, 'canDo') ? $user->canDo($ability) : null;
         });
+
+        // 防呆：先檢查是否有資料表（避免在安裝 migration 前報錯）
+        if (Schema::hasTable('admin_system_settings')) {
+            $settings = AdminSystemSetting::getAllSettings();
+
+            // 將資料庫的設定 覆蓋 或 新增 到 Laravel config 中
+            // 這樣你在任何地方用 config('site.image_max_size') 都能抓到
+            foreach ($settings as $key => $value) {
+                Config::set('site.' . $key, $value);
+            }
+        }
     }
 }

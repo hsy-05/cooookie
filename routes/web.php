@@ -27,6 +27,9 @@ use App\Http\Controllers\Admin\BaseAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\ClearCacheController;
+use App\Http\Controllers\Admin\SystemSettingController;
+use App\Http\Controllers\Admin\SystemLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,6 +101,8 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         // 後台首頁
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::post('clear-cache', [ClearCacheController::class, 'clearCache'])->name('clear.cache');
+
         // Roles & Users (假設管理員才能操作)
         Route::resource('roles', AdminRoleController::class);
 
@@ -127,6 +132,23 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         |--------------------------------------------------------------------------
         */
         Route::resource('languages', LanguageController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 系統參數設定
+        |--------------------------------------------------------------------------
+        */
+        Route::get('system_settings', [SystemSettingController::class, 'index'])
+            ->name('system_settings.index');
+
+        // 系統紀錄頁面
+        Route::get('system-logs', [SystemLogController::class, 'index'])
+            ->name('admin.system.logs');
+
+        // 使用 PUT 方法符合「更新」的語意，對應表單裡的 @method('PUT')
+        Route::put('system_settings/update-all', [SystemSettingController::class, 'updateAll'])
+            ->name('system_settings.update_all');
+
 
         /*
         |--------------------------------------------------------------------------

@@ -4,9 +4,8 @@
 {{-- 共用頁首 --}}
 @component('components.admin.page_content_header', ['pageTitle' => '最新消息'])
     @slot('actions')
-        @if(auth()->user()->canDo('news.create'))
-            <a href="{{ route('admin.news.create') }}"
-               class="btn btn-primary shadow-sm px-4">
+        @if (auth()->user()->canDo('news.create'))
+            <a href="{{ route('admin.news.create') }}" class="btn btn-primary shadow-sm px-4">
                 <i class="fas fa-plus mr-1"></i>
                 新增
             </a>
@@ -120,7 +119,7 @@
                                             {{-- 單筆刪除 --}}
                                             @can('news.delete')
                                                 <form action="{{ route('admin.news.destroy', $item->news_id) }}" method="POST"
-                                                     id="deleteForm{{ $item->news_id }}">
+                                                    id="deleteForm{{ $item->news_id }}">
                                                     @csrf
                                                     @method('DELETE')
 
@@ -163,38 +162,8 @@
 
                 </form>
 
-                {{-- ===== 4. 分頁設定 ===== --}}
-                <div class="d-flex justify-content-between align-items-center mt-3">
-
-                    {{-- 每頁筆數 --}}
-                    <form id="perPageForm" method="GET" class="form-inline">
-                        <label for="per_page" class="mr-2">每頁筆數：</label>
-                        <select name="per_page" id="per_page" class="form-control"
-                            onchange="document.getElementById('perPageForm').submit()">
-                            @foreach ([2, 5, 8, 15, 30] as $size)
-                                <option value="{{ $size }}"
-                                    {{ request('per_page', 8) == $size ? 'selected' : '' }}>
-                                    {{ $size }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        @foreach (request()->except('per_page', 'page') as $key => $value)
-                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                        @endforeach
-                    </form>
-
-                    <div>
-                        總計 {{ $newsList->total() }} 筆，
-                        第 {{ $newsList->currentPage() }} / {{ $newsList->lastPage() }} 頁
-                    </div>
-                </div>
-
-                {{-- 分頁按鈕 --}}
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $newsList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
-                </div>
-
+                {{-- ===== 分頁與工具區塊 ===== --}}
+                @include('components.admin.pagination_tools', ['items' => $newsList])
             </div>
         </div>
     </x-admin.page-message>

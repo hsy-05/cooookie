@@ -454,9 +454,10 @@ return [
             'submenu' => [
                 [
                     'text' => '系統紀錄',
-                    'url'  => 'admin/sys_log',
-                    'active' => ['regex:@^admin/sys_log($|/)@'], // 可用陣列 / 通配符
-                    'can'  => 'news.view',
+                    'url'  => 'admin/system-logs',
+                    // 'icon' => 'fas fa-bug',
+                    'active' => ['regex:@^admin/system-logs($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'system',
                 ],
             ],
         ],
@@ -569,6 +570,16 @@ return [
     */
 
     'plugins' => [
+        'CustomCommon' => [
+            'active' => true, // 設定為 true，表示每一頁都會自動載入
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/admin/common.js',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => false,
             'files' => [

@@ -61,6 +61,37 @@
                                                     <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
                                                         maxlength="25" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
                                                 </div>
+
+
+
+                                                {{-- 🛡️ 開發者專用：僅 L1 Developer 可見，用於記錄系統 Debug 資訊 --}}
+                                                @if (auth()->user()->isDeveloper())
+                                                    <div class="form-group p-3 mb-3 border border-danger rounded">
+                                                        <label class="text-danger"><i class="fas fa-code"></i>
+                                                            開發者專用：偵錯備註</label>
+                                                        <input type="text" name="dev_notes" class="form-control"
+                                                            value="{{ $news->dev_notes }}">
+                                                    </div>
+                                                @endif
+
+                                                {{-- 🛡️ 內部管理專用：L1 & L2 可見，調整排序權重 --}}
+                                                @if (auth()->user()->isDeveloper() || auth()->user()->isInternalAdmin())
+                                                    <div class="form-group border-info border p-3">
+                                                        <label class="text-info"><i class="fas fa-user-shield"></i>
+                                                            內部管理專用：權重排序</label>
+                                                        <select name="internal_priority" class="form-control">
+                                                            <option value="0"
+                                                                {{ $news->internal_priority == 0 ? 'selected' : '' }}>一般
+                                                            </option>
+                                                            <option value="1"
+                                                                {{ $news->internal_priority == 1 ? 'selected' : '' }}>優先
+                                                            </option>
+                                                            <option value="2"
+                                                                {{ $news->internal_priority == 2 ? 'selected' : '' }}>最優先
+                                                                (置頂)</option>
+                                                        </select>
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endforeach
                                     </div>

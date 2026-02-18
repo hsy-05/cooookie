@@ -67,6 +67,27 @@ class BaseAdminController extends Controller
         ], $data));
     }
 
+
+    /**
+     * 取得每頁顯示的資料筆數
+     */
+    public function getPerPage(Request $request)
+    {
+        $defaultPerPage = 8;
+
+        // 1. 如果 Request 有帶 per_page，代表使用者剛做了下拉選擇
+        if ($request->has('per_page')) {
+            $perPage = (int)$request->input('per_page');
+            // 存入 Session 供以後所有頁面使用
+            session(['admin_per_page' => $perPage]);
+            return $perPage;
+        }
+
+        // 2. 如果 Request 沒帶，就從 Session 拿之前存過的
+        // 3. 如果 Session 也沒有，就用預設值 8
+        return session('admin_per_page', $defaultPerPage);
+    }
+
     /**
      * 通用 AJAX 方法，用於切換模型中的布林值欄位 (例如 is_visible)。
      * 此方法放在 BaseAdminController 中，供所有後台控制器共用。
