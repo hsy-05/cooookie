@@ -13,7 +13,6 @@
 @php
     // 直接取得 Controller 已經處理好的主標題 (例如：最新消息)
     $config = $titleConfig ?? ($GLOBALS['titleConfig'] ?? []);
-    // @dd( $config['main']);
     $mainDisplayTitle = $config['main'] ?? ($pageTitle ?? '未定義標題');
 
     // 取得動作名稱
