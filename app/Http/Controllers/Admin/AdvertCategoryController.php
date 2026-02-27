@@ -2,163 +2,175 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Models\{AdvertCategory, AdvertCategoryDesc, Language};
+use App\Models\{AdvertCategory, AdvertCategoryDesc};
 use Illuminate\Support\Facades\{DB, Log};
 use App\Helpers\{ContentHelper, ImageHelper};
 
 class AdvertCategoryController extends BaseAdminController
 {
-    // 定義這個 Controller 屬於哪組權限
+    // 1. 基本配置：只要寫這兩行，BaseAdminController 就會幫你處理好權限檢查與頁面標題
     protected $permissionName = 'advert_category';
     protected $pageTitle = '廣告分類管理';
 
-    /** 列表 */
+    /**
+     * 廣告分類列表
+     * * @param Request $request
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('per_page', 10);
+        // 使用 Base 的 getPerPage，這會自動記憶使用者的分頁選擇 (8, 20, 50...)
+        $perPage = $this->getPerPage($request);
 
-        $list = AdvertCategory::with('descs')
-            ->orderBy('display_order', 'desc')
+        $list = AdvertCategory::with(['desc'])
+            ->orderByDesc('display_order')
+            ->orderByDesc('cat_id')
             ->paginate($perPage);
 
         return $this->view('admin.advert_category.index', compact('list'));
     }
 
-    /** 建立表單 */
+    /**
+     * 新增表單頁
+     */
     public function create()
     {
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-        $categoryList = AdvertCategory::with('descs')->get(); // 加這行載入所有選項
-
-        // $defaultParams = [
-        //     'item_limit_num' => -1,
-        //     'fields' => [
-        //         'adv_img_url' => ['width' => 1920, 'height' => 960],
-        //         'adv_img_m_url' => ['width' => 800, 'height' => 960],
-        //         'adv_link_url' => new \stdClass(),
-        //     ],
-        // ];
-
-        return $this->view('admin.advert_category.form', [
-            'langs'           => $langs,
-            'advert_category' => new AdvertCategory([
-                'cat_func_scope' => ['adv_img_url', 'adv_img_m_url', 'adv_link_url'],
-                // 'cat_params'     => $defaultParams,
-                'is_visible'     => true,
-                'display_order'     => 0,
-            ]),
-            'descMap'         => [],
-            'categoryList'    => $categoryList, // 傳進 blade 用來產生 select options
-        ]);
+        return $this->renderForm(new AdvertCategory([
+            'cat_func_scope' => ['adv_img_url', 'adv_img_m_url', 'adv_link_url'], // 預設勾選
+            'is_visible'     => true,
+            'display_order'  => 0,
+        ]));
     }
 
-
-    /** 儲存 */
+    /**
+     * 執行儲存動作
+     * * @param Request $request
+     */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'cat_code'        => 'required|string|max:50|unique:advert_category,cat_code',
-            'cat_func_scope'  => 'nullable|array', // 例如 ["adv_img_url","adv_img_m_url","adv_link_url"]
-            'cat_params'      => 'nullable|json',  // 也可讓前端傳字串 JSON
-            'display_order'      => 'nullable|integer',
-            'is_visible'      => 'nullable|boolean',
-            'desc'            => 'nullable|array', // desc[lang_id][cat_name]
+        return $this->processSave($request, new AdvertCategory());
+    }
+
+    /**
+     * 編輯表單頁
+     * * @param AdvertCategory $advertCategory Laravel 會自動根據 ID 尋找 Model
+     */
+    public function edit(AdvertCategory $advertCategory)
+    {
+        return $this->renderForm($advertCategory);
+    }
+
+    /**
+     * 執行更新動作
+     */
+    public function update(Request $request, AdvertCategory $advertCategory)
+    {
+        return $this->processSave($request, $advertCategory);
+    }
+
+    /**
+     * 刪除分類
+     */
+    public function destroy(AdvertCategory $advertCategory)
+    {
+        $title = $advertCategory->title;
+
+        // 這裡會自動觸發 HasImageFields 刪除相關檔案 (如果有)
+        $advertCategory->delete();
+
+        // 寫入日誌
+        $advertCategory->writeLog('刪除', $title);
+
+        return redirect()->route('admin.advert_category.index')->with('form_success_swal', '分類已成功刪除');
+    }
+
+    /* --- 內部私有方法：維持 Controller 簡潔的關鍵 --- */
+
+    /**
+     * 統一渲染表單
+     * * @param AdvertCategory $category
+     */
+    private function renderForm(AdvertCategory $category)
+    {
+        $isEdit = $category->exists;
+        $langs = $this->getActiveLanguages();
+
+        // 取得多語系資料並轉為以 lang_id 為 Key 的 map，方便 Blade 填值
+        $descMap = $isEdit ? $category->descs->keyBy('lang_id')->all() : [];
+
+        return $this->view('admin.advert_category.form', compact('category', 'isEdit', 'langs', 'descMap'));
+    }
+
+    /**
+     * 統一處理 新增/更新 的邏輯
+     * * @param Request $request
+     * @param AdvertCategory $category
+     */
+    private function processSave(Request $request, AdvertCategory $category)
+    {
+        // 1. 驗證資料
+        $validated = $request->validate([
+            'cat_code'      => 'required|string|max:50|unique:advert_category,cat_code,' . ($category->cat_id ?? 'NULL') . ',cat_id',
+            'display_order' => 'nullable|integer',
+            'desc'          => 'required|array', // 強制要求至少要填一個語系的名稱
         ]);
 
-        $category = AdvertCategory::create([
-            'cat_code'       => $data['cat_code'],
-            'cat_func_scope' => $data['cat_func_scope'] ?? [],
-            'cat_params'     => isset($data['cat_params']) ? json_decode($data['cat_params'], true) : null,
-            'display_order'     => $data['display_order'] ?? 0,
-            'is_visible'     => $data['is_visible'] ?? true,
-        ]);
+        return DB::transaction(function () use ($request, $category) {
+            try {
+                // 2. 填充基本屬性
+                $category->cat_code       = $request->cat_code;
+                $category->cat_func_scope = $request->input('cat_func_scope', []);
 
-        if (!empty($data['desc'])) {
-            foreach ($data['desc'] as $langId => $descData) {
-                if (!empty($descData['cat_name'])) {
-                    AdvertCategoryDesc::create([
-                        'cat_id'   => $category->cat_id,
-                        'lang_id'  => $langId,
-                        'cat_name' => $descData['cat_name'],
-                    ]);
-                }
+                // 處理 cat_params: 如果是字串則 decode，如果是陣列則直接存 (受惠於 Model casts)
+                $params = $request->input('cat_params');
+                $category->cat_params = is_string($params) ? json_decode($params, true) : $params;
+
+                $category->display_order  = $request->input('display_order', 0);
+                $category->is_visible     = $request->has('is_visible');
+                $category->save();
+
+                // 3. 處理多語系名稱
+                $this->saveTranslations($category, $request->input('desc'));
+
+                // 4. 紀錄日誌
+                $action = $category->wasRecentlyCreated ? '新增' : '編輯';
+                $category->writeLog($action, $category->title);
+
+                // 5. 提示訊息與跳轉 (使用 ContentHelper 維持 UX 一致性)
+                ContentHelper::showMsg(0, "分類{$action}完成", [
+                    ['text' => '返回列表', 'href' => route('admin.advert_category.index')],
+                    ['text' => '繼續編輯', 'href' => route('admin.advert_category.edit', $category->cat_id)],
+                ]);
+
+                return redirect()->back();
+
+            } catch (\Exception $e) {
+                Log::error("AdvertCategory Save Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '儲存失敗，請檢查輸入內容');
             }
-        }
-
-        return redirect()
-            ->route('admin.advert_category.index')
-            ->with('form_success', '分類新增成功');
+        });
     }
 
-    /** 編輯表單 */
-    public function edit(AdvertCategory $advert_category)
+    /**
+     * 儲存語系資料
+     * * @param AdvertCategory $category
+     * @param array $descData
+     */
+    private function saveTranslations(AdvertCategory $category, array $descData)
     {
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-        $categoryList = AdvertCategory::with('descs')->get(); // 新增
-        $advert_category->load('descs');
-        $descMap = collect($advert_category->descs)->keyBy('lang_id')->all();
-
-        return $this->view('admin.advert_category.form', [
-            'advert_category' => $advert_category,
-            'langs'           => $langs,
-            'isEdit'          => true,
-            'descMap'         => $descMap,
-            'categoryList'    => $categoryList,
-        ]);
-    }
-
-    /** 更新 */
-    public function update(Request $request, AdvertCategory $advert_category)
-    {
-        $data = $request->validate([
-            'cat_code'        => 'required|string|max:50|unique:advert_category,cat_code,' . $advert_category->cat_id . ',cat_id',
-            'cat_func_scope'  => 'nullable|array',
-            'cat_params'      => 'nullable|json',
-            'display_order'      => 'nullable|integer',
-            'is_visible'      => 'nullable|boolean',
-            'desc'            => 'nullable|array',
-        ]);
-
-        $advert_category->update([
-            'cat_code'       => $data['cat_code'],
-            'cat_func_scope' => $data['cat_func_scope'] ?? [],
-            'cat_params'     => isset($data['cat_params']) ? json_decode($data['cat_params'], true) : null,
-            'display_order'     => $data['display_order'] ?? 0,
-            'is_visible'     => $data['is_visible'] ?? true,
-        ]);
-
-        if (!empty($data['desc'])) {
-            foreach ($data['desc'] as $langId => $descData) {
-                $exists = AdvertCategoryDesc::where('cat_id', $advert_category->cat_id)
-                    ->where('lang_id', $langId)
-                    ->first();
-
-                $payload = ['cat_name' => $descData['cat_name'] ?? ''];
-                if ($exists) {
-                    $exists->update($payload);
-                } else {
-                    if (!empty($descData['cat_name'])) {
-                        AdvertCategoryDesc::create([
-                            'cat_id'   => $advert_category->cat_id,
-                            'lang_id'  => $langId,
-                            'cat_name' => $descData['cat_name'],
-                        ]);
-                    }
-                }
+        foreach ($descData as $langId => $data) {
+            // 如果沒填名稱，就當作不啟用該語系，刪除舊有描述
+            if (empty($data['cat_name'])) {
+                AdvertCategoryDesc::where('cat_id', $category->cat_id)->where('lang_id', $langId)->delete();
+                continue;
             }
+
+            // 使用「有則更新、無則新增」
+            AdvertCategoryDesc::updateOrInsert(
+                ['cat_id' => $category->cat_id, 'lang_id' => $langId],
+                ['cat_name' => $data['cat_name']]
+            );
         }
-
-        return redirect()
-            ->route('admin.advert_category.index')
-            ->with('form_success', '分類更新成功');
-    }
-
-    /** 刪除 */
-    public function destroy(AdvertCategory $advert_category)
-    {
-        $advert_category->delete();
-        return redirect()->route('admin.advert_category.index')->with('form_success', '分類已刪除');
     }
 }

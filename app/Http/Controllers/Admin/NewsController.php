@@ -12,7 +12,6 @@ class NewsController extends BaseAdminController
 {
     // 定義權限與標題
     protected $permissionName = 'news';
-    protected $pageTitle = '最新消息';
 
     /**
      * 頁面相關配置
@@ -172,7 +171,10 @@ class NewsController extends BaseAdminController
     {
         $isEdit = (bool)$news->exists;
         $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderByDesc('display_order')->get();
+
+        // 獲取目前啟用的語系設定
         $langs = $this->getActiveLanguages();
+        // 將配置傳給前端，以便顯示建議尺寸提示
         $fileConfigs = $this->pageCfg['files'];
 
         $descMap = [];

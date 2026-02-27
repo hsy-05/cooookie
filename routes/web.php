@@ -224,7 +224,11 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         Route::post('upload-image', [UploadController::class, 'uploadImage'])
             ->name('upload.image');
 
-        // AJAX：切換 boolean 狀態（啟用 / 停用）
+        // 【新增】取得編輯器系統參數設定 (供 summernote-init.js 使用)
+        Route::get('editor-settings', [UploadController::class, 'getEditorSettings'])
+            ->name('editor.settings');
+
+        // AJAX：切換 boolean 狀態
         Route::post('toggle-boolean', [BaseAdminController::class, 'toggleBoolean'])
             ->name('toggle.boolean');
     });

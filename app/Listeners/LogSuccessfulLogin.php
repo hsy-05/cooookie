@@ -5,48 +5,65 @@ namespace App\Listeners;
 use Illuminate\Auth\Events\Login;
 use App\Models\ActionLog;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class LogSuccessfulLogin
 {
     /**
      * 處理管理員登入成功後的紀錄行為
-     * (利用 Session 標籤防止重複寫入，避免 F5 重新整理產生多筆垃圾紀錄)
-     *
-     * @param Login $event Laravel 內建的登入事件物件
+     * * @param Login $event Laravel 內建的登入事件
      * @return void
      */
     public function handle(Login $event): void
     {
-        // 1. 防重複機制：這回合 Session 已經記過登入了，就直接收工
-        if (Session::has('login_logged')) {
-            return;
-        }
-
         $user = $event->user;
 
-        // 2. 身份防呆：確保觸發登入的是我們的「後台管理員/使用者」模型
-        // (避免前台一般會員登入時，也跑來寫後台的 ActionLog 導致報錯)
-        if (!$user instanceof \App\Models\User) {
-            Log::warning('登入紀錄失敗：未知的 User 模型類別', ['class' => get_class($user)]);
+        // 1. 基礎防呆：確保使用者物件存在，且具備管理者權限 (role_id)
+        if (!$user || empty($user->role_id)) {
             return;
         }
 
-        // 3. 權限防呆：只有具備 role_id (代表是後台人員) 才需要被記錄
-        if (empty($user->role_id)) {
-            return;
+        /**
+         * 2. 原子鎖機制 (核心解決方案)
+         * * 用途：利用快取系統建立一個「瞬時鎖」，防止併發請求導致重複寫入。
+         * 鎖的名稱：根據使用者 ID 定義，確保不會擋到別人。
+         * 鎖的時間：設定 10 秒，這足以應付任何瞬間噴發的重複事件。
+         */
+        $lockKey = 'login_log_lock_' . $user->id;
+
+        // 嘗試獲取鎖，如果這把鎖已經被別人拿走了，就直接結束
+        // 如果沒人拿，我們就拿走並執行閉包內的程式碼
+        Cache::lock($lockKey, 10)->get(function () use ($user) {
+
+            // 3. 執行正式寫入
+            $this->saveLoginLog($user);
+
+            // 這裡不需要手動釋放鎖，10秒後會自動過期
+            // 這樣可以保證這 10 秒內該帳號不會再產生第二筆「登入成功」紀錄
+        });
+    }
+
+    /**
+     * 實際執行資料庫寫入
+     * 將資料寫入 admin_logs (ActionLog 模型)
+     * * @param \App\Models\User $user 登入的使用者物件
+     * @return void
+     */
+    private function saveLoginLog($user): void
+    {
+        try {
+            ActionLog::create([
+                'admin_id'   => $user->id,
+                'action'     => '登入',
+                'log_info'   => '管理者登入成功',
+                'ip_address' => Request::ip() ?? '127.0.0.1',
+                // 如果需要更細節，可以記錄 User Agent
+                // 'user_agent' => Request::userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            // 避免因為紀錄失敗導致使用者無法登入，僅做 Log 提醒
+            Log::error("登入日誌寫入失敗: " . $e->getMessage());
         }
-
-        // 4. 正式寫入資料庫
-        ActionLog::create([
-            'admin_id'   => $user->id,
-            'action'     => '登入',
-            'log_info'   => '管理者登入成功',
-            'ip_address' => Request::ip() ?? '127.0.0.1',
-        ]);
-
-        // 5. 貼上 Session 護身符，直到使用者登出前，都不會再重複記錄
-        Session::put('login_logged', true);
     }
 }

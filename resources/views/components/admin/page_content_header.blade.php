@@ -11,58 +11,47 @@
 --}}
 
 @php
-    /**
-     * 取得目前 Controller 的 method 名稱
-     * 例如：AdminController@index / create / edit
-     * 用來判斷現在是「列表 / 新增 / 編輯」狀態
-     */
+    // 直接取得 Controller 已經處理好的主標題 (例如：最新消息)
+    $config = $titleConfig ?? ($GLOBALS['titleConfig'] ?? []);
+    // @dd( $config['main']);
+    $mainDisplayTitle = $config['main'] ?? ($pageTitle ?? '未定義標題');
+
+    // 取得動作名稱
     $actionName = class_basename(Route::currentRouteAction());
     $method = explode('@', $actionName)[1] ?? '';
 
-    /**
-     * 動作標籤設定表
-     * 之後如果有新動作，只要加在這裡即可
-     */
     $labels = [
-        'index'  => ['text' => '列表', 'icon' => 'fa-list', 'color' => ''],
-        'create' => ['text' => '新增', 'icon' => 'fa-plus', 'color' => ''],
-        'edit'   => ['text' => '編輯', 'icon' => 'fa-pen', 'color' => ''],
-        'show'   => ['text' => '檢視', 'icon' => 'fa-eye', 'color' => ''],
+        'index' => ['text' => '列表', 'icon' => 'fa-list'],
+        'create' => ['text' => '新增', 'icon' => 'fa-plus'],
+        'edit' => ['text' => '編輯', 'icon' => 'fa-pen'],
+        'show' => ['text' => '檢視', 'icon' => 'fa-eye'],
     ];
 
-    // 若找不到對應 method，使用預設顯示
-    $currentAction = $labels[$method] ?? [
-        'text' => '操作',
-        'icon' => 'fa-info-circle',
-        'color' => ''
-    ];
+    $currentAction = $labels[$method] ?? ['text' => '操作', 'icon' => 'fa-info-circle'];
 @endphp
 
 @section('content_header')
-<header class="header-container container-fluid py-3">
-    <div class="row align-items-center">
+    <header class="header-container container-fluid py-3">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h1 class="page-main-title m-0">
+                    {{-- 這裡直接顯示主標題，不需要在 Blade 裡面進行字串拆解 --}}
+                    <span class="title-text">{{ $mainDisplayTitle }}</span>
 
-        {{-- 左側：頁面標題 + 動作狀態 --}}
-        <div class="col-sm-6">
-            <h1 class="page-main-title m-0">
-                <span class="title-text">{{ $pageTitle }}</span>
+                    <i class="fas fa-angle-double-right divider-icon mx-2"></i>
 
-                <i class="fas fa-angle-double-right divider-icon mx-2"></i>
+                    <span class="title-text action-label">
+                        <i class="fas {{ $currentAction['icon'] }} mr-1"></i>
+                        {{ $currentAction['text'] }}
+                    </span>
+                </h1>
+            </div>
 
-                <span class="title-text action-label {{ $currentAction['color'] }}">
-                    <i class="fas {{ $currentAction['icon'] }} mr-1"></i>
-                    {{ $currentAction['text'] }}
-                </span>
-            </h1>
+            <div class="col-sm-6 text-sm-right mt-3 mt-sm-0">
+                @isset($actions)
+                    {{ $actions }}
+                @endisset
+            </div>
         </div>
-
-        {{-- 右側：操作按鈕（由各頁決定是否顯示） --}}
-        <div class="col-sm-6 text-sm-right mt-3 mt-sm-0">
-            @isset($actions)
-                {{ $actions }}
-            @endisset
-        </div>
-
-    </div>
-</header>
+    </header>
 @stop

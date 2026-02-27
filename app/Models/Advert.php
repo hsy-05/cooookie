@@ -3,31 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Loggable; // 引入 Trait
+use App\Traits\Loggable;       // 引入操作紀錄
+use App\Traits\HasImageFields; // 引入圖片處理 Trait
 
 class Advert extends Model
 {
-    use Loggable; // 使用 Trait
+    use Loggable, HasImageFields;
 
-    // 🔴 關閉自動監聽，改在 Controller 手動紀錄，確保標題正確
+    // 定義圖片欄位：當刪除資料時，HasImageFields 會自動清理這些欄位對應的檔案
+    protected array $imageFields = ['adv_img_url', 'adv_img_m_url'];
+
+    // 關閉自動監聽 Log：改在 Controller 手動紀錄，才能確保抓到正確語系的標題
     public $enableAutoLog = false;
 
-    // 定義 Log 顯示的模組名稱
+    // Log 模組名稱
     public $logName = '廣告';
 
-    // 告訴 Trait 標題要抓 'log_title' 這個屬性
-    public $logTitle = 'log_title';
-
-    // 指定操作的資料表名稱
+    // 資料表與主鍵設定
     protected $table = 'advert';
-
-    // 指定主鍵欄位
     protected $primaryKey = 'adv_id';
-
-    // 主鍵是 int 並且是 auto-increment
     public $incrementing = true;
-
-    // 主鍵的資料型態
     protected $keyType = 'int';
 
     protected $fillable = [
@@ -44,7 +39,7 @@ class Advert extends Model
     ];
 
     /**
-     * 一則資料會有多個語系描述
+     * 關聯：一則廣告對應多個語系名稱
      */
     public function descs()
     {
@@ -52,29 +47,29 @@ class Advert extends Model
     }
 
     /**
-     * 取得目前語系的一筆描述資料
-     * 當你要抓語系內容時可以直接使用：
-     * $advert->desc->title
+     * 關聯：取得「目前語系」的描述資料 (根據 Session 語系)
      */
     public function desc()
     {
         $langId = session('lang_id') ?? 1;
-
         return $this->hasOne(AdvertDesc::class, 'adv_id', 'adv_id')
             ->where('lang_id', $langId);
     }
 
-    /** 所屬分類 */
+    /**
+     * 關聯：所屬分類
+     */
     public function category()
     {
-        return $this->belongsTo(AdvertCategory::class, 'cat_id');
+        return $this->belongsTo(AdvertCategory::class, 'cat_id', 'cat_id');
     }
 
     /**
-     * 更新操作紀錄中的標題
+     * 操作紀錄顯示用的標題來源 (Accessor)
      */
     public function getLogTitleAttribute()
     {
-        return $this->descs->first()->title ?? '未命名廣告';
+        // 優先抓取目前語系名稱，若無則抓該廣告第一個語系名稱
+        return $this->desc->adv_name ?? ($this->descs->first()->adv_name ?? '未命名廣告');
     }
 }

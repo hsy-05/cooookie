@@ -3,20 +3,34 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Loggable;       // 引入操作紀錄
+use App\Traits\HasImageFields; // 引入圖片處理（維持架構統一）
 
 class AdminRole extends Model
 {
+    use Loggable, HasImageFields;
+
     protected $table = 'admin_roles';
 
-    // 移除 is_system，保持乾淨
-    protected $fillable = ['name', 'description', 'permissions'];
+    // 定義 Log 顯示的模組名稱
+    public $logName = '管理員角色';
 
+    protected $fillable = [
+        'name',
+        'description',
+        'permissions'
+    ];
+
+    /**
+     * 自動轉型
+     * 權限在資料庫是 JSON 字串，取出時自動變成 PHP 陣列方便處理
+     */
     protected $casts = [
         'permissions' => 'array',
     ];
 
     /**
-     * 關聯：一個角色擁有多個管理員
+     * 關聯：取得擁有此角色的所有管理員
      */
     public function admins()
     {
@@ -24,8 +38,17 @@ class AdminRole extends Model
     }
 
     /**
-     * 防呆判斷：是否為超級管理員角色 (擁有 all)
-     * 用途：在刪除或編輯時進行保護邏輯
+     * 存取器：供 Log 使用的標題
+     */
+    public function getTitleAttribute()
+    {
+        return $this->name;
+    }
+
+    /**
+     * 防呆判斷：檢查是否為「超級管理員」
+     * 如果權限陣列包含 'all'，代表具備全系統通行權
+     * @return bool
      */
     public function isSuperRole(): bool
     {

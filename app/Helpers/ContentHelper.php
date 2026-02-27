@@ -66,4 +66,23 @@ class ContentHelper
             'autoRedirect' => $autoRedirect,
         ]);
     }
+
+    /**
+     * 根據系統設定過濾 HTML 內容
+     * @param string $content 原始內容
+     * @return string 安全的內容
+     */
+    public static function cleanHtml(string $content): string
+    {
+        $disallowed = config('site.editor_filter_tags', 'script,iframe');
+        $tags = explode(',', $disallowed);
+
+        foreach ($tags as $tag) {
+            $tag = trim($tag);
+            // 使用正則移除特定標籤及其內容
+            $content = preg_replace('/<' . $tag . '\b[^>]*>(.*?)<\/' . $tag . '>/is', "", $content);
+        }
+
+        return $content;
+    }
 }

@@ -1,20 +1,10 @@
 @extends('adminlte::page')
 
-{{-- SEO 標題 --}}
-@section('title', '後台管理 - 【COOOOKIE】')
+@section('title', $pageTitle)
 
-{{-- 引用頁首組件 --}}
-@component('components.admin.page_content_header', ['pageTitle' => '後台管理'])
-    @slot('actions')
-        @if(auth()->user()->canDo('create'))
-            <a href="{{ route('admin.admins.create') }}"
-               class="btn btn-primary shadow-sm px-4">
-                <i class="fas fa-plus mr-1"></i>
-                新增
-            </a>
-        @endif
-    @endslot
-@endcomponent
+@section('content_header')
+    <h1>{{ $pageTitle }}</h1>
+@stop
 
 @section('content')
 <x-admin.page-message>

@@ -3,25 +3,39 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Loggable; // 1. 引入 Trait
+use App\Traits\Loggable;       // 引入日誌 Trait
+use App\Traits\HasImageFields; // 引入圖片處理 Trait
 
 class NewsCategory extends Model
 {
-    use Loggable; // 2. 使用 Trait
+    use Loggable, HasImageFields; // 同時使用多個 Trait
 
-    public $logName = '消息分類'; // 3. 定義 Log 顯示的模組名稱
-    public $logTitle = 'log_title'; // 4. 告訴 Trait 標題要抓 'log_title' 這個屬性
+    /**
+     * 【關鍵優化】定義圖片欄位
+     * 當此 Model 執行 delete() 時，HasImageFields Trait 會自動讀取此陣列，
+     * 並將硬碟中對應的檔案刪除，無需在 Controller 手動處理。
+     */
+    protected array $imageFields = ['image_url'];
 
-    // 👉 指定操作的資料表名稱
+    // 關閉自動監聽，改在 Controller 手動紀錄，確保標題正確
+    public $enableAutoLog = false;
+
+    // 定義 Log 顯示的模組名稱
+    public $logName = '消息分類';
+
+    // 告訴 Trait 標題要抓 'log_title' 這個屬性
+    public $logTitle = 'log_title';
+
+    // 指定操作的資料表名稱
     protected $table = 'news_category';
 
-    // 👉 指定主鍵欄位（因為不是預設的 id）
+    // 指定主鍵欄位
     protected $primaryKey = 'cat_id';
 
-    // 👉 主鍵是 int 並且是 auto-increment（因為 migration 用 increments）
+    // 主鍵是 int 並且是 auto-increment
     public $incrementing = true;
 
-    // 👉 主鍵的資料型態（Laravel 預設是 string，要改正確）
+    // 主鍵的資料型態
     protected $keyType = 'int';
 
     // 👉 控制可批量填入的欄位（對 create / update 才能用）
@@ -31,6 +45,7 @@ class NewsCategory extends Model
         'super_id',
         'is_visible',
         'display_order',
+        'image_url'
     ];
 
     /**

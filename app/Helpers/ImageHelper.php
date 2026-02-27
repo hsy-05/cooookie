@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\SystemSetting; // 引入設定模型
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Http\UploadedFile;
@@ -14,15 +15,24 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; // 引入 Str 處理字串
 
 class ImageHelper
-{
-    /**
+{/**
      * 萬用上傳入口
+     * * @param UploadedFile $file 檔案物件
+     * @param string $folder 儲存目錄
+     * @param string|null $oldPath 舊檔路徑(若傳入則自動刪除)
+     * @param array $config 額外參數(width, height, mode...)
+     * @return string 最終儲存路徑
      */
     public static function handleUpload(UploadedFile $file, string $folder, ?string $oldPath = null, array $config = []): string
     {
+        // 從資料庫抓取全域設定，若抓不到則給予專業預設值
+        $settings = SystemSetting::getAllSettings();
+        $defaultQuality = $settings['image_upload_quality'] ?? 90;
+        $defaultBg = $settings['image_default_bg'] ?? 'ffffff';
+
         $disk = 'public';
 
-        // 1. 清理舊檔
+        // 清理舊檔：若有傳入舊路徑，代表是「更新」操作，先刪除舊檔案節省空間
         if ($oldPath) {
             self::deleteImage($oldPath, $disk);
         }
@@ -30,12 +40,12 @@ class ImageHelper
         $extension = strtolower($file->getClientOriginalExtension());
         $useOriginalName = $config['useOriginalName'] ?? false;
 
-        // 2. 決定檔名 (使用 Laravel 內建方法更安全)
+        // 決定檔名：防止中文檔名在某些伺服器產生亂碼
         $filename = $useOriginalName
             ? self::getSmartFilename($file, $folder, $disk)
             : self::generateUniqueFilename($file);
 
-        // 3. 判斷是否需要影像處理
+        // 判斷是否需要影像處理 (縮放、裁切)
         $imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
         $hasSizeConfig = isset($config['width']) || isset($config['height']);
 
@@ -46,17 +56,18 @@ class ImageHelper
                     $config['width'] ?? 0,
                     $config['height'] ?? 0,
                     $config['mode'] ?? 'center_crop',
-                    $config['bgColor'] ?? 'ffffff' // Intervention Image v3 推薦去井字號
+                    $config['bgColor'] ?? $defaultBg // 優先使用傳入的顏色，否則用系統設定
                 );
 
-                return self::saveProcessedImage($processed, "{$folder}/{$filename}", $disk, 90, $extension);
+                // 儲存處理後的圖片，品質參數從系統設定讀取
+                return self::saveProcessedImage($processed, "{$folder}/{$filename}", $disk, (int)$defaultQuality, $extension);
             } catch (\Exception $e) {
-                // 如果影像處理失敗（例如記憶體不足），記錄錯誤並退回為一般檔案上傳
+                // 發生錯誤時記錄日誌，並退回原始上傳(確保流程不中斷)
                 Log::error('影像處理失敗: ' . $e->getMessage());
             }
         }
 
-        // 4. 一般檔案直接儲存 (使用 Storage::putFileAs 更穩定)
+        // 一般檔案直接儲存
         return Storage::disk($disk)->putFileAs($folder, $file, $filename);
     }
 

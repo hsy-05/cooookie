@@ -4,47 +4,42 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\{Advert, AdvertDesc, AdvertCategory, Language};
-use Illuminate\Support\Facades\{DB, Log, Auth};
+use Illuminate\Support\Facades\{DB, Log};
 use App\Helpers\{ContentHelper, ImageHelper};
 
 class AdvertController extends BaseAdminController
 {
-    // 定義這個 Controller 屬於哪組權限與標題
+    // 權限與頁面標題設定
     protected $permissionName = 'advert';
     protected $pageTitle = '廣告管理';
 
     /**
-     * 頁面相關配置
+     * 基礎檔案配置 (作為預設值)
+     * 實際尺寸會由 handleFileUploads 根據 cat_params 自動動態覆蓋
      */
     protected $pageCfg = [
-        // 定義哪些欄位需要處理檔案上傳
         'files' => [
             'adv_img_url' => [
-                'path'   => 'adv',             // 儲存路徑
-                'width'  => 1200,               // 寬度 (若不縮圖可設為 null)
-                'height' => 600,               // 高度
-                'mode'   => 'center_crop',     // 處理模式：center_crop, scale_fit
-                'useOriginalName' => false,    // 是否使用原檔名 (false 代表自動生成唯一名稱)
+                'path' => 'adv',
+                'mode' => 'center_crop', // 預設模式，若沒設定寬高則會自動跳過裁切
             ],
             'adv_img_m_url' => [
-                'path'   => 'adv',     // 儲存路徑
-                'width'  => 375,               // 寬度 (若不縮圖可設為 null)
-                'height' => 750,               // 高度
-                'mode'   => 'center_crop',     // 處理模式：center_crop, scale_fit
-                'useOriginalName' => false,    // 是否使用原檔名 (false 代表自動生成唯一名稱)
+                'path' => 'adv',
+                'mode' => 'center_crop',
             ],
-            // 未來若有 PDF 或 縮圖，直接在這裡增加一組設定即可
         ],
     ];
 
+    /**
+     * 列表頁面
+     * @param Request $request 包含搜尋與分頁參數
+     */
     public function index(Request $request)
     {
         $search = $request->input('search');
-
-        // 取得統一的分頁數
         $perPage = $this->getPerPage($request);
 
-        // 使用 Eager Loading (with) 減少資料庫查詢壓力
+        // 使用 with 減少資料庫查詢次數
         $advertList = Advert::with(['descs', 'category'])
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('descs', fn($q) => $q->where('adv_name', 'like', "%{$search}%"));
@@ -56,38 +51,44 @@ class AdvertController extends BaseAdminController
         return $this->view('admin.advert.index', compact('advertList', 'search'));
     }
 
+    /**
+     * 顯示新增表單
+     */
     public function create()
     {
         return $this->renderForm(new Advert());
     }
 
+    /**
+     * 執行儲存動作
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        // 基礎驗證 (包含動態欄位判斷)
+        // 1. 驗證基礎欄位與動態 Scope 欄位
         $this->validateRequest($request);
 
         return DB::transaction(function () use ($request) {
             try {
                 $advert = new Advert();
 
-                // 處理檔案/圖片上傳 (自動抓取分類參數修正尺寸)
+                // 2. 處理圖片上傳 (會自動抓取分類的寬高設定)
                 $this->handleFileUploads($request, $advert);
 
-                // 儲存主表資料
+                // 3. 儲存主表資料
                 $advert->fill([
                     'cat_id'        => $request->cat_id,
                     'adv_link_url'  => $request->adv_link_url,
-                    'is_visible'    => $request->has('is_visible'),
                     'display_order' => $request->display_order ?? 0,
+                    'is_visible'    => $request->has('is_visible'),
                 ])->save();
 
-                // 儲存多語系資料 (廣告名稱)
+                // 4. 儲存多語系翻譯
                 $this->saveTranslations($advert, $request->desc);
 
-                // 紀錄操作日誌
+                // 5. 紀錄操作日誌
                 $advert->writeLog('新增', $advert->desc->adv_name ?? '未知名廣告');
 
-                // 成功回傳 (使用自定義 ContentHelper)
                 ContentHelper::showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.advert.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.advert.edit', $advert->adv_id)],
@@ -102,29 +103,38 @@ class AdvertController extends BaseAdminController
         });
     }
 
+    /**
+     * 顯示編輯表單
+     * @param Advert $advert
+     */
     public function edit(Advert $advert)
     {
         return $this->renderForm($advert);
     }
 
+    /**
+     * 執行更新動作
+     * @param Request $request
+     * @param Advert $advert
+     */
     public function update(Request $request, Advert $advert)
     {
         $this->validateRequest($request, $advert);
 
         return DB::transaction(function () use ($request, $advert) {
             try {
-                // 處理檔案/圖片更新
+                // 處理圖片更新
                 $this->handleFileUploads($request, $advert);
 
                 // 更新主表
                 $advert->update([
                     'cat_id'        => $request->cat_id,
                     'adv_link_url'  => $request->adv_link_url,
-                    'is_visible'    => $request->has('is_visible'),
                     'display_order' => $request->display_order ?? 0,
+                    'is_visible'    => $request->has('is_visible'),
                 ]);
 
-                // 更新多語系資料
+                // 更新翻譯
                 $this->saveTranslations($advert, $request->desc);
 
                 $advert->writeLog('編輯', $advert->desc->adv_name ?? '未知名廣告');
@@ -142,21 +152,16 @@ class AdvertController extends BaseAdminController
         });
     }
 
+    /**
+     * 刪除廣告 (含圖片實體檔案清理)
+     * @param Advert $advert
+     */
     public function destroy(Advert $advert)
     {
-        // 先抓取名稱供 Log 使用
         $advert->load('desc');
         $name = $advert->desc->adv_name ?? '未知名廣告';
 
-        // 刪除相關聯的所有實體檔案 (根據 pageCfg 自動清理)
-        foreach (array_keys($this->pageCfg['files']) as $field) {
-            if ($advert->$field) {
-                ImageHelper::deleteImage($advert->$field, 'public');
-            }
-        }
-
-        // 刪除資料庫紀錄
-        AdvertDesc::where('adv_id', $advert->adv_id)->delete();
+        // 呼叫 Model 內的 HasImageFields 特性自動清理檔案
         $advert->delete();
 
         $advert->writeLog('刪除', $name);
@@ -164,19 +169,39 @@ class AdvertController extends BaseAdminController
         return redirect()->route('admin.advert.index')->with('form_success_swal', '廣告已刪除');
     }
 
-    /* --- 內部輔助方法 (Private Helper Methods) --- */
-
-    /**
-     * 渲染表單通用邏輯
+    /* --- 內部輔助方法 (符合專業開發交接規範) --- */
+/**
+     * 表單渲染通用邏輯
+     * @param Advert $advert
      */
     private function renderForm(Advert $advert)
     {
-        $isEdit = (bool)$advert->exists;
-        $cats = AdvertCategory::with('descs')->where('is_visible', 1)->orderBy('display_order')->get();
+        $isEdit = $advert->exists;
+
+        // 抓取所有分類，前端 JS 會用到裡面的 cat_func_scope 與 cat_params
+        $cats = AdvertCategory::with('descs')
+            ->where('is_visible', 1)
+            ->orderBy('display_order')
+            ->get();
+
         $langs = Language::where('enabled', 1)->orderByDesc('display_order')->get();
 
-        // 將配置傳給前端，以便顯示建議尺寸提示
-        $fileConfigs = $this->pageCfg['files'];
+        // --- 處理建議尺寸提示 (fileConfigs) ---
+        // 取得當前的分類 ID（編輯時用廣告的，新增時預設用第一個分類）
+        $currentCatId = $advert->cat_id ?? ($cats->first()->cat_id ?? null);
+        $currentCat = $cats->where('cat_id', $currentCatId)->first();
+
+        // 抓取該分類的 params 設定
+        $catParams = $currentCat->cat_params['fields'] ?? [];
+
+        // 建立符合 Blade 格式的 fileConfigs
+        $fileConfigs = [];
+        foreach ($this->pageCfg['files'] as $field => $config) {
+            $fileConfigs[$field] = [
+                'width'  => $catParams[$field]['width'] ?? null,
+                'height' => $catParams[$field]['height'] ?? null,
+            ];
+        }
 
         $descMap = [];
         if ($isEdit) {
@@ -186,44 +211,49 @@ class AdvertController extends BaseAdminController
             }
         }
 
-        return $this->view('admin.advert.form', compact('advert', 'isEdit', 'cats', 'langs', 'descMap', 'fileConfigs'));
+        // 記得把 fileConfigs 傳出去，這樣 Blade 第一次載入時才有值
+        return $this->view('admin.advert.form', compact(
+            'advert', 'isEdit', 'cats', 'langs', 'descMap', 'fileConfigs'
+        ));
     }
 
     /**
-     * 驗證請求 (動態結合分類 Scope)
+     * 驗證請求：根據分類的 cat_func_scope 動態決定哪些欄位必填
+     * @param Request $request
+     * @param Advert|null $advert
      */
     private function validateRequest(Request $request, $advert = null)
     {
+        $category = AdvertCategory::findOrFail($request->cat_id);
+        $scope = (array) ($category->cat_func_scope ?? []);
+
+        // 基礎必填欄位
         $rules = [
             'cat_id'        => 'required|exists:advert_category,cat_id',
-            'is_visible'    => 'nullable|boolean',
             'display_order' => 'nullable|integer',
-            'desc'          => 'nullable|array',
-            'desc.*.adv_name' => 'required_with:desc.*|string|max:255',
+            'desc'          => 'required|array',
+            'desc.*.adv_name' => 'required|string|max:255',
         ];
 
-        // 根據分類配置，動態增加圖片與連結的驗證規則
-        if ($request->cat_id) {
-            $category = AdvertCategory::find($request->cat_id);
-            $scope = $category->cat_func_scope ?? [];
-
-            if (in_array('adv_img_url', $scope)) {
-                $rules['adv_img_url'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120';
-            }
-            if (in_array('adv_img_m_url', $scope)) {
-                $rules['adv_img_m_url'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120';
-            }
-            if (in_array('adv_link_url', $scope)) {
-                $rules['adv_link_url'] = 'nullable|string|max:1000';
-            }
+        // 根據分類範圍動態增加驗證
+        if (in_array('adv_img_url', $scope)) {
+            // 新增時圖片必填，編輯時若已有圖則可選
+            $rules['adv_img_url'] = ($advert && $advert->adv_img_url) ? 'nullable|image|max:5120' : 'required|image|max:5120';
+        }
+        if (in_array('adv_img_m_url', $scope)) {
+            $rules['adv_img_m_url'] = 'nullable|image|max:5120';
+        }
+        if (in_array('adv_link_url', $scope)) {
+            $rules['adv_link_url'] = 'nullable|string|max:1000';
         }
 
         $request->validate($rules);
     }
 
     /**
-     * 萬用檔案上傳處理邏輯
-     * 這裡加入了廣告特有的邏輯：從分類參數 (cat_params) 動態覆蓋配置尺寸
+     * 智慧檔案上傳處理：自動從 cat_params 抓取尺寸，沒設定寬高則不限尺寸
+     * @param Request $request
+     * @param Advert $advert
      */
     private function handleFileUploads(Request $request, Advert $advert)
     {
@@ -232,16 +262,21 @@ class AdvertController extends BaseAdminController
 
         foreach ($this->pageCfg['files'] as $field => $config) {
             if ($request->hasFile($field)) {
-                // 如果分類有設定特定尺寸，就覆蓋預設的 $pageCfg
-                if (isset($fieldParams[$field])) {
-                    $config['width'] = $fieldParams[$field]['width'] ?? $config['width'];
-                    $config['height'] = $fieldParams[$field]['height'] ?? $config['height'];
+
+                // 關鍵防呆：從分類參數抓取設定，如果沒有設定 width 或 height，就設為 null
+                // ImageHelper 在收到 width/height 為 null 時，應會跳過裁切直接原圖儲存
+                $config['width']  = $fieldParams[$field]['width'] ?? null;
+                $config['height'] = $fieldParams[$field]['height'] ?? null;
+
+                // 若完全沒設定寬高，則把處理模式改為單純上傳 (或由 ImageHelper 內部判定)
+                if (is_null($config['width']) && is_null($config['height'])) {
+                    $config['mode'] = 'original';
                 }
 
                 $advert->$field = ImageHelper::handleUpload(
                     $request->file($field),
                     $config['path'],
-                    $advert->$field, // 傳入舊路徑以供刪除
+                    $advert->$field,
                     $config
                 );
             }
@@ -249,7 +284,9 @@ class AdvertController extends BaseAdminController
     }
 
     /**
-     * 儲存/更新多語系描述
+     * 儲存語系資料
+     * @param Advert $advert
+     * @param array|null $descData
      */
     private function saveTranslations(Advert $advert, ?array $descData)
     {
@@ -261,7 +298,7 @@ class AdvertController extends BaseAdminController
                 continue;
             }
 
-            DB::table('advert_desc')->updateOrInsert(
+            AdvertDesc::updateOrInsert(
                 ['adv_id' => $advert->adv_id, 'lang_id' => $langId],
                 [
                     'adv_name'   => $data['adv_name'],
@@ -272,11 +309,10 @@ class AdvertController extends BaseAdminController
     }
 
     /**
-     * AJAX 刪除單一圖片欄位 (通用方法)
+     * AJAX 刪除單一圖片欄位
      */
     public function deleteImageField(Request $request, Advert $advert)
     {
-        // 調用 BaseAdminController 中的通用邏輯
         return $this->deleteImageFieldGeneric($request, $advert);
     }
 }

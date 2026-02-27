@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
-use App\Models\AdminSystemSetting;
+use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
@@ -35,13 +35,24 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // 防呆：先檢查是否有資料表（避免在安裝 migration 前報錯）
-        if (Schema::hasTable('admin_system_settings')) {
-            $settings = AdminSystemSetting::getAllSettings();
+        if (Schema::hasTable('system_settings')) {
+            $settings = SystemSetting::getAllSettings();
 
             // 將資料庫的設定 覆蓋 或 新增 到 Laravel config 中
             // 這樣你在任何地方用 config('site.image_max_size') 都能抓到
             foreach ($settings as $key => $value) {
                 Config::set('site.' . $key, $value);
+            }
+
+            // 覆蓋 AdminLTE 的 config 值
+            if (isset($settings['admin_site_name'])) {
+                $siteName = $settings['admin_site_name'];
+
+                // 覆蓋 AdminLTE 的 Logo 文字
+                Config::set('adminlte.logo', "<b>{$siteName}</b>");
+
+                // 覆蓋 AdminLTE 的標題後綴
+                Config::set('adminlte.title_postfix', " - {$siteName}");
             }
         }
     }

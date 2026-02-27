@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->call([
         // ... 其他原本的 Seeder (例如 UserSeeder)
-        AdminSystemSettingSeeder::class,
+        SystemSettingSeeder::class,
     ]);
     }
 }

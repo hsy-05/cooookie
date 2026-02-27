@@ -3,64 +3,122 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Models\{User, AdminRole};
-use Illuminate\Support\Facades\{DB, Log, Hash, Auth};
+use App\Models\{AdminRole, User};
+use Illuminate\Support\Facades\{DB, Log, Auth};
 use App\Helpers\{ContentHelper};
 
 class AdminRoleController extends BaseAdminController
 {
+    // 權限代碼與頁面標題配置
     protected $permissionName = 'roles';
-    protected $pageTitle = '管理員角色';
 
-    public function index()
+    /**
+     * 角色列表頁
+     * @param Request $request
+     */
+    public function index(Request $request)
     {
-        // 取得所有角色並統計人數，分頁顯示
-        $roles = AdminRole::withCount('admins')->paginate(10);
+        // 取得統一分頁筆數 (自動記憶使用者選 10 筆或 50 筆)
+        $perPage = $this->getPerPage($request);
+
+        // 加上 withCount 可以在列表直接顯示「該角色有多少人」，增加實用性
+        $roles = AdminRole::withCount('admins')
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
         return $this->view('admin.roles.index', compact('roles'));
     }
 
+    /**
+     * 新增角色頁面
+     */
     public function create()
     {
-        return $this->prepareForm(new AdminRole(), false, '新增角色');
-    }
-
-    public function edit($id)
-    {
-        $role = AdminRole::findOrFail($id);
-        return $this->prepareForm($role, true, '編輯角色');
+        return $this->renderForm(new AdminRole());
     }
 
     /**
-     * 內部私有函式：統一處理表單需要的資料
-     * 邏輯說明：將 config 裡的兩層結構轉換為前端表格容易渲染的格式
+     * 編輯角色頁面
+     * @param AdminRole $role Laravel Route Model Binding 自動找 ID
      */
-    private function prepareForm($role, $isEdit, $pageTitle)
+    public function edit(AdminRole $role)
     {
-        $rawConfig = config('backend_permissions'); // 取得新的兩層結構 config
+        return $this->renderForm($role);
+    }
+
+    /**
+     * 執行儲存動作 (新增)
+     */
+    public function store(Request $request)
+    {
+        return $this->processSave($request, new AdminRole());
+    }
+
+    /**
+     * 執行更新動作 (編輯)
+     */
+    public function update(Request $request, AdminRole $role)
+    {
+        return $this->processSave($request, $role);
+    }
+
+    /**
+     * 刪除角色
+     * @param AdminRole $role
+     */
+    public function destroy(AdminRole $role)
+    {
+        // 防呆 1：如果有管理員正屬於這個角色，禁止刪除
+        if ($role->admins()->exists()) {
+            return back()->with('error', '該角色尚有管理員使用中，請先更改人員角色後再刪除');
+        }
+
+        // 防呆 2：保護機制，非開發者不能刪除「超級管理員」角色
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->isDeveloper() && $role->isSuperRole()) {
+            return back()->with('error', '系統保護：您沒有權限刪除超級管理員角色');
+        }
+
+        $roleName = $role->name;
+        $role->delete();
+
+        // 寫入日誌
+        $role->writeLog('刪除', $roleName);
+
+        return back()->with('form_success_swal', '角色已成功刪除');
+    }
+
+    /* --- 內部核心邏輯 --- */
+
+    /**
+     * 統一處理表單顯示所需的資料轉換
+     * 這裡將 backend_permissions.php 的三層結構轉為前端好渲染的格式
+     * @param AdminRole $role
+     */
+    private function renderForm(AdminRole $role)
+    {
+        $isEdit = $role->exists;
+        $rawConfig = config('backend_permissions', []);
         $processedPermissions = [];
 
-        // 第一層循環：群組群（例如：消息管理、權限設定）
+        // 權限結構轉換邏輯：群組 -> 子模組 -> 動作
         foreach ($rawConfig as $groupKey => $group) {
             $subs = [];
-
-            // 第二層循環：子模組（例如：最新消息、角色管理）
             foreach ($group['subs'] as $subKey => $sub) {
                 $actions = [];
-
-                // 第三層循環：具體動作（例如：view, create, edit）
                 foreach ($sub['actions'] as $actKey => $actLabel) {
-                    // 組合成子模組.動作，例如 "news.view"
                     $permKey = "{$subKey}.{$actKey}";
 
-                    // 處理依賴關係：如果勾選 A 必須勾選 B，格式化為前端 JS 好處理的陣列
-                    $depends = isset($sub['dependencies'][$actKey])
+                    // 取得此動作的依賴關係 (例如勾選「編輯」必須自動勾選「瀏覽」)
+                    $deps = isset($sub['dependencies'][$actKey])
                         ? array_map(fn($d) => "{$subKey}.{$d}", $sub['dependencies'][$actKey])
                         : [];
 
                     $actions[] = [
-                        'key' => $permKey,
-                        'label' => $actLabel,
-                        'depends' => json_encode($depends) // 轉成 JSON 字串讓前端 data 屬性讀取
+                        'key'     => $permKey,
+                        'label'   => $actLabel,
+                        'depends' => json_encode($deps) // 讓前端 JS 讀取依賴關係
                     ];
                 }
 
@@ -70,7 +128,6 @@ class AdminRoleController extends BaseAdminController
                 ];
             }
 
-            // 組裝回傳結構
             $processedPermissions[$groupKey] = [
                 'label' => $group['label'],
                 'subs'  => $subs
@@ -78,80 +135,79 @@ class AdminRoleController extends BaseAdminController
         }
 
         return $this->view('admin.roles.form', [
-            'role' => $role,
-            'isEdit' => $isEdit,
-            'pageTitle' => $pageTitle,
+            'role'        => $role,
+            'isEdit'      => $isEdit,
             'permissions' => $processedPermissions,
         ]);
     }
 
-    public function store(Request $request)
+    /**
+     * 統一處理新增與更新的存檔邏輯
+     * @param Request $request
+     * @param AdminRole $role
+     */
+    private function processSave(Request $request, AdminRole $role)
     {
-        $request->validate(['name' => 'required|unique:admin_roles,name']);
+        // 1. 基礎驗證
+        $request->validate([
+            'name' => 'required|max:50|unique:admin_roles,name,' . ($role->id ?? 'NULL'),
+        ], [
+            'name.required' => '請輸入角色名稱',
+            'name.unique'   => '此角色名稱已存在',
+        ]);
 
-        $data = $request->only(['name', 'description']);
-        // 通過安全補齊邏輯，確保存入資料庫的權限是完整的
-        $data['permissions'] = $this->securePermissions($request->input('permissions', []));
+        return DB::transaction(function () use ($request, $role) {
+            try {
+                /** @var User $currentUser */
+                $currentUser = Auth::user();
+                $submittedPerms = $request->input('permissions', []);
 
-        $role = AdminRole::create($data);
+                // 2. 安全過濾：非開發者禁止操控 'system.' 開頭的核心權限
+                if (!$currentUser->isDeveloper()) {
+                    // 如果原本就有 system 權限（例如編輯現有角色），則保留原本的，過濾掉新提交的
+                    $originalSystemPerms = array_filter($role->permissions ?? [], fn($p) => str_starts_with($p, 'system.'));
+                    $newPerms = array_filter($submittedPerms, fn($p) => !str_starts_with($p, 'system.'));
+                    $submittedPerms = array_merge($originalSystemPerms, $newPerms);
+                }
 
-        ContentHelper::showMsg(0, '新增完成', [
-            ['text' => '返回列表', 'href' => route('admin.roles.index')],
-            ['text' => '繼續編輯', 'href' => route('admin.roles.edit', $role->id)],
-        ], true);
+                // 3. 後端權限補齊 (防呆核心)
+                // 即使使用者繞過前端 JS 勾選，存檔前我們依然根據 Config 強制把必要的依賴權限補進去
+                $role->permissions = $this->securePermissions($submittedPerms);
 
-        return redirect()->back();
-    }
+                // 4. 基本資料填充
+                $role->name = $request->name;
+                $role->description = $request->description;
+                $role->save();
 
-    public function update(Request $request, $id)
-    {
-        /** @var User $admin */
-        $admin = Auth::user();
+                // 5. 紀錄 Log
+                $action = $role->wasRecentlyCreated ? '新增' : '編輯';
+                $role->writeLog($action, $role->name);
 
-        $role = AdminRole::findOrFail($id);
-        $request->validate(['name' => 'required|unique:admin_roles,name,' . $id]);
+                // 6. 成功回應
+                ContentHelper::showMsg(0, "角色{$action}成功", [
+                    ['text' => '返回列表', 'href' => route('admin.roles.index')],
+                    ['text' => '繼續編輯', 'href' => route('admin.roles.edit', $role->id)],
+                ]);
 
-        $data = $request->only(['name', 'description']);
+                return redirect()->back();
 
-        // 防呆：如果不是開發者，過濾掉開頭為 system. 的核心權限（保護系統）
-        $submittedPerms = $request->input('permissions', []);
-        if (!$admin->isDeveloper()) {
-            $submittedPerms = array_filter($submittedPerms, fn($p) => !str_starts_with($p, 'system.'));
-        }
-
-        // 依賴補齊：後端再次檢查（防止使用者透過 F12 竄改前端檢查邏輯）
-        $data['permissions'] = $this->securePermissions($submittedPerms);
-
-        $role->update($data);
-        return redirect()->route('admin.roles.index')->with('success', '角色更新成功');
-    }
-
-    public function destroy($id)
-    {
-        /** @var User $admin */
-        $admin = Auth::user();
-        $role = AdminRole::findOrFail($id);
-
-        if ($role->admins()->exists()) {
-            return back()->with('error', '該角色尚有管理員使用中，無法刪除');
-        }
-
-        if (!$admin->isDeveloper() && $role->isSuperRole()) {
-            return back()->with('error', '您沒有權限刪除最高管理者角色');
-        }
-
-        $role->delete();
-        return back()->with('success', '角色已刪除');
+            } catch (\Exception $e) {
+                Log::error("Role Save Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '儲存失敗，請聯繫系統開發人員');
+            }
+        });
     }
 
     /**
-     * 安全檢查：自動補齊權限依賴 (核心防範)
-     * 即使前端 JS 失效，後端在存檔前也會根據 config 強制檢查一次
+     * 安全檢查：自動補齊權限依賴
+     * 例如：若勾選了 'news.edit'，此方法會自動確保 'news.view' 也被存入
+     * @param array $perms 原始提交的權限陣列
+     * @return array 補齊後的權限陣列
      */
-    private function securePermissions($submittedPerms)
+    private function securePermissions(array $perms): array
     {
-        $rawConfig = config('backend_permissions');
-        $finalPerms = $submittedPerms;
+        $rawConfig = config('backend_permissions', []);
+        $finalPerms = $perms;
 
         foreach ($rawConfig as $group) {
             foreach ($group['subs'] as $subKey => $sub) {
@@ -160,7 +216,7 @@ class AdminRoleController extends BaseAdminController
                 foreach ($sub['dependencies'] as $actKey => $deps) {
                     $currentKey = "{$subKey}.{$actKey}";
 
-                    // 如果使用者勾選了進階動作（如：編輯），我們自動幫他補上基礎動作（如：瀏覽）
+                    // 如果勾選了進階權限，就幫他補上所有關聯的基礎權限
                     if (in_array($currentKey, $finalPerms)) {
                         foreach ($deps as $d) {
                             $finalPerms[] = "{$subKey}.{$d}";
@@ -169,6 +225,7 @@ class AdminRoleController extends BaseAdminController
                 }
             }
         }
-        return array_unique($finalPerms); // 移除重複的 key 後回傳
+
+        return array_values(array_unique($finalPerms));
     }
 }

@@ -1,11 +1,17 @@
 @extends('adminlte::page')
+
+{{-- 1. 瀏覽器分頁標題：依然使用完整標題，方便搜尋與辨識 --}}
 @section('title', $pageTitle)
 
-{{-- 共用頁首 --}}
-@component('components.admin.page_content_header', ['pageTitle' => '最新消息'])
+{{-- 2. 頁面內容區標題：使用組件並傳入預先處理好的標題物件 --}}
+@component('components.admin.page_content_header', [
+    'pageTitle' => $pageTitle, // 傳入字串（供組件內的備援邏輯使用）
+    'titleConfig' => $titleConfig, // [關鍵] 傳入物件，讓組件直接抓 $titleConfig['main']
+])
     @slot('actions')
-        @if (auth()->user()->canDo('news.create'))
-            <a href="{{ route('admin.news.create') }}" class="btn btn-primary shadow-sm px-4">
+        {{-- 權限判斷：確保有權限的人才看得到按鈕 --}}
+        @if (auth()->user()->canDo($permissionName . '.create'))
+            <a href="{{ route('admin.' . $permissionName . '.create') }}" class="btn btn-primary shadow-sm px-4">
                 <i class="fas fa-plus mr-1"></i>
                 新增
             </a>

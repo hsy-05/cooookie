@@ -2,21 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\AdminSystemSetting;
+use App\Models\SystemSetting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class AdminSystemSettingSeeder extends Seeder
+class SystemSettingSeeder extends Seeder
 {
     public function run(): void
     {
         // 1. 強制清空表
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        AdminSystemSetting::truncate();
+        SystemSetting::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // 2. 建立頁籤 (Parent) - 明確給予 setting_key 為 null
-        $uploadTab = AdminSystemSetting::create([
+        $uploadTab = SystemSetting::create([
             'parent_id'   => 0,
             'setting_key' => null, // 修正點：明確給 null
             'title'       => '上傳設定',
@@ -24,7 +24,7 @@ class AdminSystemSettingSeeder extends Seeder
             'display_order' => 10
         ]);
 
-        $seoTab = AdminSystemSetting::create([
+        $seoTab = SystemSetting::create([
             'parent_id'   => 0,
             'setting_key' => null, // 修正點：明確給 null
             'title'       => 'SEO 設定',
@@ -55,8 +55,19 @@ class AdminSystemSettingSeeder extends Seeder
 
         $seoTab->children()->createMany([
             [
-                'setting_key'   => 'site_title',
-                'title'         => '網頁標題',
+                'setting_key'   => 'shop_front_title',
+                'title'         => '網站前台名稱',
+                'setting_value' => '我的餅乾網站',
+                'type'          => 'text',
+                'is_visible'    => 1,
+                'display_order' => 1
+            ]
+        ]);
+
+        $seoTab->children()->createMany([
+            [
+                'setting_key'   => 'shop_back_title',
+                'title'         => '網站後台名稱',
                 'setting_value' => '我的餅乾網站',
                 'type'          => 'text',
                 'is_visible'    => 1,

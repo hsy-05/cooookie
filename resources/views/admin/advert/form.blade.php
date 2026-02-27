@@ -1,14 +1,12 @@
-{{-- resources/views/admin/advert/form.blade.php --}}
 @extends('adminlte::page')
 
 @section('title', $pageTitle)
 
-{{-- 麵包屑與標題組件：統一由外部傳入變數控制 --}}
+{{-- 麵包屑與標題組件 --}}
 @include('components.admin.page_content_header')
 
 @section('content')
     <x-admin.page-message>
-        {{-- 表單提交路徑：透過 $isEdit 判斷 --}}
         <form id="advertForm" name="the-form"
             action="{{ $isEdit ? route('admin.advert.update', $advert->adv_id) : route('admin.advert.store') }}"
             method="POST" enctype="multipart/form-data">
@@ -19,22 +17,20 @@
 
             <div class="col-md-12">
                 <x-admin.card-tabs>
-                    {{-- 1. 頁籤定義區 --}}
+                    {{-- 頁籤定義 --}}
                     <x-slot:tabs>
                         <li class="nav-item">
                             <a class="nav-link active" data-toggle="pill" href="#tab-general" role="tab">一般資料</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-toggle="pill" href="#tab-preview" role="tab">其他／預覽</a>
+                            <a class="nav-link" data-toggle="pill" href="#tab-other" role="tab">其他設定</a>
                         </li>
                     </x-slot:tabs>
 
-                    {{-- 2. 頁籤內容區 --}}
                     <x-slot:content>
-                        {{-- 一般資料：含多語系與共同設定 --}}
                         <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
 
-                            {{-- A. 多語系標題區 --}}
+                            {{-- A. 多語系區塊 --}}
                             <div class="sub-language-wrapper p-3">
                                 <ul class="nav sub-language-tabs" role="tablist">
                                     @foreach ($langs as $lang)
@@ -66,12 +62,12 @@
                                 </div>
                             </div>
 
-                            {{-- B. 共同設定區 (廣告核心邏輯) --}}
+                            {{-- B. 共同設定區 --}}
                             <div class="card m-3 mt-0 shadow-none border">
                                 <div class="card-header bg-light"><h5>共同設定</h5></div>
                                 <div class="card-body">
 
-                                    {{-- 分類選擇：驅動下方欄位顯示/隱藏的關鍵 --}}
+                                    {{-- 分類選擇：驅動下方欄位顯示與尺寸提示更新 --}}
                                     <div class="form-row mb-3">
                                         <div class="col-md-6 form-group">
                                             <label for="cat_id">廣告分類</label>
@@ -79,94 +75,60 @@
                                                 <option value="">-- 請選擇分類 --</option>
                                                 @foreach ($cats as $cat)
                                                     <option value="{{ $cat->cat_id }}"
-                                                        {{-- 將後端邏輯透過 JSON 傳給前端，不混雜在 HTML 屬性中 --}}
                                                         data-func='@json($cat->cat_func_scope)'
                                                         data-params='@json($cat->cat_params)'
                                                         {{ (old('cat_id', $advert->cat_id ?? '') == $cat->cat_id) ? 'selected' : '' }}>
-                                                        [{{ $cat->cat_code }}] {{ optional($cat->descs->first())->cat_name }}
+                                                        [{{ $cat->cat_code }}] {{ $cat->descs->first()->cat_name ?? '未命名分類' }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
-                                    {{-- 圖片上傳區塊 --}}
-                                    <div class="form-row">
 
+                                    <div class="form-row">
                                         {{-- 1. 廣告圖 - 電腦版 --}}
                                         <div class="col-md-6 form-group field field-adv_img_url d-none">
                                             <label for="adv_img_url">
                                                 廣告圖 (電腦版)
-                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
+                                                {{-- 這裡維持與 News 一致的結構：PHP 負責初始渲染 --}}
                                                 @if (isset($fileConfigs['adv_img_url']))
-                                                <i class="fas fa-question-circle text-muted"
-                                                data-toggle="tooltip"
-                                                title="建議尺寸：{{ $fileConfigs['adv_img_url']['width'] }} x {{ $fileConfigs['adv_img_url']['height'] }} px
-                                                        ，格式：JPG, PNG, WebP"></i>
+                                                <i class="fas fa-question-circle text-muted js-size-tooltip"
+                                                   data-toggle="tooltip"
+                                                   data-field="adv_img_url"
+                                                   title="建議尺寸：{{ $fileConfigs['adv_img_url']['width'] }} x {{ $fileConfigs['adv_img_url']['height'] }} px，格式：JPG, PNG, WebP"></i>
                                                 @endif
                                             </label>
                                             <div class="input-group">
-                                                <input type="file" id="adv_img_url" name="adv_img_url"
-                                                    class="form-control image-upload-input"
-                                                    accept="image/*">
-
-                                                {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
-                                                <div class="input-group-append {{ ($isEdit && $advert->adv_img_url) ? '' : 'd-none' }}"
-                                                    id="image-action-group-adv_img_url">
-                                                    @if ($isEdit && $advert->adv_img_url)
-                                                        <button type="button"
-                                                                class="btn btn-info js-open-preview"
-                                                                data-url="{{ asset('storage/' . $advert->adv_img_url) }}">
-                                                            瀏覽
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger btn-delete-image"
-                                                                data-url="{{ route('admin.advert.delete-image', $advert->adv_id) }}"
-                                                                data-field="adv_img_url">
-                                                            刪除
-                                                        </button>
-                                                    @endif
-                                                </div>
+                                                <input type="file" id="adv_img_url" name="adv_img_url" class="form-control" accept="image/*">
+                                                @if ($isEdit && $advert->adv_img_url)
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-info js-open-preview" data-url="{{ asset('storage/' . $advert->adv_img_url) }}">瀏覽</button>
+                                                        <button type="button" class="btn btn-danger btn-delete-image" data-field="adv_img_url" data-id="{{ $advert->adv_id }}">刪除</button>
+                                                    </div>
+                                                @endif
                                             </div>
-
-                                            {{-- 檔案資訊顯示區 --}}
-                                            <div id="stats-adv_img_url" class="mt-1 small text-secondary upload-stats"></div>
                                         </div>
 
                                         {{-- 2. 廣告圖 - 手機版 --}}
                                         <div class="col-md-6 form-group field field-adv_img_m_url d-none">
                                             <label for="adv_img_m_url">
                                                 廣告圖 (手機版)
-                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
-                                                @if (isset($fileConfigs['adv_img_url']))
-                                                <i class="fas fa-question-circle text-muted"
-                                                data-toggle="tooltip"
-                                                title="建議尺寸：{{ $fileConfigs['adv_img_url']['width'] }} x {{ $fileConfigs['adv_img_url']['height'] }} px
-                                                        ，格式：JPG, PNG, WebP"></i>
+                                                @if (isset($fileConfigs['adv_img_m_url']))
+                                                <i class="fas fa-question-circle text-muted js-size-tooltip"
+                                                   data-toggle="tooltip"
+                                                   data-field="adv_img_m_url"
+                                                   title="建議尺寸：{{ $fileConfigs['adv_img_m_url']['width'] }} x {{ $fileConfigs['adv_img_m_url']['height'] }} px，格式：JPG, PNG, WebP"></i>
                                                 @endif
                                             </label>
-
                                             <div class="input-group">
-                                                <input type="file" id="adv_img_m_url" name="adv_img_m_url"
-                                                    class="form-control image-upload-input"
-                                                    accept="image/*">
-
-                                                <div class="input-group-append {{ ($isEdit && $advert->adv_img_m_url) ? '' : 'd-none' }}"
-                                                    id="image-action-group-adv_img_m_url">
-                                                    @if ($isEdit && $advert->adv_img_m_url)
-                                                        <button type="button"
-                                                                class="btn btn-info js-open-preview"
-                                                                data-url="{{ asset('storage/' . $advert->adv_img_m_url) }}">
-                                                            瀏覽
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger btn-delete-image"
-                                                                data-url="{{ route('admin.advert.delete-image', $advert->adv_id) }}"
-                                                                data-field="adv_img_m_url">
-                                                            刪除
-                                                        </button>
-                                                    @endif
-                                                </div>
+                                                <input type="file" id="adv_img_m_url" name="adv_img_m_url" class="form-control" accept="image/*">
+                                                @if ($isEdit && $advert->adv_img_m_url)
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-info js-open-preview" data-url="{{ asset('storage/' . $advert->adv_img_m_url) }}">瀏覽</button>
+                                                        <button type="button" class="btn btn-danger btn-delete-image" data-field="adv_img_m_url" data-id="{{ $advert->adv_id }}">刪除</button>
+                                                    </div>
+                                                @endif
                                             </div>
-
-                                            <div id="stats-adv_img_m_url" class="mt-1 small text-secondary upload-stats"></div>
                                         </div>
                                     </div>
 
@@ -176,45 +138,37 @@
                                             <label for="adv_link_url">廣告跳轉連結</label>
                                             <input type="url" id="adv_link_url" name="adv_link_url" class="form-control"
                                                    placeholder="https://..." value="{{ old('adv_link_url', $advert->adv_link_url ?? '') }}">
-                                            <small class="text-muted">請輸入包含 http(s):// 的完整網址</small>
-                                        </div>
-                                    </div>
-
-                                    {{-- 顯示狀態與排序 --}}
-                                    <div class="form-row border-top pt-3">
-                                        <div class="col-md-4 form-group">
-                                            <label for="display_order">顯示排序</label>
-                                            <input type="number" id="display_order" name="display_order" class="form-control"
-                                                   value="{{ old('display_order', $advert->display_order ?? 0) }}">
-                                        </div>
-                                        <div class="col-md-4 form-group px-md-5">
-                                            <label>是否前台顯示</label>
-                                            <div class="custom-control custom-switch">
-                                                <input type="checkbox" class="custom-control-input" id="is_visible"
-                                                       name="is_visible" value="1" {{ old('is_visible', $advert->is_visible ?? 1) ? 'checked' : '' }}>
-                                                <label class="custom-control-label" for="is_visible">啟動顯示</label>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- 其他／預覽頁籤 --}}
-                        <div class="tab-pane fade p-3" id="tab-preview" role="tabpanel">
-                            <div class="callout callout-info">
-                                <h5><i class="fas fa-info"></i> 預覽說明</h5>
-                                <p>存檔後，您可以至前台對應分類區塊確認廣告呈現效果。</p>
+                        {{-- 其他設定 --}}
+                        <div class="tab-pane fade p-3" id="tab-other" role="tabpanel">
+                            <div class="form-row">
+                                <div class="col-md-4 form-group">
+                                    <label for="display_order">顯示排序</label>
+                                    <input type="number" id="display_order" name="display_order" class="form-control"
+                                           value="{{ old('display_order', $advert->display_order ?? 0) }}">
+                                </div>
+                                <div class="col-md-4 form-group px-md-5">
+                                    <label>上架狀態</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="is_visible"
+                                               name="is_visible" value="1" {{ old('is_visible', $advert->is_visible ?? 1) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="is_visible">啟動顯示</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </x-slot:content>
 
-                    {{-- 3. 底部動作按鈕 --}}
                     <x-slot:footer>
                         <a href="{{ route('admin.advert.index') }}" class="btn btn-secondary shadow-sm">
-                            <i class="fas fa-chevron-left mr-1"></i>返回列表
+                            <i class="fas fa-chevron-left mr-1"></i>返回
                         </a>
-                        <button type="submit" class="btn btn-success px-4 shadow-sm">
+                        <button type="submit" class="btn btn-success px-4 shadow-sm float-right">
                             <i class="fas fa-save mr-1"></i>{{ $isEdit ? '儲存更新' : '確認新增' }}
                         </button>
                     </x-slot:footer>
@@ -222,56 +176,83 @@
             </div>
         </form>
     </x-admin.page-message>
-
 @stop
 
 @section('js')
     <script>
         /**
-         * 廣告管理模組表單邏輯
-         * 負責：分類連動欄位、圖片預覽、表單防呆
+         * 廣告管理表單邏輯
          */
         $(function() {
-            const $form = $('form[name="the-form"]');
             const $catSelect = $('#cat_id');
 
-            // --- 1. 分類連動邏輯 (Category Scope) ---
-
-            function updateFieldScope() {
+            /**
+             * 同步分類對應的欄位與 Tooltip 提示
+             * 用途：確保切換分類時，欄位正確顯示且尺寸提示同步更新
+             */
+            function syncCategoryConfig() {
                 const $selected = $catSelect.find('option:selected');
+                if (!$selected.val()) return;
+
                 const funcScope = $selected.data('func') || [];
                 const params = $selected.data('params') || {};
+                const fields = params.fields || {};
 
-                // 先隱藏所有動態欄位並清空提示
+                // 隱藏所有動態欄位
                 $('.field').addClass('d-none');
-                $('.field-hint').text('');
 
-                // 根據選取的分類開啟對應欄位
+                // 遍歷該分類擁有的功能
                 funcScope.forEach(fieldName => {
                     const $fieldContainer = $(`.field-${fieldName}`);
                     if ($fieldContainer.length) {
                         $fieldContainer.removeClass('d-none');
 
-                        // 注入建議尺寸提示 (如果後端有傳 params)
-                        const config = params.fields ? params.fields[fieldName] : null;
+                        // 動態更新 Tooltip 的建議尺寸
+                        const config = fields[fieldName];
                         if (config && config.width) {
-                            $fieldContainer.find('.field-hint').text(`💡 建議尺寸：${config.width} x ${config.height} px`);
+                            const $tooltip = $fieldContainer.find('.js-size-tooltip');
+                            if ($tooltip.length) {
+                                const newTitle = `建議尺寸：${config.width} x ${config.height} px，格式：JPG, PNG, WebP`;
+
+                                // 先銷毀舊的 Tooltip，更新內容後再重新初始化
+                                $tooltip.attr('data-original-title', newTitle).tooltip();
+                            }
                         }
                     }
                 });
             }
 
-            // 初始化與變更事件觸發
-            $catSelect.on('change', updateFieldScope);
-            updateFieldScope();
+            // 監聽分類切換事件
+            $catSelect.on('change', syncCategoryConfig);
 
-            // --- 3. 表單防呆與提交 ---
+            // 頁面載入時初始化一次
+            syncCategoryConfig();
 
-            $form.on('submit', function(e) {
-                // 調用全域通用驗證函數 (需確認 admin 專案中有定義 validateRequiredFields)
-                if (typeof validateRequiredFields === "function" && !validateRequiredFields(this)) {
-                    e.preventDefault();
-                    return false;
+            /**
+             * 圖片預覽功能
+             * @param string url 圖片網址
+             */
+            $('.js-open-preview').on('click', function() {
+                const url = $(this).data('url');
+                if (url) window.open(url, '_blank');
+            });
+
+            /**
+             * 刪除圖片 AJAX
+             */
+            $('.btn-delete-image').on('click', function() {
+                const $btn = $(this);
+                const field = $btn.data('field');
+                const id = $btn.data('id');
+
+                if (confirm('確定要刪除這張圖片嗎？')) {
+                    $.post('{{ url("admin/advert/delete-image") }}/' + id, {
+                        _token: '{{ csrf_token() }}',
+                        _method: 'POST',
+                        field: field
+                    }).done(function() {
+                        location.reload();
+                    });
                 }
             });
         });

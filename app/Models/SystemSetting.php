@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
-class AdminSystemSetting extends Model
-{protected $table = 'admin_system_settings';
+class SystemSetting extends Model
+{protected $table = 'system_settings';
 
     // 必須包含這些欄位，createMany 才會成功
     protected $fillable = [
@@ -26,7 +26,7 @@ class AdminSystemSetting extends Model
      */
     public function children()
     {
-        return $this->hasMany(AdminSystemSetting::class, 'parent_id', 'id');
+        return $this->hasMany(SystemSetting::class, 'parent_id', 'id');
     }
 
     /**

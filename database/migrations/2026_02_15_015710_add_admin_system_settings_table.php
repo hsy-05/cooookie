@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('admin_system_settings', function (Blueprint $blueprint) {
+        Schema::create('system_settings', function (Blueprint $blueprint) {
             $blueprint->id();
             // 父層 ID：0 代表它是「頁籤 (Tab)」，大於 0 代表它是該頁籤下的「設定項」
             $blueprint->integer('parent_id')->default(0)->index();
@@ -31,5 +31,5 @@ return new class extends Migration {
         });
     }
 
-    public function down(): void { Schema::dropIfExists('admin_system_settings'); }
+    public function down(): void { Schema::dropIfExists('system_settings'); }
 };

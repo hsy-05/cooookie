@@ -2,96 +2,108 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\BaseAdminController;
 use Illuminate\Http\Request;
-use App\Http\Requests\Admin\NewsCategoryRequest; // 引入 Request
+use App\Http\Requests\Admin\NewsCategoryRequest;
 use App\Models\{NewsCategory, NewsCategoryDesc};
 use Illuminate\Support\Facades\{DB, Log};
-use App\Helpers\{ContentHelper, ImageHelper};
+use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper};
 
+/**
+ * 消息分類管理控制器
+ * 採用 BaseAdminController 繼承架構，實現自動權限控管與共用功能
+ */
 class NewsCategoryController extends BaseAdminController
 {
-    // 定義這個 Controller 屬於哪組權限
+    // 定義權限與標題，BaseAdminController 會自動處理權限檢查
     protected $permissionName = 'news_category';
     protected $pageTitle = '消息分類管理';
 
     /**
      * 頁面相關配置
+     * 讓開發者只需要改這裡的參數，就能控制圖片上傳規格，不需動到 store/update 邏輯
      */
     protected $pageCfg = [
-        // 定義哪些欄位需要處理檔案上傳
         'files' => [
             'image_url' => [
-                'path'   => 'news_category',     // 儲存路徑
-                'width'  => 736,               // 寬度 (若不縮圖可設為 null)
-                'height' => 736,               // 高度
-                'mode'   => 'scale_fill',     // 處理模式：center_crop, scale_fit
-                'bgColor'=> '#D6395C',        // 圖用淡灰底
-                'useOriginalName' => false,    // 是否使用原檔名 (false 代表自動生成唯一名稱)
+                'path'   => 'news_category',      // 圖片存儲資料夾
+                'width'  => 736,                 // 建議寬度
+                'height' => 736,                 // 建議高度
+                'mode'   => 'scale_fill',        // 處理模式：等比例填充
+                'bgColor'=> '#D6395C',           // 若圖片比例不符，填充的底色
+                'useOriginalName' => false,      // 是否使用原檔名
             ],
-            // 未來若有 PDF 或 縮圖，直接在這裡增加一組設定即可
         ],
     ];
 
     /**
-     * 顯示分類列表頁面，包含多語系表單
+     * 顯示分類列表頁面
+     * @param Request $request 包含搜尋關鍵字 'search'
      */
     public function index(Request $request)
     {
-        // 取得搜尋關鍵字
         $search = $request->input('search');
 
-        // 建立查詢基礎：預載語言描述與子分類
+        // 使用 Eager Loading 載入多語系與子分類，避免 N+1 查詢效能問題
         $query = NewsCategory::with(['children.descs', 'descs']);
 
-        // 處理搜尋與層級邏輯
         if ($search) {
-            // 如果有搜尋，通常會打破樹狀結構，直接列出所有符合的項目
+            // 搜尋模式：直接列出符合名稱的所有分類（打破樹狀結構，方便快速尋找）
             $categories = $query->whereHas('descs', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })->get();
         } else {
-            // 如果沒有搜尋，顯示標準樹狀結構：只抓第一層 (parent_id 為 0 或 null)
+            // 標準模式：顯示樹狀結構，只抓第一層 (parent_id 為 0 或 null)
             $categories = $query->where(function ($q) {
                 $q->where('parent_id', 0)->orWhereNull('parent_id');
             })
-                ->orderBy('display_order', 'asc')
-                ->orderBy('cat_id', 'asc')
-                ->get();
+            ->orderBy('display_order', 'asc')
+            ->orderBy('cat_id', 'asc')
+            ->get();
         }
 
         return $this->view('admin.news_category.index', compact('categories', 'search'));
     }
 
     /**
-     * 顯示新增分類表單
+     * 顯示新增表單
      */
     public function create()
     {
-        return $this->renderForm(new NewsCategory(), false);
+        // 同步 News 規格：掃除編輯器廢棄圖
+        SummernoteImageHelper::cleanAbandonedImages();
+
+        return $this->renderForm(new NewsCategory());
     }
 
+    /**
+     * 儲存新增資料
+     * @param NewsCategoryRequest $request 已經過表單驗證
+     */
     public function store(NewsCategoryRequest $request)
     {
-        // 【防呆加強】先進行層級深度判斷，如果不通過，直接回傳錯誤
+        // 1. 層級深度防呆：避免使用者建立超過系統限制的層級 (例如 3 層以上)
         $levelError = $this->checkLevelLimit($request->parent_id);
         if ($levelError) return $levelError;
 
         return DB::transaction(function () use ($request) {
             try {
                 $category = new NewsCategory();
+                $category->fill($request->safe()->except(['image_url']));
 
-                // 處理圖片 (預留功能)
-                $this->handleImageUpload($request, $category);
+                $this->handleFileUploads($request, $category);
 
-                // 儲存主表
-                $category->fill($request->validated());
                 $category->parent_id = $request->parent_id ?: null;
                 $category->is_visible = $request->has('is_visible');
                 $category->save();
 
-                // 儲存多語系資料
+                // 提交 Summernote 圖片
+                SummernoteImageHelper::commitTempImages();
+
                 $this->saveTranslations($category, $request->desc);
+                $category->writeLog('新增', $category->desc->name ?? '未知名分類');
+
+                // 5. 寫入操作日誌 (Loggable Trait)
+                $category->writeLog('新增', $category->desc->name ?? '未知名分類');
 
                 ContentHelper::showMsg(0, '分類新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news_category.create')],
@@ -102,47 +114,49 @@ class NewsCategoryController extends BaseAdminController
                 return redirect()->back();
             } catch (\Exception $e) {
                 Log::error("Category Store Error: " . $e->getMessage());
-                return redirect()->back()->withInput()->with('form_error_swal', '新增失敗');
+                return redirect()->back()->withInput()->with('form_error_swal', '新增失敗：' . $e->getMessage());
             }
         });
     }
 
     /**
-     * 編輯表單
+     * 顯示編輯表單
+     * @param NewsCategory $category 自動透過 ID 注入的 Model
      */
     public function edit(NewsCategory $category)
     {
+        // 同步 News 規格：掃除編輯器廢棄圖
+        SummernoteImageHelper::cleanAbandonedImages();
         return $this->renderForm($category);
     }
 
     /**
-     * 更新表單
+     * 更新分類資料
      */
     public function update(NewsCategoryRequest $request, NewsCategory $category)
     {
-        // 【防呆加強】編輯時也檢查層級
+        // 層級深度防呆
         $levelError = $this->checkLevelLimit($request->parent_id);
         if ($levelError) return $levelError;
 
         return DB::transaction(function () use ($request, $category) {
             try {
-                // 更新圖片 (預留功能)
-                $this->handleImageUpload($request, $category);
 
-                // 更新主表
-                $category->update($request->validated());
+                $category->fill($request->safe()->except(['image_url']));
+
                 $category->parent_id = $request->parent_id ?: null;
                 $category->is_visible = $request->has('is_visible');
+
+                // 處理更新上傳 (會自動清理舊圖)
+                $this->handleFileUploads($request, $category);
+
                 $category->save();
 
-                // 更新多語系資料
+                // 更新多語系
                 $this->saveTranslations($category, $request->desc);
 
-                // 紀錄操作紀錄
-                $category->writeLog('編輯', $category->desc->name ?? '未知名分類', [
-                    'cat_id' => $category->cat_id,
-                    'updated_fields' => array_keys($request->validated()),
-                ]);
+                // 寫入日誌
+                $category->writeLog('編輯', $category->desc->name ?? '未知名分類');
 
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
@@ -157,44 +171,122 @@ class NewsCategoryController extends BaseAdminController
         });
     }
 
+    /**
+     * 刪除分類 (包含嚴格防呆)
+     */
     public function destroy(NewsCategory $category)
     {
-        //  檢查：若有子項目則禁止刪除
+        // 安全檢查 1：如果此分類下還有新聞稿，禁止刪除
         if ($category->news()->exists()) {
             return back()->with('form_error_swal', '此分類已有消息使用，無法刪除。');
         }
 
-        // 防呆：如果有子分類，也要禁止刪除
+        // 安全檢查 2：如果此分類還有子分類，禁止刪除（避免斷頭資料）
         if ($category->children()->exists()) {
             return back()->with('form_error_swal', '請先刪除底下的子分類。');
         }
 
-        // 先抓取標題供 Log 使用
-        $category->load('desc');
-        $title = $category->desc->title ?? '未知名分類';
+        $title = $category->desc->name ?? '未知名分類';
 
-        // 刪除相關聯的所有實體檔案 (防呆：避免伺服器留下一堆廢圖)
-        foreach (array_keys($this->pageCfg['files']) as $field) {
-            if ($category->$field) {
-                ImageHelper::deleteImage($category->$field, 'public');
-            }
-        }
-
-        // 刪除資料庫紀錄
-        $category->descs()->delete();
+        // 執行刪除 (HasImageFields Trait 會自動清理實體檔案)
         $category->delete();
 
-        // 紀錄操作紀錄
         $category->writeLog('刪除', $title);
 
         return redirect()->route('admin.news_category.index')->with('form_success_swal', '消息分類已刪除');
     }
 
-    /* --- 內部輔助方法 (符合 NewsController 邏輯) --- */
+    /**
+     * 單獨刪除圖片欄位 (AJAX)
+     */
+    public function deleteImageField(Request $request, NewsCategory $category)
+    {
+        // 直接調用優化後的 Trait 方法
+        return $category->deleteImageFieldGeneric($request);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* 內部輔助方法 (符合專業開發範式)                                              */
+    /* -------------------------------------------------------------------------- */
 
     /**
-     * 專業防呆：獨立出的層級深度檢查邏輯
-     * 這裡完整保留了你原本的 ContentHelper 與 while 迴圈判斷
+     * 渲染表單通用邏輯 (處理分類樹與多語系對照)
+     */
+    private function renderForm(NewsCategory $category)
+    {
+        $isEdit = (bool)$category->exists;
+
+        // 從配置讀取層級限制 (預設1層)
+        $maxLevel = config('site.category_levels.news', 1);
+
+        // 取得所有根分類並進行遞迴拉平，準備給下拉選單使用
+        $rootCategories = NewsCategory::with(['children', 'descs'])
+            ->where(function ($q) {
+                $q->where('parent_id', 0)->orWhereNull('parent_id');
+            })
+            ->orderBy('display_order', 'asc')
+            ->get();
+
+        $parentsList = [];
+        // 遍歷根分類，透過遞迴函式去計算每個分類的「縮排」與「是否可當父層」
+        foreach ($rootCategories as $root) {
+            $this->buildTreeOptions($root, 0, $parentsList, $category->cat_id, $maxLevel);
+        }
+
+        // 獲取目前啟用的語系設定
+        $langs = $this->getActiveLanguages();
+        // 將配置傳給前端，以便顯示建議尺寸提示
+        $fileConfigs = $this->pageCfg['files'];
+
+        // 語系資料 Map (方便 View 直接透過 $descMap[$lang_id] 取值)
+        $descMap = [];
+        if ($isEdit) {
+            $category->load('descs');
+            foreach ($category->descs as $desc) {
+                // 編輯器內容需要解碼回原始 URL，才能正確顯示圖片
+                $desc->content = ContentHelper::decodeSiteUrl($desc->content);
+                $descMap[$desc->lang_id] = $desc;
+            }
+        }
+
+        return $this->view('admin.news_category.form', compact(
+            'category', 'isEdit', 'parentsList', 'langs', 'descMap', 'fileConfigs', 'maxLevel'
+        ));
+    }
+
+    /**
+     * 遞迴計算分類樹狀結構與縮排
+     * @param NewsCategory $category  當前跑到的分類
+     * @param int          $level     當前層級深度
+     * @param array        &$result   結果儲存陣列
+     * @param int|null     $currentId 目前編輯的 ID (用來排除自己不能選自己)
+     * @param int          $maxLevel  系統允許的最大深度
+     */
+    private function buildTreeOptions($category, $level, &$result, $currentId, $maxLevel)
+    {
+        // 排除自己與自己的後代當作父層，避免無窮迴圈
+        if ($category->cat_id == $currentId) return;
+
+        $canBeParent = ($level + 1) < $maxLevel;
+        $name = $category->desc->name ?? '未命名';
+        $indent = $level > 0 ? str_repeat('　', $level) . '└─ ' : '';
+
+        $result[] = (object)[
+            'cat_id'        => $category->cat_id,
+            'name'          => $indent . $name,
+            'can_be_parent' => $canBeParent
+        ];
+
+        if ($category->children->count() > 0) {
+            foreach ($category->children as $child) {
+                $this->buildTreeOptions($child, $level + 1, $result, $currentId, $maxLevel);
+            }
+        }
+    }
+
+    /**
+     * 檢查層級深度是否合規
+     * @param int|null $parentId 欲設定的父層 ID
      */
     private function checkLevelLimit($parentId)
     {
@@ -204,187 +296,49 @@ class NewsCategoryController extends BaseAdminController
         }
 
         $parent = NewsCategory::find($parentId);
-        $backUrl = url()->previous();
+        if (!$parent) return redirect()->back()->with('form_error_swal', '找不到指定的父分類');
 
-        if (!$parent) {
-            ContentHelper::showMsg(1, '找不到指定的父分類', [['text' => '返回表單', 'href' => $backUrl]], true);
-            return redirect()->back();
+        // 往上追溯計算目前深度
+        $depth = 1;
+        $temp = $parent;
+        while ($temp->parent_id > 0) {
+            $temp = NewsCategory::find($temp->parent_id);
+            if (!$temp) break;
+            $depth++;
         }
 
-        // 使用你原本的 while 迴圈，逐層往上找，計算目前的深度
-        $parentLevel = 1;
-        $tempParent = $parent;
-        while ($tempParent->parent_id > 0) {
-            $tempParent = NewsCategory::find($tempParent->parent_id);
-            if (!$tempParent) break;
-            $parentLevel++;
-        }
-
-        // 從設定檔讀取上限 (防呆預設為 2)
-        $maxLimit = config('site_settings.category_levels.news', 2);
+        $maxLimit = config('site.category_levels.news', 1);
 
         // 如果「父層深度 + 我自己這一層」超過限制
-        if (($parentLevel + 1) > $maxLimit) {
-            ContentHelper::showMsg(1, "違反層級限制：消息分類最高僅允許 {$maxLimit} 層", [['text' => '返回表單', 'href' => $backUrl]], true);
+        if (($depth + 1) > $maxLimit) {
+            ContentHelper::showMsg(1, "層級過深：此單元最高僅允許 {$maxLimit} 層", [['text' => '返回', 'href' => url()->previous()]], true);
             return redirect()->back();
         }
 
-        return null; // 代表沒問題
-    }
-
-    /**
-     * 處理表單顯示邏輯：準備新增或編輯所需的資料
-     */
-    private function renderForm(NewsCategory $category)
-    {
-        // 判斷當前是「新增」還是「編輯」
-        $isEdit = (bool)$category->exists;
-
-        // 【專業點】從全域設定讀取此單元的層級限制。若沒設定，預設為 2 層 (大類 > 小類)
-        $maxLevel = config('site_settings.category_levels.news', 2);
-
-        // 抓取所有的根分類 (最頂層)，並預載子分類及多語系資料，減少 SQL 查詢次數 (Eager Loading)
-        $rootCategories = NewsCategory::with(['children', 'descs'])
-            ->where(function ($q) {
-                $q->where('parent_id', 0)->orWhereNull('parent_id');
-            })
-            ->orderBy('display_order', 'asc')
-            ->get();
-
-        // 用來存放「拉平」後的下拉選單選項
-        $parentsList = [];
-
-        // 遍歷根分類，透過遞迴函式去計算每個分類的「縮排」與「是否可當父層」
-        foreach ($rootCategories as $root) {
-            $this->buildTreeOptions($root, 0, $parentsList, $category->cat_id, $maxLevel);
-        }
-
-        // 獲取目前啟用的語系設定
-        $langs = $this->getActiveLanguages();
-
-        // 將配置傳給前端，以便顯示建議尺寸提示
-        $fileConfigs = $this->pageCfg['files'];
-
-        // 建立語系資料對照表，方便 View 使用 $descMap[語系ID] 直接抓到內容
-        $descMap = [];
-        if ($isEdit) {
-            $category->load('descs');
-            foreach ($category->descs as $desc) {
-                $descMap[$desc->lang_id] = $desc;
-            }
-        }
-
-        return $this->view('admin.news_category.form', compact('category', 'isEdit', 'parentsList', 'langs', 'descMap', 'fileConfigs', 'maxLevel'));
-    }
-
-    /**
-     * 遞迴計算分類樹狀結構
-     * @param NewsCategory $category 當前跑到的分類物件
-     * @param int $level             當前的深度層級 (0 是最頂層)
-     * @param array &$result         引用傳遞，將處理好的資料塞進此結果陣列
-     * @param int $currentId         目前正在編輯的 ID，用來排除「自己不能當自己的父層」
-     * @param int $maxLevel          此單元允許的最大總層級
-     */
-    private function buildTreeOptions($category, $level, &$result, $currentId, $maxLevel)
-    {
-        // 【防呆】編輯時，不能選擇自己或自己的子孫作為父層，否則會發生邏輯死循環
-        if ($category->cat_id == $currentId) {
-            return;
-        }
-
-        // 【層級邏輯】判斷該分類是否還有餘額可以接收「子分類」
-        // 原理：如果我是 level 0，我的下一層是 1。如果 maxLevel 是 1，那 (0+1 < 1) 為 false，我就不能當父層。
-        $canBeParent = ($level + 1) < $maxLevel;
-
-        // 取得名稱，優先使用關聯資料中的名稱
-        $name = $category->desc->name ?? ($category->descs->first()->name ?? '未命名');
-
-        // 生成縮排符號，層級越高縮越進去
-        $indent = $level > 0 ? str_repeat('　', $level) . '└─ ' : '';
-
-        // 將此分類包裝成物件，存入結果
-        $result[] = (object)[
-            'cat_id'        => $category->cat_id,
-            'name'          => $indent . $name,
-            'can_be_parent' => $canBeParent // 給 Blade 判斷是否要 disabled
-        ];
-
-        // 如果還有子分類，繼續往深處跑 (遞迴)
-        if ($category->children && $category->children->count() > 0) {
-            foreach ($category->children as $child) {
-                $this->buildTreeOptions($child, $level + 1, $result, $currentId, $maxLevel);
-            }
-        }
-    }
-
-    /**
-     * 基本格式驗證及層級防呆檢查
-     * 注意：現在會回傳 Redirect 物件或 null，呼叫處必須 return 它
-     */
-    private function validateRequest(Request $request)
-    {
-        // 1. 基本格式驗證
-        $request->validate([
-            // 修改點：加上 'sometimes' 或手動判斷，避開 parent_id = 0 的檢查
-            'parent_id'     => 'nullable|integer',
-            'is_visible'    => 'nullable|boolean',
-            'display_order' => 'nullable|integer',
-            'image_url'         => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
-            'desc'          => 'nullable|array',
-            'desc.*.name'   => 'required_with:desc.*|string|max:255',
-        ]);
-
-        // 如果 parent_id > 0，才進入深度檢查與存在檢查
-        if ($request->filled('parent_id') && $request->parent_id > 0) {
-            $parent = NewsCategory::find($request->parent_id);
-
-            // 準備返回的連結：如果是編輯就回編輯頁，新增就回新增頁
-            $backUrl = url()->previous();
-
-            if (!$parent) {
-                // 明確指定回傳連結，不要讓它用 javascript:history.go(-1)
-                ContentHelper::showMsg(1, '找不到指定的父分類', [['text' => '返回表單', 'href' => $backUrl]], true);
-                return redirect()->back();
-            }
-
-            // B. 計算該父層真正的深度 (支援 1~N 層)
-            $parentLevel = 1;
-            $tempParent = $parent;
-            while ($tempParent->parent_id > 0) {
-                $tempParent = NewsCategory::find($tempParent->parent_id);
-                // 防呆：避免資料庫關聯出錯導致死循環
-                if (!$tempParent) break;
-                $parentLevel++;
-            }
-
-            // C. 取得上限設定
-            $maxLimit = config('site_settings.category_levels.news', 1);
-
-            // D. 判斷是否超過上限
-            if (($parentLevel + 1) > $maxLimit) {
-                // 同樣明確指定連結
-                ContentHelper::showMsg(1, "違反層級限制：消息分類最高僅允許 {$maxLimit} 層", [['text' => '返回表單', 'href' => $backUrl]], true);
-                return redirect()->back();
-            }
-        }
+        // 表示沒問題
         return null;
     }
 
-    private function handleImageUpload(Request $request, NewsCategory $category)
+    /**
+     * 通用檔案上傳處理 (邏輯與 NewsController 統一)
+     */
+    private function handleFileUploads(Request $request, NewsCategory $category)
     {
         foreach ($this->pageCfg['files'] as $field => $config) {
-            // 如果 Request 裡有這個檔案，才進行處理
             if ($request->hasFile($field)) {
                 $category->$field = ImageHelper::handleUpload(
                     $request->file($field),
                     $config['path'],
-                    $category->$field, // 傳入舊路徑以供刪除
+                    $category->$field,
                     $config
                 );
             }
         }
     }
 
+    /**
+     * 儲存多語系資料
+     */
     private function saveTranslations(NewsCategory $category, ?array $descData)
     {
         if (!$descData) return;
@@ -396,28 +350,14 @@ class NewsCategoryController extends BaseAdminController
                 continue;
             }
 
-            DB::table('news_category_desc')->updateOrInsert(
+            NewsCategoryDesc::updateOrInsert(
                 ['cat_id' => $category->cat_id, 'lang_id' => $langId],
                 [
                     'name'        => $data['name'],
                     'description' => $data['description'] ?? null,
                     'content'     => ContentHelper::encodeSiteUrl($data['content'] ?? ''),
-                    'updated_at'  => now(),
                 ]
             );
         }
     }
-
-    /**
-    * 刪除圖片欄位的通用方法
-    * 前端會傳入要刪除的欄位名稱 (例如 image_url)，這樣這個方法就可以通用於多個圖片欄位
-    */
-    public function deleteImageField(Request $request, NewsCategory $category)
-    {
-        // 調用 Trait 裡面的通用邏輯，傳入當前的 $category 模型實例
-        // 並明確告訴 Trait 要刪除的欄位名稱 (從前端傳來，或直接寫死在控制器)
-        return $this->deleteImageFieldGeneric($request, $category);
-    }
-
-
 }

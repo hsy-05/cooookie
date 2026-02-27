@@ -1,126 +1,162 @@
 @extends('adminlte::page')
 
-@section('title', isset($isEdit) && $isEdit ? '編輯廣告分類' : '新增廣告分類')
+@section('title', $pageTitle)
 
 @include('components.admin.page_content_header')
 
 @section('content')
-    <form
-        action="{{ isset($isEdit) && $isEdit ? route('admin.advert_category.update', $advert_category->cat_id) : route('admin.advert_category.store') }}"
-        method="POST">
-        @csrf
-        @if (isset($isEdit) && $isEdit)
-            @method('PUT')
-        @endif
+    <x-admin.page-message>
+        <form action="{{ $isEdit ? route('admin.advert_category.update', $category->cat_id) : route('admin.advert_category.store') }}"
+              method="POST" id="advCatForm">
+            @csrf
+            @if ($isEdit) @method('PUT') @endif
 
-        <!-- 表單頁籤 -->
-        <div class="card card-primary card-outline card-outline-tabs">
-            <div class="card-header p-0 border-bottom-0">
-                <ul class="nav nav-tabs" id="role-tab" role="tablist">
-                    <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#general">一般資料</a></li>
-                    <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#preview">其他／預覽</a></li>
-                </ul>
-            </div>
-            <div class="card-body">
-                <div class="tab-content" id="form-tabs-content">
-                    {{-- 一般資料 --}}
-                    <div id="general" class="tab-pane fade show active p-3" role="tabpanel">
-                        <div class="form-row">
-                            <div class="form-group col-md-3">
-                                <label>分類代碼 (cat_code)</label>
-                                <input type="text" name="cat_code" class="form-control"
-                                    value="{{ old('cat_code', $advert_category->cat_code) }}" required>
-                            </div>
+            <div class="col-md-12">
+                <x-admin.card-tabs>
+                    {{-- 第一層頁籤：區分基礎代碼與多語系名稱 --}}
+                    <x-slot:tabs>
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="pill" href="#tab-system" role="tab">系統參數 (工程師專用)</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="pill" href="#tab-i18n" role="tab">多語系顯示名稱</a>
+                        </li>
+                    </x-slot:tabs>
 
-                            <div class="form-group col-md-2 ml-3">
-                                <label>排序 (sort_order)</label>
-                                <input type="number" name="sort_order" class="form-control"
-                                    value="{{ old('sort_order', $advert_category->sort_order) }}">
-                            </div>
+                    <x-slot:content>
+                        {{-- 系統參數頁籤 --}}
+                        <div class="tab-pane fade show active" id="tab-system" role="tabpanel">
+                            <div class="p-3">
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label for="cat_code">分類識別代碼 (cat_code)</label>
+                                        <input type="text" id="cat_code" name="cat_code"
+                                               class="form-control" value="{{ old('cat_code', $category->cat_code) }}"
+                                               placeholder="例如：HOME_BANNER" required>
+                                        <small class="text-muted">這是給程式抓取資料用的 ID，請勿隨意更動。</small>
+                                    </div>
 
-                            <div class="form-group col-md-5 ml-3">
-                                <label for="is_visible">是否顯示</label>
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="is_visible" name="is_visible"
-                                        value="1"
-                                        {{ isset($isEdit) && $advert_category->is_visible ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="is_visible"></label>
+                                    <div class="form-group col-md-4">
+                                        <label for="display_order">排序</label>
+                                        <input type="number" id="display_order" name="display_order"
+                                               class="form-control" value="{{ old('display_order', $category->display_order ?? 0) }}">
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label for="is_visible">是否顯示</label>
+                                        <select name="is_visible" id="is_visible" class="form-control">
+                                            <option value="1" {{ old('is_visible', $category->is_visible) == 1 ? 'selected' : '' }}>顯示</option>
+                                            <option value="0" {{ old('is_visible', $category->is_visible) == 0 ? 'selected' : '' }}>隱藏</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>啟用廣告欄位 (cat_func_scope)</label>
+                                    <div class="d-flex flex-wrap border rounded p-3 bg-light">
+                                        {{-- 這些選項原本在 @php 內，現在改為直接渲染，保持邏輯清晰 --}}
+                                        <div class="custom-control custom-checkbox mr-4">
+                                            <input class="custom-control-input" type="checkbox" name="cat_func_scope[]"
+                                                   id="scope_img" value="adv_img_url"
+                                                   {{ in_array('adv_img_url', (array)$category->cat_func_scope) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="scope_img">電腦版圖片 (adv_img_url)</label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox mr-4">
+                                            <input class="custom-control-input" type="checkbox" name="cat_func_scope[]"
+                                                   id="scope_img_m" value="adv_img_m_url"
+                                                   {{ in_array('adv_img_m_url', (array)$category->cat_func_scope) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="scope_img_m">手機版圖片 (adv_img_m_url)</label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox mr-4">
+                                            <input class="custom-control-input" type="checkbox" name="cat_func_scope[]"
+                                                   id="scope_link" value="adv_link_url"
+                                                   {{ in_array('adv_link_url', (array)$category->cat_func_scope) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="scope_link">廣告連結 (adv_link_url)</label>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">勾選後，在編輯廣告內容時才會出現對應的輸入框。</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="cat_params">擴充參數 (cat_params, JSON)</label>
+                                    <textarea id="cat_params" name="cat_params" class="form-control text-monospace"
+                                              rows="8" style="background: #272822; color: #f8f8f2;">{{ old('cat_params', json_encode($category->cat_params, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) }}</textarea>
+                                    <small class="form-text text-info">
+                                        可用於設定圖片建議寬高，例如：<code>{"fields":{"adv_img_url":{"width":1920,"height":600}}}</code>
+                                    </small>
                                 </div>
                             </div>
                         </div>
 
+                        {{-- 多語系名稱頁籤 --}}
+                        <div class="tab-pane fade" id="tab-i18n" role="tabpanel">
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                               id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                               href="#lang-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
 
-                        {{-- cat_func_scope：以 checkbox 呈現，送出 array --}}
-                        <div class="form-group">
-                            <label>啟用欄位 (cat_func_scope)</label>
-                            @php
-                                $scope = old('cat_func_scope', $advert_category->cat_func_scope ?? []);
-                                $opts = [
-                                    'adv_img_url' => '電腦版圖片',
-                                    'adv_img_m_url' => '手機版圖片',
-                                    'adv_link_url' => '廣告連結',
-                                ];
-                            @endphp
-                            <div class="form-check">
-                                @foreach ($opts as $k => $label)
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" name="cat_func_scope[]"
-                                            value="{{ $k }}"
-                                            {{ in_array($k, (array) $scope, true) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="scope_{{ $k }}">{{ $label }}
-                                            ({{ $k }})
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                            <small class="form-text text-muted">決定此分類底下廣告表單會出現哪些欄位。</small>
-                        </div>
-
-                        {{-- cat_params：以 JSON 字串輸入，後端驗證 json --}}
-                        <div class="form-group">
-                            <label>分類參數 (cat_params, JSON)</label>
-                            <textarea name="cat_params" class="form-control" rows="8">{{ old('cat_params', json_encode($advert_category->cat_params, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) }}</textarea>
-                            <small class="form-text text-muted">
-                                例如：<code>{"item_limit_num":-1,"fields":{"adv_img_url":{"width":1920,"height":960},"adv_img_m_url":{"width":800,"height":960}}}</code>
-                            </small>
-                        </div>
-                    </div>
-
-                    {{-- 多語名稱 --}}
-                    <div id="i18n" class="tab-pane fade p-3" role="tabpanel">
-                        <ul class="nav nav-tabs mt-2" role="tablist">
-                            @foreach ($langs as $lang)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
-                                        href="#lang-{{ $lang->lang_id }}">
-                                        {{ $lang->name }} ({{ $lang->code }})
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <div class="tab-content mt-3">
-                            @foreach ($langs as $lang)
-                                @php $d = $descMap[$lang->lang_id] ?? null; @endphp
-                                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                    id="lang-{{ $lang->lang_id }}">
-                                    <div class="form-group">
-                                        <label>分類名稱 ({{ $lang->code }})</label>
-                                        <input type="text" name="desc[{{ $lang->lang_id }}][cat_name]"
-                                            class="form-control"
-                                            value="{{ old("desc.{$lang->lang_id}.cat_name", $d->cat_name ?? '') }}">
-                                    </div>
+                                <div class="tab-content mt-3">
+                                    @foreach ($langs as $lang)
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                             id="lang-{{ $lang->lang_id }}" role="tabpanel">
+                                            <div class="form-group">
+                                                <label for="name_{{ $lang->lang_id }}">後台顯示名稱 ({{ $lang->code }})</label>
+                                                <input type="text" id="name_{{ $lang->lang_id }}"
+                                                       name="desc[{{ $lang->lang_id }}][cat_name]"
+                                                       class="form-control"
+                                                       value="{{ $descMap[$lang->lang_id]->cat_name ?? '' }}">
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </x-slot:content>
 
-            <div class="text-center mt-3">
-                <a href="{{ route('admin.advert_category.index') }}" class="btn btn-secondary">返回列表</a>
-                <button type="submit" class="btn btn-success">{{ isset($isEdit) && $isEdit ? '更新' : '新增' }}</button>
+                    <x-slot:footer>
+                        <a href="{{ route('admin.advert_category.index') }}" class="btn btn-secondary">返回列表</a>
+                        <button type="submit" class="btn btn-success js-submit-btn">{{ $isEdit ? '更新分類' : '建立分類' }}</button>
+                    </x-slot:footer>
+                </x-admin.card-tabs>
             </div>
-        </div>
-    </form>
+        </form>
+    </x-admin.page-message>
+@stop
+
+@section('js')
+    <script>
+        /**
+         * 廣告分類編輯頁面的專屬邏輯
+         * 主要是為了防止 JSON 格式錯誤導致後端 crash
+         */
+        $(function() {
+            const $form = $('#advCatForm');
+            const $jsonInput = $('#cat_params');
+
+            // 送出前的最後檢查
+            $form.on('submit', function(e) {
+                const jsonVal = $jsonInput.val().trim();
+
+                // 如果內容不是空的，就檢查一下是不是合法的 JSON 格式
+                if (jsonVal !== '') {
+                    try {
+                        JSON.parse(jsonVal);
+                    } catch (error) {
+                        e.preventDefault();
+                        alert('JSON 格式有誤，請檢查括號或逗號是否正確。');
+                        $jsonInput.focus();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 @stop

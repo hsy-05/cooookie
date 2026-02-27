@@ -3,219 +3,273 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request; // 引入 Request
-use Illuminate\Support\Facades\{Validator, Log, Auth};
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\{Validator, Log, Auth, Schema, Route};
 use App\Models\{Language, ActionLog};
-use \App\Traits\HasImageFields; // 引入外掛
-use App\Helpers\ImageHelper; // 引入圖片處理 Helper
+use App\Traits\HasImageFields;
+use App\Helpers\ImageHelper;
 
-
+/**
+ * 後台基礎控制器
+ * 所有的後台 Controller 都必須繼承這一個類別，確保權限、分頁、日誌與「頁面標題自動化」邏輯統一。
+ */
 class BaseAdminController extends Controller
 {
-    use HasImageFields; // 使用外掛
+    use HasImageFields;
+
     /**
-     * 定義該模組的權限名稱
-     * 例如：'news', 'admins', 'roles'
-     * 子類別必須複寫此屬性
+     * 定義該模組的權限代碼（需對應 backend_permissions.php 中的子功能 key）
+     * 系統會根據此代碼自動從權限設定檔中抓取「模組名稱」來組成頁面標題。
+     * @var string
      */
     protected $permissionName = '';
 
-    public function __construct()
-    {
-        // 如果子類別有設定 $permissionName，才自動啟動權限檢查機制
-        if (!empty($this->permissionName)) {
-            $this->registerPermissionMiddleware();
-        }
-    }
-
     /**
-     * 自動綁定權限到 Resource 方法 (index, create, edit, destroy 等)
-     */
-    protected function registerPermissionMiddleware()
-    {
-        $prefix = $this->permissionName;
-
-        // 瀏覽列表 -> 檢查是否擁有 .view 權限
-        $this->middleware("admin.perm:{$prefix}.view")
-            ->only(['index', 'show']);
-
-        // 新增與編輯 -> 檢查是否擁有 .create 權限
-        $this->middleware("admin.perm:{$prefix}.create")
-            ->only(['create', 'store', 'edit', 'update']);
-
-        // 刪除 -> 檢查是否擁有 .delete 權限
-        $this->middleware("admin.perm:{$prefix}.delete")
-            ->only(['destroy']);
-
-        // 💡 面試官亮點：這種寫法叫做「約定優於配置」，
-        // 只要子類別寫 protected $permissionName = 'news';
-        // 剩下的增刪查改權限都會自動鎖好，不用每個 Controller 重寫一遍。
-    }
-
-    /**
-     * 頁面標題
+     * 頁面主標題（通常是「網站管理員」或「廣告管理」）
+     * @var string
      */
     protected $pageTitle = '後台管理';
 
     /**
-     * 統一輸出 view，並自動帶入 pageTitle
+     * 每頁顯示筆數的參數設定
+     */
+    protected $perPageLimit = 100;
+    protected $defaultPerPage = 10;
+
+    /**
+     * 控制器建構子
+     */
+    public function __construct()
+    {
+        // 只有在定義了權限名稱的情況下，才自動掛載權限判斷中間件與自動化標題解析
+        if (!empty($this->permissionName)) {
+            $this->registerPermissionMiddleware();
+            $this->autoGeneratePageTitle();
+        }
+    }
+    /**
+     * 自動產生頁面標題邏輯
+     * 用途：從 config\backend_permissions.php 自動抓取對應的中文標籤
+     */
+    protected function autoGeneratePageTitle(): void
+    {
+        $allPermissions = config('backend_permissions');
+
+        if (!$allPermissions) return;
+
+        foreach ($allPermissions as $group) {
+            if (isset($group['subs'][$this->permissionName])) {
+                $subLabel = $group['subs'][$this->permissionName]['label'];
+
+                // [專業調整]：將子功能（最新消息）放前面，大分類（消息管理）放後面
+                // 這樣瀏覽器標籤會顯示：最新消息 - 消息管理 - XXX有限公司
+                $this->pageTitle = $subLabel . ' - ' . $group['label'];
+                break;
+            }
+        }
+    }
+
+    /**
+     * 權限中間件自動綁定
+     * 讓開發者只需要宣告 $permissionName，不用在每個方法手動寫 can(...) 判斷
+     */
+    protected function registerPermissionMiddleware(): void
+    {
+        $prefix = $this->permissionName;
+
+        // 讀取權限：對應 index 與 show 方法
+        $this->middleware("admin.perm:{$prefix}.view")
+            ->only(['index', 'show']);
+
+        // 寫入權限：對應新增與編輯相關的所有方法
+        $this->middleware("admin.perm:{$prefix}.create")
+            ->only(['create', 'store', 'edit', 'update']);
+
+        // 刪除權限：對應銷毀方法
+        $this->middleware("admin.perm:{$prefix}.delete")
+            ->only(['destroy']);
+    }
+
+    /**
+     * 統一渲染視圖的方法
+     * 用途：自動將標題帶入前端，減少在子類別重複寫 compact 的頻率
+     * * @param string $view 視圖路徑 (例如 'admin.admins.index')
+     * @param array $data 傳遞給前端的資料陣列
+     * @return \Illuminate\View\View
      */
     protected function view($view, $data = [])
     {
+        // 防呆：取得目前執行的 Method 名稱（如 index, create, edit）
+        $currentMethod = Route::current() ? Route::current()->getActionMethod() : '';
+
+        // 【專業優化】預先處理標題資訊，避免 Blade 重複拆解字串
+        $titleParts = explode(' - ', $this->pageTitle);
+        $titleConfig = [
+            'full'  => $this->pageTitle,           // 完整標題 (用於瀏覽器 title)
+            'main'  => $titleParts[0] ?? '',       // 主標題 (例如：最新消息)
+            'group' => $titleParts[1] ?? '',       // 群組名 (例如：消息管理)
+        ];
+
+        // 如果是編輯或新增頁面，可以動態加上標記（目前註解備用）
+        // if (in_array($currentMethod, ['create', 'edit'])) {
+        //     $titleConfig['main'] .= ' (校稿)';
+        // }
+
         return view($view, array_merge([
-            'pageTitle' => $this->pageTitle,
+            'pageTitle'   => $this->pageTitle,      // 舊有變數相容性
+            'titleConfig' => $titleConfig,          // 新型態標題物件
+            'permissionName' => $this->permissionName, // 自動把權限代碼傳給前端
         ], $data));
     }
 
-
     /**
-     * 取得每頁顯示的資料筆數
+     * 取得目前分頁筆數（具備記憶功能）
+     * 邏輯：優先抓 URL 參數 -> 再來是 Session -> 最後是預設值
+     * * @param Request $request
+     * @return int
      */
-    public function getPerPage(Request $request)
+    public function getPerPage(Request $request): int
     {
-        $defaultPerPage = 8;
-
-        // 1. 如果 Request 有帶 per_page，代表使用者剛做了下拉選擇
         if ($request->has('per_page')) {
-            $perPage = (int)$request->input('per_page');
-            // 存入 Session 供以後所有頁面使用
+            $perPage = (int) $request->input('per_page');
+
+            // 防呆：確保數值在合理範圍內 (1 ~ 100)
+            if ($perPage < 1) $perPage = $this->defaultPerPage;
+            if ($perPage > $this->perPageLimit) $perPage = $this->perPageLimit;
+
             session(['admin_per_page' => $perPage]);
             return $perPage;
         }
 
-        // 2. 如果 Request 沒帶，就從 Session 拿之前存過的
-        // 3. 如果 Session 也沒有，就用預設值 8
-        return session('admin_per_page', $defaultPerPage);
+        // 沒帶參數就從 Session 抓取，再沒有就給預設值
+        return (int) session('admin_per_page', $this->defaultPerPage);
     }
 
     /**
-     * 通用 AJAX 方法，用於切換模型中的布林值欄位 (例如 is_visible)。
-     * 此方法放在 BaseAdminController 中，供所有後台控制器共用。
+     * AJAX 快速切換開關 (例如：顯示狀態、推薦狀態)
+     * 具備動態檢查欄位與 Model 安全驗證的功能
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function toggleBoolean(Request $request)
     {
-        // 驗證請求參數
+        // 基礎參數驗證
         $validator = Validator::make($request->all(), [
-            'model' => 'required|string', // 要更新的模型名稱 (例如 'Advert', 'News')
-            'id' => 'required|integer',   // 要更新的記錄 ID
-            'field' => 'required|string', // 要更新的布林值欄位名稱 (例如 'is_visible')
-            'value' => 'required|boolean', // 要設定的新值 (true/false)
+            'model' => 'required|string',
+            'id'    => 'required|integer',
+            'field' => 'required|string',
+            'value' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => '無效的請求參數。'], 400);
+            return response()->json(['success' => false, 'message' => '請求格式錯誤'], 400);
         }
 
-        // 完整的模型類別名稱，確保模型在 App\Models 命名空間下
+        // 安全白名單：只有這些欄位允許快速切換，防止惡意修改其他敏感欄位
+        $allowedFields = ['is_visible', 'is_active', 'is_top', 'is_hot', 'enabled'];
+        if (!in_array($request->field, $allowedFields)) {
+            return response()->json(['success' => false, 'message' => '此欄位禁止快速變更'], 403);
+        }
+
         $modelName = 'App\\Models\\' . $request->input('model');
-        $id = $request->input('id');
-        $field = $request->input('field');
-        $value = $request->input('value');
+        $field     = $request->input('field');
 
-        // 檢查模型是否存在且有效
+        // 安全防呆：檢查資料模型是否存在
         if (!class_exists($modelName)) {
-            return response()->json(['success' => false, 'message' => '模型不存在。'], 404);
+            return response()->json(['success' => false, 'message' => '系統找不到指定的資料模型'], 404);
         }
 
-        $model = new $modelName;
-
-        // 查找記錄
-        $record = $model->find($id);
-
+        $record = $modelName::find($request->input('id'));
         if (!$record) {
-            return response()->json(['success' => false, 'message' => '記錄不存在。'], 404);
+            return response()->json(['success' => false, 'message' => '找不到該筆資料紀錄'], 404);
         }
 
-        // 檢查欄位是否存在於模型中
-        // 這裡使用 array_key_exists 檢查屬性，更嚴謹的做法是檢查 fillable 或 guarded
-        // 但對於 is_visible 這種常見欄位，直接檢查屬性通常足夠
-        if (!array_key_exists($field, $record->getAttributes())) {
-            return response()->json(['success' => false, 'message' => '欄位不存在或不允許更新。'], 400);
+        // 安全防呆：檢查資料表是否真的有這個欄位
+        if (!Schema::hasColumn($record->getTable(), $field)) {
+            return response()->json(['success' => false, 'message' => '資料表無此欄位，操作已拒絕'], 400);
         }
 
-        // 更新欄位值
         try {
-            $record->{$field} = $value;
+            $record->{$field} = $request->input('value');
             $record->save();
-            return response()->json(['success' => true, 'message' => '狀態更新成功。']);
+            return response()->json(['success' => true, 'message' => '狀態切換完成']);
         } catch (\Exception $e) {
-            // 記錄錯誤以便調試
-            Log::error("Failed to toggle boolean field for model {$modelName} (ID: {$id}, Field: {$field}): " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => '狀態更新失敗。'], 500);
+            Log::error("切換開關發生異常: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => '更新失敗，請檢查權限或資料格式'], 500);
         }
     }
 
     /**
-     * 取得目前系統已啟用的語系清單
-     * * 用途：
-     * 1. 用於渲染編輯/新增表單中的多語系頁籤 (Tabs)。
-     * 2. 確保後台只顯示「狀態為啟用 (enabled=1)」的語系，避免編輯到隱藏語系。
-     * 3. 統一排序規則（如：繁中 -> 簡中 -> 英文），讓介面顯示保持一致。
-     * * @return \Illuminate\Database\Eloquent\Collection
+     * 獲取目前啟用的語言清單
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     protected function getActiveLanguages()
     {
-        return Language::where('enabled', 1)            // 只撈取已啟用的語系
-            ->orderByDesc('display_order')   // 依照自訂排序值降冪排列
+        return Language::where('enabled', 1)
+            ->orderByDesc('display_order')
             ->get();
     }
 
     /**
-     * 批次刪除紀錄通用方法
+     * 紀錄批次刪除的操作日誌
      *
-     * @param string $moduleName 模組名稱，例如「消息管理」
-     * @param int $count 刪除筆數
-     * @param array|null $ids 選擇性提供刪除 ID 陣列
+     * @param string $moduleName 模組中文名稱
+     * @param int $count 刪除數量
+     * @param array|null $ids 被刪除的紀錄 ID 清單
      */
     protected function writeBatchDeleteLog(string $moduleName, int $count, ?array $ids = null): void
     {
-        $info = "[{$moduleName}] 批次刪除 {$count} 筆資料";
+        $logInfo = "[{$moduleName}] 執行批次刪除，共 {$count} 筆。";
 
-        if ($ids && count($ids) <= 10) {
-            // 如果刪除筆數少，順便記 ID
-            $info .= " (IDs: " . implode(',', $ids) . ")";
+        // 當 ID 數量不多時，紀錄具體的 ID 供日後追查
+        if ($ids && count($ids) <= 20) {
+            $logInfo .= " 詳細 ID: " . implode(', ', $ids);
         }
 
         ActionLog::create([
-            'admin_id'    => Auth::id(),
+            'admin_id'   => Auth::id(),
             'action'     => '刪除',
-            'log_info'   => $info,
+            'log_info'   => $logInfo,
             'ip_address' => request()->ip(),
         ]);
     }
 
     /**
-     * AJAX 即時刪除編輯器內的圖片檔案
-     * 這裡是為了回應 Summernote 的「移除圖片」按鈕
+     * 刪除編輯器內容中的圖片
+     * 用於 Summernote 等編輯器在刪除圖片按鈕觸發時的後端處理
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function deleteEditorImage(Request $request)
     {
-        // 1. 抓取網址
         $imageUrl = $request->input('image_url');
 
-        if (!$imageUrl) {
-            return response()->json(['status' => 'error', 'message' => '缺少網址'], 400);
+        if (empty($imageUrl)) {
+            return response()->json(['status' => 'error', 'message' => '未傳入圖片網址'], 400);
         }
 
-        // 2. 解析路徑 (只處理本站 storage 內的檔案)
-        $storageMarker = '/storage/';
-        if (str_contains($imageUrl, $storageMarker)) {
-            // 取得 /storage/ 之後的相對路徑 (例如: news/content/xxx.jpg)
-            $parts = explode($storageMarker, $imageUrl);
-            $relativePath = end($parts);
-
-            // 3. 調用你寫好的 ImageHelper 工具
-            // 它會自動判斷 exists() 並執行 Storage::delete()
-            $result = \App\Helpers\ImageHelper::deleteImage($relativePath, 'public');
-
-            if ($result) {
-                return response()->json(['status' => 'success', 'message' => '圖片刪除成功']);
-            }
+        // 安全檢查：只允許處理本站儲存空間內的檔案
+        $searchKey = '/storage/';
+        if (!str_contains($imageUrl, $searchKey)) {
+            return response()->json(['status' => 'error', 'message' => '非本站檔案，拒絕操作'], 403);
         }
 
-        return response()->json(['status' => 'error', 'message' => '檔案不存在或無法刪除'], 404);
+        // 解析相對路徑
+        $pathParts = explode($searchKey, $imageUrl);
+        $relativePath = end($pathParts);
+
+        // 安全防呆：防止路徑穿越攻擊 (Directory Traversal)
+        if (str_contains($relativePath, '..')) {
+            return response()->json(['status' => 'error', 'message' => '非法路徑請求'], 403);
+        }
+
+        // 執行實體檔案刪除
+        if (ImageHelper::deleteImage($relativePath, 'public')) {
+            return response()->json(['status' => 'success', 'message' => '伺服器端檔案已同步移除']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => '檔案不存在或已提前移除'], 404);
     }
 }
