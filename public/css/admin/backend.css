@@ -430,3 +430,56 @@ body.dark-mode .data-table th {
     color: #dc3545;
     font-weight: 700;
 }
+
+/* ===== Tags Input Component ===== */
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--tags-border, #ced4da);
+    border-radius: 4px;
+    min-height: 42px;
+    cursor: text;
+    background-color: var(--tags-bg, #fff);
+}
+
+.tags-container input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+    background: transparent;
+    color: inherit;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    background: var(--tags-item-bg, #007bff);
+    color: #fff;
+    cursor: move;
+}
+
+.tag button {
+    background: none;
+    border: none;
+    color: #fff;
+    margin-left: 6px;
+    cursor: pointer;
+}
+
+/* Dark Mode 自動適應 */
+body.dark-mode .tags-container {
+    --tags-bg: #343a40;
+    --tags-border: #495057;
+}
+
+body.dark-mode .tag {
+    --tags-item-bg: #17a2b8;
+}

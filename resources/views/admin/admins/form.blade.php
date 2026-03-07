@@ -346,7 +346,7 @@
                             @if (!(isset($fromProfile) && $fromProfile))
                                 <a href="{{ route('admin.admins.index') }}" class="btn btn-secondary">返回列表</a>
                             @endif
-                            <button type="submit" class="btn btn-success ml-1">
+                            <button type="submit" class="btn btn-success ml-1 js-submit-btn">
                                 <i class="fas fa-save mr-1"></i> 儲存設定
                             </button>
                         </x-slot:footer>

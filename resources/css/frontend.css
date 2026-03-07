@@ -835,12 +835,6 @@ ul {
 }
 
 /* --------------  RWD  -------------- */
-@media (max-width: 1024px) {
-    /* 確保滑動手感 */
-    .category-swiper {
-        padding-right: 40px;
-    }
-}
 
 @media (max-width: 768px) {
     .hamburger {

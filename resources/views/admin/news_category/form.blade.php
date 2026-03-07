@@ -188,7 +188,7 @@
                     {{-- 底部按鈕區 --}}
                     <x-slot:footer>
                         <a href="{{ route('admin.news_category.index') }}" class="btn btn-secondary">返回</a>
-                        <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
+                        <button type="submit" class="btn btn-success js-submit-btn">{{ $isEdit ? '更新' : '新增' }}</button>
                     </x-slot:footer>
                 </x-admin.card-tabs>
             </div>

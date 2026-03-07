@@ -10,12 +10,18 @@ class AdvertDesc extends Model
 
     // 因為是複合主鍵 (adv_id + lang_id)，需關閉自增
     public $incrementing = false;
+
+    // 不使用自動維護的時間戳記
+    public $timestamps = false;
+
     protected $keyType = 'int';
 
     protected $fillable = [
         'adv_id',
         'lang_id',
         'adv_name', // 修正為正確的資料表欄位名
+        'adv_subname',
+        'adv_brief',
     ];
 
     /**
@@ -25,6 +31,4 @@ class AdvertDesc extends Model
     {
         return $this->belongsTo(Advert::class, 'adv_id', 'adv_id');
     }
-
-    public $timestamps = true; // 預設是 true，會自動管理 created_at 和 updated_at
 }

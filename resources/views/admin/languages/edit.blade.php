@@ -25,7 +25,7 @@
 
     <div class="text-right">
         <a href="{{ route('admin.languages.index') }}" class="btn btn-secondary">返回</a>
-        <button class="btn btn-success">更新</button>
+        <button class="btn btn-success js-submit-btn">更新</button>
     </div>
 </form>
 @stop

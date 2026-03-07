@@ -170,6 +170,16 @@
                                                     <label class="custom-control-label" for="is_visible"></label>
                                                 </div>
                                             </div>
+
+                                            <div class="col-md-6 form-group">
+                                                <label for="is_visible_home">首頁顯示</label>
+                                                <div class="custom-control custom-switch mt-2">
+                                                    <input type="checkbox" class="custom-control-input" id="is_visible_home"
+                                                        name="is_visible_home" value="1"
+                                                        {{ !$isEdit || $news->is_visible_home ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="is_visible_home"></label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -206,7 +216,7 @@
                     {{-- 底部按鈕區 --}}
                     <x-slot:footer>
                         <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
-                        <button type="submit" class="btn btn-success">{{ $isEdit ? '更新' : '新增' }}</button>
+                        <button type="submit" class="btn btn-success js-submit-btn">{{ $isEdit ? '更新' : '新增' }}</button>
                     </x-slot:footer>
                 </x-admin.card-tabs>
             </div>

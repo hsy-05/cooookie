@@ -8,42 +8,91 @@ $.ajaxSetup({
 $(function () {
     console.log('Admin common.js loaded');
 
-    // === 執行初始化功能 ===
-    initGlobalDelete();         // 單筆刪除 (含分類防呆)
-    initTreeToggle();           // 樹狀分類摺疊邏輯
-    initBatchDelete();         // 初始化批次刪除
-    initImagePreview();       // 初始化圖片預覽
-    initAsyncImageDelete();   // 初始化異步圖片刪除
-    initImageUploadStats();   // 初始化上傳資訊更新
-    handleToggleBooleanSwitch(); // 初始化開關切換
-    initQuickClear(); // 新增一個清除快取的初始化
+    // --- 全域導覽/操作 (各頁面通用) ---
+    initQuickClear();           // 快速清除快取 (通常在 Navbar)
+
+    // --- 列表/瀏覽頁邏輯 (當存在相關按鈕時執行) ---
+    if ($('.js-delete-btn, .row-checkbox, .btn-toggle-tree, .js-open-preview').length > 0) {
+        initGlobalDelete();     // 單筆刪除
+        initTreeToggle();       // 樹狀摺疊
+        initBatchDelete();      // 批次刪除
+        initImagePreview();     // 圖片預覽
+    }
+
+    // --- 表單/編輯頁邏輯 (當存在表單時執行) ---
+    if ($('form').length > 0) {
+        initAsyncImageDelete();     // 異步刪除圖片
+        initImageUploadStats();     // 上傳資訊更新
+        handleToggleBooleanSwitch();// 開關切換
+        initTagsInput();            // 標籤輸入
+        initRangeSlider();          // 滑桿輸入
+        initGlobalFormSubmit();     //
+    }
 });
 
+
 /**
- * 清除系統快取功能
+ * 初始化「快速清除系統快取」功能
+ * 考慮到 showAlert 封裝函式不回傳 Promise 的限制
+ * 直接在 preConfirm 邏輯中處理執行成功後的提示與狀態恢復
+ * * @param void
  */
 function initQuickClear() {
-    // 使用 document 委派，確保動態產生的元素也能觸發
+    // 透過事件委派監聽點擊，避免動態生成的按鈕失效
     $(document).on('click', '#btn-quick-clear', function(e) {
         e.preventDefault();
 
         const $btn = $(this);
-        const apiUrl = $btn.data('url') || '/admin/clear-cache'; // 優先抓 data-url
+        const apiUrl = $btn.data('url') || '/admin/clear-cache';
 
-        if (!confirm('確定要清除所有系統快取嗎？')) return;
+        // 直接呼叫 showAlert 啟動詢問視窗
+        showAlert(
+            'question',      // 提問類型圖標
+            '系統快取清除',    // 標題
+            '確定要清除所有系統快取嗎？', // 訊息
+            false,           // 這裡是確認視窗，不使用 Toast
+            'center',        // 置中顯示
+            true,            // 顯示確認按鈕
+            '確定清除',       // 確認按鈕文字
+            0,               // 不要自動關閉，等使用者點擊
+            {
+                showCancelButton: true,
+                cancelButtonText: '取消',
+                showLoaderOnConfirm: true, // 開啟 Swal 內建確認按鈕的 Loading 狀態
 
-        $btn.prop('disabled', true).find('i').addClass('fa-spin'); // 防呆：禁用並轉圈圈
+                // 核心邏輯：在點擊確認後直接處理所有後續動作
+                preConfirm: () => {
+                    // 同步處理：讓頁面上的實體按鈕也旋轉，增強視覺回饋
+                    $btn.prop('disabled', true).find('i').addClass('fa-spin');
 
-        $.post(apiUrl)
-            .done(function(res) {
-                alert(res.message || '清除成功');
-            })
-            .fail(function() {
-                alert('系統錯誤，請稍後再試');
-            })
-            .always(function() {
-                $btn.prop('disabled', false).find('i').removeClass('fa-spin'); // 恢復
-            });
+                    // 返回 jQuery 的 AJAX 物件 (這本身就是一個類 Promise)
+                    return $.post(apiUrl)
+                        .done(function(res) {
+                            // 成功時：因為外層 .then 無法運作，直接在此呼叫成功提示
+                            showAlert(
+                                'success',
+                                '清除成功',
+                                res.message || '系統快取已清除成功！',
+                                true,      // 成功用 Toast 模式
+                                'center',
+                                false,
+                                '',
+                                2000
+                            );
+                        })
+                        .fail(function(xhr) {
+                            // 失敗時：顯示錯誤訊息在原本的彈窗內
+                            const errorMsg = xhr.responseJSON?.message || '系統執行失敗';
+                            Swal.showValidationMessage(`錯誤：${errorMsg}`);
+                        })
+                        .always(function() {
+                            // 無論成功或失敗，務必恢復實體按鈕的狀態與動畫
+                            $btn.prop('disabled', false).find('i').removeClass('fa-spin');
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading() // 防止在處理中因點擊背景而中斷請求
+            }
+        );
     });
 }
 
@@ -143,7 +192,7 @@ function initBatchDelete() {
     });
 
     // 單個勾選連動
-    $checkboxes.on('change', updateBtnState);
+    $(document).on('change', '.row-checkbox', updateBtnState);
 
     // 按下批次刪除按鈕
     $batchBtn.on('click', function (e) {
@@ -227,7 +276,7 @@ function initImageUploadStats() {
         const kb = (file.size / 1024).toFixed(2);
 
         $stats.html(`<i class="fas fa-check-circle text-success"></i> 已選：${file.name} (${kb} KB)`);
-        $actionGroup.addClass('d-none'); // 隱藏舊的預覽按鈕防止混淆
+        $(this).closest('.input-group').find('.input-group-append').addClass('d-none'); // 隱藏舊的預覽按鈕防止混淆
     });
 }
 
@@ -563,4 +612,171 @@ function confirmDelete(id, title, text) {
             },
         }
     );
+}
+
+/**
+ * 原生 Tags Input (支援排序)
+ */
+function initTagsInput() {
+    const wrappers = document.querySelectorAll('.js-tags-input');
+    if (wrappers.length === 0) return; // 沒找到就直接跳出
+
+    wrappers.forEach(wrapper => {
+
+        const name = wrapper.dataset.name;
+        const placeholder = wrapper.dataset.placeholder || 'Enter...';
+
+        wrapper.classList.add('tags-container');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = placeholder;
+
+        wrapper.appendChild(input);
+
+        // 將原本 span 轉為正式 tag
+        wrapper.querySelectorAll('.tag-item').forEach(el => {
+            createTag(el.dataset.value);
+            el.remove();
+        });
+
+        function createTag(value) {
+            if (!value.trim()) return;
+
+            // 避免重複
+            if ([...wrapper.querySelectorAll('.tag')]
+                .some(tag => tag.dataset.value === value)) return;
+
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.draggable = true;
+            tag.dataset.value = value;
+            tag.innerHTML = `
+                ${value}
+                <button type="button">&times;</button>
+            `;
+
+            // hidden input
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = name;
+            hidden.value = value;
+
+            tag.appendChild(hidden);
+            wrapper.insertBefore(tag, input);
+
+            // 刪除
+            tag.querySelector('button').addEventListener('click', () => {
+                tag.remove();
+            });
+
+            // 拖曳
+            tag.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', value);
+                tag.classList.add('dragging');
+            });
+
+            tag.addEventListener('dragend', () => {
+                tag.classList.remove('dragging');
+            });
+        }
+
+        // Enter 新增
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 確保這行有確實阻斷
+                e.stopPropagation(); // 增加這行防止冒泡到 Form
+                createTag(input.value.trim());
+                input.value = '';
+            }
+        });
+
+        // 點容器聚焦
+        wrapper.addEventListener('click', () => input.focus());
+
+        // 排序邏輯
+        wrapper.addEventListener('dragover', e => {
+            e.preventDefault();
+            const dragging = wrapper.querySelector('.dragging');
+            const afterElement = [...wrapper.querySelectorAll('.tag:not(.dragging)')]
+                .find(tag => e.clientX <= tag.getBoundingClientRect().left + tag.offsetWidth / 2);
+            if (afterElement) {
+                wrapper.insertBefore(dragging, afterElement);
+            } else {
+                wrapper.insertBefore(dragging, input);
+            }
+        });
+
+    });
+}
+
+/**
+ * 初始化 Slider 顯示數值
+ */
+function initRangeSlider() {
+
+    const wrappers = document.querySelectorAll('.js-range-input');
+    if (wrappers.length === 0) return; // 沒找到就直接跳出
+
+    wrappers.forEach(range => {
+
+        const valueEl = range
+            .closest('.slider-wrapper')
+            .querySelector('.js-range-value');
+
+        // 初始化顯示
+        valueEl.textContent = range.value;
+
+        // 即時更新
+        range.addEventListener('input', function () {
+            valueEl.textContent = this.value;
+        });
+    });
+}
+
+/**
+ * 全域表單提交防呆
+ * 用途：自動監聽所有表單提交，並將內部的 .js-submit-btn 轉為讀取狀態
+ */
+function initGlobalFormSubmit() {
+    // 監聽 document 下所有包含 .js-submit-btn 的表單提交事件
+    $(document).on('submit', 'form', function () {
+        const $form = $(this);
+        const $btn = $form.find('.js-submit-btn');
+
+        // 如果表單內沒有標記 .js-submit-btn，則不執行（保持一般表單彈性）
+        if ($btn.length === 0) return;
+
+        // 如果已經在載入中，則不重複執行（防呆）
+        if ($btn.prop('disabled')) return false;
+
+        // 設定為讀取狀態
+        setGlobalLoading($btn, true);
+    });
+}
+
+/**
+ * 設定按鈕讀取狀態 (全域工具函式)
+ * @param {jQuery} $el - 按鈕元素
+ * @param {boolean} isLoading - 是否載入中
+ */
+function setGlobalLoading($el, isLoading) {
+    if (isLoading) {
+        // 儲存原始 HTML 到 data 屬性中，方便稍後還原
+        if (!$el.data('original-html')) {
+            $el.data('original-html', $el.html());
+        }
+
+        $el.prop('disabled', true);
+
+        // 判斷按鈕文字，讓 UI 更有人情味 (例如刪除按鈕顯示「刪除中...」)
+        const loadingText = $el.data('loading-text') || '處理中...';
+        $el.html(`<i class="fas fa-spinner fa-spin mr-2"></i>${loadingText}`);
+    } else {
+        $el.prop('disabled', false);
+        const originalHtml = $el.data('original-html');
+        if (originalHtml) {
+            $el.html(originalHtml);
+        }
+    }
 }

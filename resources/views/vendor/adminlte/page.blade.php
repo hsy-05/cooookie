@@ -65,9 +65,6 @@
     @stack('js')
     @yield('js')
 
-    {{-- SweetAlert2 --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         var toggleBooleanUrl = "{{ route('admin.toggle.boolean') }}";
         var csrfToken = "{{ csrf_token() }}";

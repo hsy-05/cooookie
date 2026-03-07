@@ -1,7 +1,5 @@
 @extends('frontend.layouts.app')
 
-@section('title', '首頁')
-
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
 @endpush
@@ -21,42 +19,12 @@
         ['title' => '季節限定', 'subtitle' => 'Seasonal Limited', 'img' => 'https://images.unsplash.com/photo-1519340333755-56e9c1d04579?q=80&w=600&auto=format&fit=crop'],
         ['title' => '婚禮喜餅', 'subtitle' => 'Wedding Gift', 'img' => 'https://images.unsplash.com/photo-1605256485303-345383569777?q=80&w=600&auto=format&fit=crop'],
     ];
-    $newsList = collect([
-        (object)[
-            'id' => 1,
-            'title' => '2026 春季限定：焦糖抹茶職人手工餅乾上市',
-            'summary' => '我們結合了日本宇治抹茶與法式手工焦糖，打造出層次豐富的春季限定口味。每一口都能感受到職人的溫度與對食材的堅持...',
-            'image' => 'news/spring-special.jpg', // 實際路徑請確認 storage 是否有此圖
-            'created_at' => now()->subDays(2)
-        ],
-        (object)[
-            'id' => 2,
-            'title' => '品牌官網正式上線，會員招募活動同步開跑',
-            'summary' => '為了提供更優質的購物體驗，我們的全新官網正式啟動！現在加入會員即可享有首購 9 折優惠，並獲得專屬入會禮一份...',
-            'image' => 'news/website-launch.jpg',
-            'created_at' => now()->subDays(5)
-        ],
-        (object)[
-            'id' => 3,
-            'title' => '台北旗艦店：手作工坊體驗課程預約中',
-            'summary' => '想親自體驗職人的製作工藝嗎？台北旗艦店現正開放週末手作課程預約，由首席烘焙師親自指導，帶您深入了解每一塊甜點背後的秘密...',
-            'image' => 'news/workshop.jpg',
-            'created_at' => now()->subDays(10)
-        ],
-        (object)[
-            'id' => 4,
-            'title' => '原料溯源：與在地農場的契作故事',
-            'summary' => '我們深信優質的原料是甜點的靈魂。從雞蛋、麵粉到乳製品，我們堅持與台灣在地友善農場合作，確保每一份產品都安心可靠...',
-            'image' => 'news/source.jpg',
-            'created_at' => now()->subMonths(1)
-        ]
-    ]);
 @endphp
 
 @section('content')
 
     {{-- 1. Hero Section: 輪播 + 視差文字 --}}
-    <section class="hero-slider" aria-label="首頁焦點輪播">
+    <section class="hero-slider">
         {{-- js-hero-swiper 僅作為 JS 鉤子，樣式交給 CSS --}}
         <div class="swiper js-hero-swiper" style="height: 100%;">
             <div class="swiper-wrapper">
@@ -66,16 +34,16 @@
                             title="查看更多詳細內容">
                             {{-- 使用 picture 標籤也是一種 SEO 優化的專業寫法，這裡維持 img 寫法符合您的結構 --}}
                             <img src="{{ asset('storage/' . $banner->adv_img_url) }}"
-                                alt="{{ $banner->adv_title ?? 'banner' }}" class="banner-bg-img d-none d-md-block" />
+                                alt="{{ $banner->adv_name ?? 'banner' }}" class="banner-bg-img d-none d-md-block" />
 
                             <img src="{{ asset('storage/' . ($banner->adv_img_m_url ?? $banner->adv_img_url)) }}"
-                                alt="{{ $banner->adv_title ?? 'banner' }}" class="banner-bg-img d-block d-md-none" />
+                                alt="{{ $banner->adv_name ?? 'banner' }}" class="banner-bg-img d-block d-md-none" />
                         </a>
 
                         <div class="banner-content-overlay">
                             <div class="banner-text-container">
-                                <h2 class="banner-main-title">COOOOKIE</h2>
-                                <p class="banner-sub-title">每一口，都是幸福的滋味</p>
+                                <h2 class="banner-main-title">{{ $banner->desc->adv_name ?? '' }}</h2>
+                                <p class="banner-sub-title">{{ $banner->desc->adv_subname ?? '' }}</p>
                             </div>
                         </div>
                     </div>
@@ -113,7 +81,7 @@
     </div>
 
     {{-- 3. Intro Section: 品牌理念 --}}
-    <section class="section-intro" aria-labelledby="intro-title">
+    <section class="section-intro">
         <div class="intro-container">
             <div class="intro-grid">
 
@@ -191,39 +159,30 @@
     </section>
 
 {{-- 5. Product Category : 產品系列 --}}
-<section class="section-categories">
-    {{-- 漂浮裝飾元素 --}}
+<section class="section-product-cat">
     <div class="deco-shape deco-shape--prod-1 js-float-anim"></div>
     <div class="deco-shape deco-shape--prod-2 js-rotate-anim"></div>
 
-    <div class="container">
-        <div class="section-header">
+    <div class="container-1280">
+        <header class="section-header">
             <span class="section-tag js-fade-up">EXPLORE COLLECTIONS</span>
             <h2 class="section-title js-fade-up">產品系列</h2>
-        </div>
+        </header>
 
-        {{-- 輪播外層包覆：確保導覽按鈕定位正確 --}}
-        <div class="category-swiper-wrapper js-fade-up">
-
-            <div class="swiper js-category-swiper category-swiper">
+        {{-- 導覽包裝容器：負責定位按鈕與控制內部間距 --}}
+        <div class="swiper-nav-wrapper js-fade-up">
+            <div class="swiper js-product-cat-swiper product-cat-swiper">
                 <div class="swiper-wrapper">
-                    {{--
-                        實作提醒：正式環境請將此 @foreach 與後台資料對接
-                    --}}
                     @foreach ($categories as $cat)
                         <div class="swiper-slide">
-                            <a href="{{ url('/products') }}" class="cat-card">
-                                <article class="cat-img-box">
-                                    <img src="{{ $cat['img'] }}" alt="{{ $cat['title'] }}" class="cat-img" loading="lazy">
-
-                                    {{-- 產品遮罩：預設隱藏次要資訊，Hover 才展開 --}}
-                                    <div class="cat-overlay">
-                                        <div class="cat-glass-box">
-                                            <div class="cat-info-content">
-                                                <h3 class="cat-title">{{ $cat['title'] }}</h3>
-                                                <p class="cat-subtitle">{{ $cat['subtitle'] }}</p>
-                                            </div>
-                                            <span class="cat-more">VIEW MORE</span>
+                            <a href="{{ url('/products') }}" class="product-cat-card">
+                                <article class="product-cat-img-box">
+                                    <img src="{{ $cat['img'] }}" alt="{{ $cat['title'] }}" class="product-cat-img" loading="lazy">
+                                    <div class="product-cat-overlay">
+                                        <div class="product-cat-glass-box">
+                                            <h3 class="product-cat-title">{{ $cat['title'] }}</h3>
+                                            <p class="product-cat-subtitle">{{ $cat['subtitle'] }}</p>
+                                            <span class="product-cat-more">VIEW MORE</span>
                                         </div>
                                     </div>
                                 </article>
@@ -233,72 +192,61 @@
                 </div>
             </div>
 
-            {{-- 導覽按鈕：精確定位於左右最邊緣中央 --}}
-            <div class="swiper-btn-prev swiper-aw js-cat-prev"><i></i></div>
-            <div class="swiper-btn-next swiper-aw js-cat-next"><i></i></div>
-
+            {{-- 導覽按鈕：統一 class 名稱，方便 CSS 控制 --}}
+            <button type="button" class="swiper-aw swiper-btn-prev js-product-cat-prev" aria-label="上一張"><i></i></button>
+            <button type="button" class="swiper-aw swiper-btn-next js-product-cat-next" aria-label="下一張"><i></i></button>
         </div>
     </div>
 </section>
 
-{{-- 6. Latest News: 最新消息 (精緻優化版) --}}
-<section class="section-news" aria-labelledby="news-heading">
-    <div class="container">
-        {{-- 區塊標題區 --}}
+{{-- 最新消息區塊 --}}
+@if(isset($homeNews) && $homeNews->isNotEmpty())
+<section class="section-news">
+    <div class="container-1280">
         <header class="section-header">
-            <span class="section-tag js-fade-up">LATEST NEWS</span>
-            <h2 id="news-heading" class="section-title js-fade-up">最新消息</h2>
+            <span class="section-tag js-fade-up">Latest News</span>
+            <h2 class="section-title js-fade-up">最新消息</h2>
         </header>
 
-        {{-- 輪播容器：增加 swiper-initialized 控制初始顯示 --}}
-        <div class="swiper js-news-swiper news-swiper js-fade-up">
-            <div class="swiper-wrapper">
-                @for ($i = 1; $i <= 6; $i++)
-                    <div class="swiper-slide">
-                        <article>
-                            <a href="{{ url('/news/detail') }}" class="news-card">
-                                {{-- 圖片區域：增加精緻標籤 --}}
-                                <div class="news-img-box">
-                                    <img src="https://images.unsplash.com/photo-1574376874341-f979491b6a83?q=80&w=600&auto=format&fit=crop"
-                                         alt="最新消息圖示 {{ $i }}" class="news-img" loading="lazy">
-
-                                    {{-- 流行小設計：懸浮日期標籤 --}}
-                                    <div class="news-date-badge">
-                                        <time datetime="2025-03-{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">
-                                            <span class="day">{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</span>
-                                            <span class="month">MAR</span>
-                                        </time>
+        <div class="swiper-nav-wrapper js-fade-up">
+            <div class="swiper js-news-swiper news-swiper">
+                <div class="swiper-wrapper">
+                    @foreach ($homeNews as $news)
+                        <div class="swiper-slide">
+                            <article class="h-100">
+                                <a href="{{ route('news.show', $news->news_id) }}" class="news-card">
+                                    <div class="news-img-box">
+                                        <img src="{{ $news->image_url ? asset('storage/' . $news->image_url) : asset('images/default-news.jpg') }}"
+                                             alt="{{ $news->desc->title ?? 'News' }}"
+                                             class="news-img" loading="lazy">
+                                        <div class="news-date-badge">
+                                            <time datetime="{{ $news->created_at->format('Y-m-d') }}">
+                                                <span class="day">{{ $news->created_at->format('d') }}</span>
+                                                <span class="month">{{ $news->created_at->format('n') }}月</span>
+                                            </time>
+                                        </div>
                                     </div>
-
-                                    {{-- 遮罩裝飾 --}}
-                                    <div class="news-img-overlay"></div>
-                                </div>
-
-                                {{-- 內文區域 --}}
-                                <div class="news-content">
-                                    <div class="news-category">季節限定</div>
-                                    <h3 class="news-title">春季限定櫻花餅乾禮盒 {{ $i }}</h3>
-                                    <p class="news-excerpt">嚴選日本進口鹽漬櫻花，搭配師傅手作酥脆餅皮，每一口都能感受到濃厚的春天氣息...</p>
-
-                                    <div class="news-footer">
-                                        <span class="news-btn-text">READ MORE</span>
-                                        <span class="news-arrow-icon"></span>
+                                    <div class="news-content">
+                                        <span class="news-category">{{ $news->category->desc->name ?? 'News' }}</span>
+                                        <h3 class="news-title">{{ $news->desc->title ?? '' }}</h3>
+                                        <div class="news-footer">
+                                            <span class="news-btn-text">READ MORE</span>
+                                            <span class="news-arrow-icon"></span>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
-                        </article>
-                    </div>
-                @endfor
+                                </a>
+                            </article>
+                        </div>
+                    @endforeach
+                </div>
             </div>
-        </div>
 
-        {{-- 輪播導覽按鈕 --}}
-        <div class="control-btn js-fade-up">
-            <div class="swiper-btn-prev swiper-aw js-news-prev"><i></i></div>
-            <div class="swiper-btn-next swiper-aw js-news-next"><i></i></div>
+            <button type="button" class="swiper-aw swiper-btn-prev js-news-prev" aria-label="上一張"><i></i></button>
+            <button type="button" class="swiper-aw swiper-btn-next js-news-next" aria-label="下一張"><i></i></button>
         </div>
     </div>
 </section>
+@endif
 
     {{-- 7. Tasting Section: 試吃申請 --}}
     <section class="i-tasting-section">
@@ -314,7 +262,7 @@
  * 用途：監測圖片下載狀態，完成後顯示圖片並停止骨架屏動畫
  */
 const handleImagePreload = () => {
-    const images = document.querySelectorAll('.cat-img, .news-img');
+    const images = document.querySelectorAll('.product-cat-img, .news-img');
 
     images.forEach(img => {
         // 如果圖片已經在快取中加載好了
@@ -422,37 +370,50 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     };
+/**
+ * 餅乾網站輪播初始化器
+ * @param {string} selector - Swiper 容器選擇器
+ * @param {object} nav - 導航按鈕物件 {next: string, prev: string}
+ * @param {number} pcCount - 電腦版顯示數量
+ * @param {number} lgMobileCount - 電腦版顯示數量
+ */
+const initSwiper = (selector, nav, pcCount = 3, lgMobileCount = 2) => {
+    const target = document.querySelector(selector);
+    if (!target) return;
 
-    /**
-     * 萬用輪播初始化器
-     */
-    const initSwiper = (selector, nav, showCount = 3) => {
-        const target = document.querySelector(selector);
-        if (!target) return;
-
-        return new Swiper(target, {
-            slidesPerView: 1,
-            spaceBetween: 24,
-            loop: true,
-            speed: 900,
-            grabCursor: true,
-            watchSlidesProgress: true,
-            navigation: { nextEl: nav.next, prevEl: nav.prev },
-            breakpoints: {
-                480: { slidesPerView: 1.2, spaceBetween: 16 },
+    return new Swiper(target, {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: false,
+        speed: 800,
+        grabCursor: true,
+        watchSlidesProgress: true,
+        // 防呆：如果投影片數量不足以滾動，則隱藏導航按鈕
+        watchOverflow: true,
+        navigation: {
+            nextEl: nav.next,
+            prevEl: nav.prev
+        },
+        breakpoints: {
+                // 小型手機 & 中型手機
+                320: { slidesPerView: 1, spaceBetween: 15 },
+                // 大型手機
+                425: { slidesPerView: lgMobileCount, spaceBetween: 20 },
+                // 平板電腦 (顯示 2 筆)
                 768: { slidesPerView: 2, spaceBetween: 24 },
-                1024: { slidesPerView: showCount, spaceBetween: 32 }
+                // 筆記型電腦以上 (顯示 3 筆)
+                1024: { slidesPerView: pcCount, spaceBetween: 30 },
+                // 4K 螢幕
+                2560: { slidesPerView: pcCount, spaceBetween: 40 }
             },
-            on: {
-                init: function() {
-                    // 初始化完成後，讓容器顯示
-                    target.classList.add('swiper-initialized');
-                    // 再次觸發圖片檢查，確保圖片狀態正確
-                    handleImagePreload();
-                }
+        on: {
+            init: function() {
+                target.classList.add('swiper-initialized');
             }
-        });
-    };
+        }
+    });
+};
+
 
     const initProcessSteps = () => {
         const triggerEl = document.querySelector('.process-steps');
@@ -487,8 +448,17 @@ document.addEventListener("DOMContentLoaded", function() {
         initVisualDepth();
         initDecoLoops();
         initProcessSteps();
-        initSwiper('.js-category-swiper', { next: '.js-cat-next', prev: '.js-cat-prev' }, 3);
-        initSwiper('.js-news-swiper', { next: '.js-news-next', prev: '.js-news-prev' }, 3);
+        // 產品系列初始化 (電腦3, 平板2, 手機1)
+
+    initSwiper('.js-product-cat-swiper', {
+        next: '.js-product-cat-next',
+        prev: '.js-product-cat-prev'
+    }, 3, 1);
+
+    initSwiper('.js-news-swiper', {
+        next: '.js-news-next',
+        prev: '.js-news-prev'
+    }, 3, 2);
     } catch (error) {
         console.error("專業提醒：動畫初始化發生錯誤:", error);
     }

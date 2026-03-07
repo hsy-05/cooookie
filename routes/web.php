@@ -54,6 +54,10 @@ Route::get('/', [HomeController::class, 'index'])
 Route::get('/news', [FrontendNewsController::class, 'index'])
     ->name('news.index');
 
+// 最新消息分類列表
+Route::get('/news/category/{category}', [FrontendNewsController::class, 'index'])
+    ->name('news.category');
+
 // 最新消息內頁（使用 Laravel 隱式模型綁定）
 Route::get('/news/{news}', [FrontendNewsController::class, 'show'])
     ->name('news.show');

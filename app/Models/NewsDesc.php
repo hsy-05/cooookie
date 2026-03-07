@@ -17,6 +17,9 @@ class NewsDesc extends Model
      */
     public $incrementing = false;
 
+    // 不使用自動維護的時間戳記
+    public $timestamps = false;
+
     // 👉 主鍵型態是 int（雖然是兩個 key，但 type 還是 int）
     protected $keyType = 'int';
 
@@ -37,6 +40,4 @@ class NewsDesc extends Model
     {
         return $this->belongsTo(News::class, 'news_id', 'news_id');
     }
-
-    public $timestamps = true; // 預設是 true，會自動管理 created_at 和 updated_at
 }

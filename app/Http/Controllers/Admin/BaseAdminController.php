@@ -167,7 +167,7 @@ class BaseAdminController extends Controller
         }
 
         // 安全白名單：只有這些欄位允許快速切換，防止惡意修改其他敏感欄位
-        $allowedFields = ['is_visible', 'is_active', 'is_top', 'is_hot', 'enabled'];
+        $allowedFields = ['is_visible', 'is_visible_home', 'is_active', 'is_top', 'is_hot', 'enabled'];
         if (!in_array($request->field, $allowedFields)) {
             return response()->json(['success' => false, 'message' => '此欄位禁止快速變更'], 403);
         }

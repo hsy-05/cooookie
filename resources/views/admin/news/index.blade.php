@@ -70,6 +70,7 @@
                                 </th>
                                 <th class="text-center">標題</th>
                                 <th class="text-center px-width-150 hidden-xs">是否顯示</th>
+                                <th class="text-center px-width-150 hidden-xs">首頁顯示</th>
                                 <th class="text-center px-width-150 hidden-md">排序</th>
                                 <th class="text-center px-width-150 hidden-sm">更新時間</th>
                                 <th class="text-center px-width-120">操作</th>
@@ -92,11 +93,23 @@
                                     <td class="text-center hidden-xs">
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input toggle-boolean-switch"
-                                                id="newsSwitch{{ $item->news_id }}" data-id="{{ $item->news_id }}"
+                                                id="is_visible{{ $item->news_id }}" data-id="{{ $item->news_id }}"
                                                 data-model="News" data-field="is_visible"
                                                 {{ $item->is_visible ? 'checked' : '' }}>
                                             <label class="custom-control-label"
-                                                for="newsSwitch{{ $item->news_id }}"></label>
+                                                for="is_visible{{ $item->news_id }}"></label>
+                                        </div>
+                                    </td>
+
+                                    {{-- 首頁顯示 --}}
+                                    <td class="text-center hidden-xs">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input toggle-boolean-switch"
+                                                id="is_visible_home{{ $item->news_id }}" data-id="{{ $item->news_id }}"
+                                                data-model="News" data-field="is_visible_home"
+                                                {{ $item->is_visible_home ? 'checked' : '' }}>
+                                            <label class="custom-control-label"
+                                                for="is_visible_home{{ $item->news_id }}"></label>
                                         </div>
                                     </td>
 

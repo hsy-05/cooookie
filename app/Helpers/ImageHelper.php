@@ -28,7 +28,7 @@ class ImageHelper
         // 從資料庫抓取全域設定，若抓不到則給予專業預設值
         $settings = SystemSetting::getAllSettings();
         $defaultQuality = $settings['image_upload_quality'] ?? 90;
-        $defaultBg = $settings['image_default_bg'] ?? 'ffffff';
+        $defaultBg = $settings['image_bg_color'] ?? 'ffffff';
 
         $disk = 'public';
 

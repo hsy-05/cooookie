@@ -10,50 +10,52 @@ use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
-
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * 註冊應用程式服務
+     * 通常用於綁定 Interface 或處理不涉及資料庫的基礎設定
      */
     public function register(): void
     {
-        // 目前沒有需要在 container 註冊的服務
+        //
     }
 
     /**
-     * Bootstrap any application services.
+     * 啟動應用程式服務
+     * 這裡處理全站邏輯、權限定義與資料庫初始化設定
      */
     public function boot(): void
     {
-        // 定義全域 Gate，讓 Blade 可以用 @can('news.view')
-        // 這裡會攔截所有 $user->can('...') 的呼叫
+        // 處理權限邏輯：在檢查所有權限前先執行的攔截器
         Gate::before(function ($user, $ability) {
-            // 這裡的邏輯：如果 user model 有定義 checkPermission 之類的方法
-            // return $user->hasRole('admin') ? true : null; // 範例：超級管理員直接放行
+            // 如果 User Model 有定義 canDo 方法則執行，否則回傳 null 續行檢查
             return method_exists($user, 'canDo') ? $user->canDo($ability) : null;
         });
 
-        // 防呆：先檢查是否有資料表（避免在安裝 migration 前報錯）
+        // 防呆設計：確保資料庫表存在才執行，避免在執行 Migration 期間噴錯
         if (Schema::hasTable('system_settings')) {
+
+            // 取得所有設定值 (已在 Model 處理好快取)
             $settings = SystemSetting::getAllSettings();
 
-            // 將資料庫的設定 覆蓋 或 新增 到 Laravel config 中
-            // 這樣你在任何地方用 config('site.image_max_size') 都能抓到
+            // 將資料庫設定動態注入 config 系統，方便全站調用
             foreach ($settings as $key => $value) {
                 Config::set('site.' . $key, $value);
             }
 
-            // 覆蓋 AdminLTE 的 config 值
+            // 針對後端 AdminLTE 介面進行動態文字替換
             if (isset($settings['admin_site_name'])) {
                 $siteName = $settings['admin_site_name'];
-
-                // 覆蓋 AdminLTE 的 Logo 文字
                 Config::set('adminlte.logo', "<b>{$siteName}</b>");
-
-                // 覆蓋 AdminLTE 的標題後綴
                 Config::set('adminlte.title_postfix', " - {$siteName}");
             }
+
+            // 將設定檔直接注入前台佈局檔
+            // 這樣前台 layout 就能直接使用 $sys 變數，不需要寫 @php 抓取
+            View::composer('frontend.layouts.app', function ($view) {
+                $view->with('sys', config('site'));
+            });
         }
     }
 }

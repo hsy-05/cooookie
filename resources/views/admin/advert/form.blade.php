@@ -54,9 +54,26 @@
                                                        id="adv_name_{{ $lang->lang_id }}"
                                                        name="desc[{{ $lang->lang_id }}][adv_name]"
                                                        class="form-control required-field"
-                                                       placeholder="請輸入標題"
+                                                       placeholder="請輸入內容......"
                                                        value="{{ old('desc.' . $lang->lang_id . '.adv_name', $descMap[$lang->lang_id]->adv_name ?? '') }}">
                                             </div>
+
+                                            <div class="form-group field field-adv_subname d-none">
+                                                <label for="adv_subname_{{ $lang->lang_id }}">廣告副標題 ({{ $lang->code }})</label>
+                                                <input type="text"
+                                                    id="adv_subname_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][adv_subname]"
+                                                    class="form-control"
+                                                    placeholder="請輸入內容......"
+                                                    value="{{ old('desc.' . $lang->lang_id . '.adv_subname', $descMap[$lang->lang_id]->adv_subname ?? '') }}">
+                                            </div>
+
+                                                <div class="form-group field field-adv_brief d-none">
+                                                    <label for="adv_brief_{{ $lang->lang_id }}">簡述</label>
+                                                    <textarea id="adv_brief_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][adv_brief]" class="form-control"
+                                                        maxlength="25" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->adv_brief ?? '' }}</textarea>
+                                                </div>
+
                                         </div>
                                     @endforeach
                                 </div>
@@ -71,7 +88,7 @@
                                     <div class="form-row mb-3">
                                         <div class="col-md-6 form-group">
                                             <label for="cat_id">廣告分類</label>
-                                            <select name="cat_id" id="cat_id" class="form-control select2 required-field">
+                                            <select name="cat_id" id="cat_id" class="form-control required-field">
                                                 <option value="">-- 請選擇分類 --</option>
                                                 @foreach ($cats as $cat)
                                                     <option value="{{ $cat->cat_id }}"
@@ -168,7 +185,7 @@
                         <a href="{{ route('admin.advert.index') }}" class="btn btn-secondary shadow-sm">
                             <i class="fas fa-chevron-left mr-1"></i>返回
                         </a>
-                        <button type="submit" class="btn btn-success px-4 shadow-sm float-right">
+                        <button type="submit" class="btn btn-success px-4 shadow-sm float-right js-submit-btn">
                             <i class="fas fa-save mr-1"></i>{{ $isEdit ? '儲存更新' : '確認新增' }}
                         </button>
                     </x-slot:footer>
@@ -227,34 +244,6 @@
 
             // 頁面載入時初始化一次
             syncCategoryConfig();
-
-            /**
-             * 圖片預覽功能
-             * @param string url 圖片網址
-             */
-            $('.js-open-preview').on('click', function() {
-                const url = $(this).data('url');
-                if (url) window.open(url, '_blank');
-            });
-
-            /**
-             * 刪除圖片 AJAX
-             */
-            $('.btn-delete-image').on('click', function() {
-                const $btn = $(this);
-                const field = $btn.data('field');
-                const id = $btn.data('id');
-
-                if (confirm('確定要刪除這張圖片嗎？')) {
-                    $.post('{{ url("admin/advert/delete-image") }}/' + id, {
-                        _token: '{{ csrf_token() }}',
-                        _method: 'POST',
-                        field: field
-                    }).done(function() {
-                        location.reload();
-                    });
-                }
-            });
         });
     </script>
 @stop

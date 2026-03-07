@@ -302,7 +302,8 @@ class AdvertController extends BaseAdminController
                 ['adv_id' => $advert->adv_id, 'lang_id' => $langId],
                 [
                     'adv_name'   => $data['adv_name'],
-                    'updated_at' => now(),
+                    'adv_subname' => $data['adv_subname'] ?? null,
+                    'adv_brief' => $data['adv_brief'] ?? null,
                 ]
             );
         }

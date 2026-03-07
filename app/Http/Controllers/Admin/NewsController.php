@@ -70,6 +70,7 @@ class NewsController extends BaseAdminController
                 $this->handleFileUploads($request, $news);
 
                 $news->is_visible = $request->has('is_visible');
+                $news->is_visible_home = $request->has('is_visible_home');
                 $news->save();
                 // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片
                 SummernoteImageHelper::commitTempImages();
@@ -114,6 +115,7 @@ class NewsController extends BaseAdminController
 
                 // 更新主表
                 $news->is_visible = $request->has('is_visible');
+                $news->is_visible_home = $request->has('is_visible_home');
                 $news->save();
 
                 // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片

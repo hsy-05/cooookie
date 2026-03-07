@@ -103,7 +103,7 @@
 
             <div class="card-footer text-right">
                 <a href="{{ route('admin.roles.index') }}" class="btn btn-default mr-2">取消返回</a>
-                <button type="submit" class="btn btn-success px-4">儲存角色設定</button>
+                <button type="submit" class="btn btn-success px-4 js-submit-btn">儲存設定</button>
             </div>
         </div>
     </form>

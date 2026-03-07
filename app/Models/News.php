@@ -44,6 +44,7 @@ class News extends Model
     protected $fillable = [
         'cat_id',
         'is_visible',
+        'is_visible_home',
         'display_order',
         'image_url'
     ];

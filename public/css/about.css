@@ -60,7 +60,7 @@
     margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; display: inline-block;
 }
 .page-banner__title {
-    color: #fff; font-family: var(--font-roboto); font-size: clamp(2.5rem, 5vw, 4.5rem);
+    color: #fff; font-family: var(--font-title); font-size: clamp(2.5rem, 5vw, 4.5rem);
     line-height: 1.1; margin-bottom: 25px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); font-weight: 600;
 }
 .page-banner__title .text-italic { font-style: italic; color: #d4a373; }
@@ -71,7 +71,7 @@
 
 /* --------------  RWD  -------------- */
 @media (max-width: 1024px) {
-    .page-banner__content { text-align: center; padding-left: 0; margin: 0 auto; max-width: 90%; }
+    /* .page-banner__content { text-align: center; padding-left: 0; margin: 0 auto; max-width: 90%; } */
 }
 @media (max-width: 768px) {
     .page-banner { height: 480px; }
@@ -96,7 +96,7 @@
 .section-line { width: 60px; height: 2px; background: var(--c-primary); margin: 30px 0; }
 .story__text p { font-size: 1.05rem; color: #555; margin-bottom: 25px; line-height: 1.8; text-align: justify; }
 .story__quote {
-    font-family: var(--font-roboto); font-size: 1.35rem; color: var(--c-secondary);
+    font-family: var(--font-title); font-size: 1.35rem; color: var(--c-secondary);
     padding-left: 25px; border-left: 3px solid var(--c-primary); margin-top: 40px; font-weight: 600;
 }
 
@@ -216,7 +216,7 @@
     margin-bottom: 10px;
 }
 .v-num {
-    font-family: var(--font-roboto);
+    font-family: var(--font-title);
     font-size: 1.2rem;
     color: var(--c-primary);
 }
@@ -243,7 +243,7 @@
     font-size: clamp(2rem, 3vw, 2.5rem);
     margin-bottom: 20px;
     color: var(--c-secondary);
-    font-family: var(--font-roboto);
+    font-family: var(--font-title);
 }
 .v-desc {
     font-size: 1.1rem;
@@ -441,7 +441,7 @@
 .ing-overlay.is-visible { opacity: 1; }
 
 .ing-text h4 {
-    font-family: var(--font-roboto); font-size: 1.5rem; color: #fff; margin-bottom: 10px;
+    font-family: var(--font-title); font-size: 1.5rem; color: #fff; margin-bottom: 10px;
     letter-spacing: 1px;
 }
 .ing-line { width: 40px; height: 1px; background: #fff; margin: 10px auto; opacity: 0.8; }

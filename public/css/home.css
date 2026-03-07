@@ -25,8 +25,8 @@
 }
 
 .banner-main-title {
-    font-size: clamp(4rem, 10vw, 8rem); font-weight: 600; letter-spacing: -0.02em;
-    font-family: var(--font-serif);color: var(--c-light);
+    font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: 0.15em;
+    font-family: var(--font-title); color: var(--c-light);
     margin-bottom: 20px; opacity: 0; transform: translateY(50px);
 
     transition: opacity 1.2s var(--ease-smooth), transform 1.2s var(--ease-smooth);
@@ -242,7 +242,6 @@
     line-height: 1.25;
     color: #1a1a1a;
     margin-bottom: 2rem;
-    font-family: "Noto Serif TC", serif;
 }
 
 .deco-line {
@@ -361,25 +360,19 @@
         font-size: 0.85rem;
     }
 }
+
 /* =========================================
-   7. Product Categories
+   Product Categories (產品系列)
    ========================================= */
-.section-categories {
+.section-product-cat {
     padding: var(--section-spacing) 0;
     background: linear-gradient(to bottom, var(--c-bg) 0%, var(--c-light) 100%);
     position: relative;
     overflow: hidden;
 }
 
-.category-swiper-wrapper {
-    position: relative;
-    padding: 0 10px;
-    /* 核心修正：初始化前給予預估高度防止內容撐開 */
-    min-height: 300px;
-}
-
 /* 核心修正：初始化前隱藏，防止閃爍 */
-.category-swiper, .news-swiper {
+.product-cat-swiper, .news-swiper {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.6s ease;
@@ -392,23 +385,22 @@
     visibility: visible !important;
 }
 
-.cat-card {
-    display: block;
-    position: relative;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    background: #f8f8f8;
+.product-cat-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-.cat-img-box {
+.product-cat-img-box {
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
     overflow: hidden;
+    border-radius: 12px; /* 增加一點圓角感 */
 }
 
 /* 核心修正：圖片在載入時必須絕對定位，避免撐開容器 */
-.cat-img {
+.product-cat-img {
     position: absolute;
     top: 0;
     left: 0;
@@ -419,7 +411,7 @@
     opacity: 0; /* 初始透明 */
 }
 
-.cat-overlay {
+.product-cat-overlay {
     position: absolute;
     inset: 0;
     display: flex;
@@ -431,7 +423,7 @@
     z-index: 2;
 }
 
-.cat-glass-box {
+.product-cat-glass-box {
     width: 100%;
     padding: 20px;
     background: rgba(255, 255, 255, 0.12);
@@ -445,15 +437,17 @@
     transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-.cat-title {
+.product-cat-title {
     font-size: 1.25rem;
     color: #ffffff;
     font-family: var(--font-serif);
+    justify-content: center; /* 修正主架構 Flex 造成的靠左問題 */
+    text-align: center;
     margin-bottom: 4px;
     transition: color 0.4s ease;
 }
 
-.cat-subtitle {
+.product-cat-subtitle {
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.8);
     text-transform: uppercase;
@@ -463,9 +457,9 @@
     margin-block-end: 0;
 }
 
-.cat-more {
+.product-cat-more {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #604747;
     margin-top: 0;
@@ -477,39 +471,27 @@
 }
 
 /* Hover 狀態 */
-.cat-card:hover .cat-img { transform: scale(1.1); }
-.cat-card:hover .cat-overlay { background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 70%); }
-.cat-card:hover .cat-glass-box {
+.product-cat-card:hover .product-cat-img { transform: scale(1.1); }
+.product-cat-card:hover .product-cat-overlay { background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 70%); }
+.product-cat-card:hover .product-cat-glass-box {
     transform: translateY(0);
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
-.cat-card:hover .cat-title { color: #2c2420; }
-.cat-card:hover .cat-subtitle { color: #464341; }
-.cat-card:hover .cat-more { margin-top: 15px; height: auto; padding-top: 15px; opacity: 1; }
-
-/* 導覽按鈕定位 */
-.category-swiper-wrapper .swiper-aw {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-}
-.js-cat-prev { left: -45px; }
-.js-cat-next { right: -45px; }
+.product-cat-card:hover .product-cat-title { font-weight: 700; color: #2c2420; }
+.product-cat-card:hover .product-cat-subtitle { color: #464341; }
+.product-cat-card:hover .product-cat-more { margin-top: 15px; height: auto; padding-top: 10px; opacity: 1; }
 
 /* =========================================
    6. Latest News: 最新消息
    ========================================= */
 .section-news {
     padding: var(--section-spacing) 0;
-    background: #fdfbf8; /* 更溫暖的背景色 */
+    background: #fdfbf8;
 }
 
-/* 輪播初始化控制：防止閃爍 */
+/* 輪播初始化控制 */
 .news-swiper {
     opacity: 0;
     visibility: hidden;
@@ -521,34 +503,34 @@
     visibility: visible;
 }
 
-/* 卡片容器：流行的小陰影與浮動感 */
+/* 卡片容器 */
 .news-card {
     display: flex;
     flex-direction: column;
     background: #ffffff;
-    border-radius: 5px; /* 稍微縮小圓角，更有職人俐落感 */
+    border-radius: 5px;
     overflow: hidden;
     height: 100%;
     text-decoration: none;
-
-    /* 邊框設計：使用淡灰色 */
     border: 2px solid #e5e0d8;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
 }
 
-/* Hover 狀態：邊框變色並微幅上浮 */
 .news-card:hover {
-    border-color: var(--c-primary); /* 品牌主色邊框 */
+    border-color: var(--c-primary);
+    transform: translateY(-5px); /* 微幅上移增加動態感 */
 }
 
-/* 圖片盒：強制鎖定比例與定位 */
+/* 圖片盒：調整為 500*360 比例
+   使用 aspect-ratio: 500 / 360 確保比例精準
+*/
 .news-img-box {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 8;
+    aspect-ratio: 500 / 360; /* 鎖定最新消息比例 */
     overflow: hidden;
-    background-color: #f2f2f2;
+    background: #f0f0f0;
 }
 
 .news-img {
@@ -558,14 +540,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transition: transform 1.5s ease, opacity 0.8s ease;
+    transition: transform 1.5s ease;
 }
 
-.news-img.is-loaded { opacity: 1; }
 .news-card:hover .news-img { transform: scale(1.1); }
 
-/* 日期標籤：懸浮在圖片上的設計 */
+/* 日期標籤 */
 .news-date-badge {
     position: absolute;
     top: 20px;
@@ -590,13 +570,12 @@
     display: block;
     font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 1px;
     color: #999;
 }
 
-/* 內容區塊排版 */
+/* 內容區塊 */
 .news-content {
-    padding: 20px;
+    padding: 24px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -610,31 +589,35 @@
     letter-spacing: 1.5px;
 }
 
+/* 標題對齊優化：預留兩行高度 */
 .news-title {
     font-size: 1.2rem;
     line-height: 1.5;
     color: #2c2420;
     margin-bottom: 10px;
     transition: color 0.3s ease;
-    /* 多行文字省略 */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    min-height: 3em;
 }
 
-.news-card:hover .news-title {
-    color: var(--c-primary);
-}
-
+/* 簡述對齊優化：預留兩行高度並處理空值 */
 .news-excerpt {
     font-size: 0.95rem;
     line-height: 1.7;
     color: #777;
     margin-bottom: 25px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 3.4em;
+    flex-grow: 1;
 }
 
-/* 底部按鈕樣式 */
+/* 底部按鈕 */
 .news-footer {
     margin-top: auto;
     display: flex;
@@ -648,7 +631,6 @@
     font-size: 0.8rem;
     font-weight: 800;
     color: #2c2420;
-    letter-spacing: 1px;
 }
 
 .news-arrow-icon {
@@ -671,14 +653,17 @@
     transform: rotate(45deg);
 }
 
-.news-card:hover .news-arrow-icon {
-    width: 40px;
+.news-card:hover .news-arrow-icon { width: 40px; }
+
+/* 響應式調整 */
+@media (max-width: 1024px) {
+    .news-content { padding: 20px; }
 }
 
-/* 響應式微調 */
 @media (max-width: 768px) {
-    .news-content { padding: 24px; }
-    .news-title { font-size: 1.15rem; }
+    /* 手機版建議將固定高度取消，讓版面更緊湊 */
+    .news-title { font-size: 1.15rem; min-height: auto; }
+    .news-excerpt { min-height: auto; }
 }
 
 /* =========================================
@@ -690,7 +675,7 @@
     100% { background-position: 200% 0; }
 }
 
-.cat-img-box, .news-img-box {
+.product-cat-img-box, .news-img-box {
     background-color: #f2f2f2;
     background-image: linear-gradient(
         90deg,
