@@ -39,6 +39,18 @@
 
                                             <div class="setting-input-wrapper">
                                                 @switch($item->type)
+                                                {{-- 新增：語系下拉選單 --}}
+                                                @case('lang')
+                                                    <select name="settings[{{ $item->setting_key }}]" class="form-control">
+                                                        @foreach($languages as $lang)
+                                                            <option value="{{ $lang->lang_id }}"
+                                                                {{ (string)$item->setting_value === (string)$lang->lang_id ? 'selected' : '' }}>
+                                                                {{ $lang->name }} ({{ $lang->code }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @break
+
                                                     {{-- 數字輸入 --}}
                                                     @case('number')
                                                         <input type="number" name="settings[{{ $item->setting_key }}]"

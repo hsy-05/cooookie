@@ -14,6 +14,10 @@
             @if ($isEdit)
                 @method('PUT')
             @endif
+            {{-- 返回網址 --}}
+            <input type="hidden" name="back_url" value="{{ $backUrl ?? route('admin.news.index') }}">
+            {{-- Summernote 圖片用 --}}
+            <input type="hidden" name="editor_id" value="{{ time() }}">
 
             <div class="col-md-12">
                 <x-admin.card-tabs>
@@ -215,7 +219,7 @@
 
                     {{-- 底部按鈕區 --}}
                     <x-slot:footer>
-                        <a href="{{ route('admin.news.index') }}" class="btn btn-secondary">返回</a>
+                        <a href="{{ $backUrl ?? route('admin.news.index') }}" class="btn btn-secondary">返回</a>
                         <button type="submit" class="btn btn-success js-submit-btn">{{ $isEdit ? '更新' : '新增' }}</button>
                     </x-slot:footer>
                 </x-admin.card-tabs>

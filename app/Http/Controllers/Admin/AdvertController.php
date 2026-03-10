@@ -89,10 +89,12 @@ class AdvertController extends BaseAdminController
                 // 5. 紀錄操作日誌
                 $advert->writeLog('新增', $advert->desc->adv_name ?? '未知名廣告');
 
+                $backUrl = $request->input('back_url', route('admin.advert.index'));
+
                 ContentHelper::showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.advert.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.advert.edit', $advert->adv_id)],
-                    ['text' => '返回列表', 'href' => route('admin.advert.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ], true);
 
                 return redirect()->back();
@@ -139,9 +141,11 @@ class AdvertController extends BaseAdminController
 
                 $advert->writeLog('編輯', $advert->desc->adv_name ?? '未知名廣告');
 
+                $backUrl = $request->input('back_url', route('admin.advert.index'));
+
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.advert.edit', $advert->adv_id)],
-                    ['text' => '返回列表', 'href' => route('admin.advert.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ], true);
 
                 return redirect()->back();
@@ -211,9 +215,12 @@ class AdvertController extends BaseAdminController
             }
         }
 
+        // 預設返回按鈕路由
+        $backUrl = $this->getBackUrl('admin.advert.index');
+
         // 記得把 fileConfigs 傳出去，這樣 Blade 第一次載入時才有值
         return $this->view('admin.advert.form', compact(
-            'advert', 'isEdit', 'cats', 'langs', 'descMap', 'fileConfigs'
+            'advert', 'isEdit', 'cats', 'langs', 'descMap', 'fileConfigs', 'backUrl'
         ));
     }
 

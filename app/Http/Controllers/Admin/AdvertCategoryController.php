@@ -99,7 +99,10 @@ class AdvertCategoryController extends BaseAdminController
         // 取得多語系資料並轉為以 lang_id 為 Key 的 map，方便 Blade 填值
         $descMap = $isEdit ? $category->descs->keyBy('lang_id')->all() : [];
 
-        return $this->view('admin.advert_category.form', compact('category', 'isEdit', 'langs', 'descMap'));
+        // 預設返回按鈕路由
+        $backUrl = $this->getBackUrl('admin.advert_category.index');
+
+        return $this->view('admin.advert_category.form', compact('category', 'isEdit', 'langs', 'descMap', '$backUrl'));
     }
 
     /**
@@ -137,10 +140,12 @@ class AdvertCategoryController extends BaseAdminController
                 $action = $category->wasRecentlyCreated ? '新增' : '編輯';
                 $category->writeLog($action, $category->title);
 
+                $backUrl = $request->input('back_url', route('admin.advert_category.index'));
+
                 // 5. 提示訊息與跳轉 (使用 ContentHelper 維持 UX 一致性)
                 ContentHelper::showMsg(0, "分類{$action}完成", [
-                    ['text' => '返回列表', 'href' => route('admin.advert_category.index')],
                     ['text' => '繼續編輯', 'href' => route('admin.advert_category.edit', $category->cat_id)],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ]);
 
                 return redirect()->back();

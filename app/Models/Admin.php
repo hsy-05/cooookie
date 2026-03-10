@@ -27,7 +27,7 @@ class Admin extends Authenticatable
     /**
      * 特殊權限常數（避免 magic string）
      */
-    const PERM_SYSTEM = 'system'; // Developer
+    const PERM_SYSTEM = 'system'; // 最高開發者
     const PERM_ALL    = 'all';    // 內部最高管理員 / 客戶最高管理員
 
     protected $fillable = [
@@ -60,7 +60,7 @@ class Admin extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(AdminRole::class);
+        return $this->belongsTo(AdminRole::class, 'role_id');
     }
 
     public function parent()
@@ -148,6 +148,11 @@ class Admin extends Authenticatable
         // 5. 個人額外權限
         return in_array($permission, $this->permissions ?? []);
     }
+
+
+    /* =========================
+     | AdminLTE 與介面設定
+     ========================= */
 
     /**
      * 取得個人化設定 (Helper)

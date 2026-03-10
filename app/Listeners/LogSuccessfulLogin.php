@@ -19,29 +19,24 @@ class LogSuccessfulLogin
     {
         $user = $event->user;
 
-        // 1. 基礎防呆：確保使用者物件存在，且具備管理者權限 (role_id)
+        // 防呆邏輯：確保有拿到使用者物件，且是管理者 (role_id 有值)
         if (!$user || empty($user->role_id)) {
             return;
         }
 
-        /**
-         * 2. 原子鎖機制 (核心解決方案)
-         * * 用途：利用快取系統建立一個「瞬時鎖」，防止併發請求導致重複寫入。
-         * 鎖的名稱：根據使用者 ID 定義，確保不會擋到別人。
-         * 鎖的時間：設定 10 秒，這足以應付任何瞬間噴發的重複事件。
-         */
-        $lockKey = 'login_log_lock_' . $user->id;
+        $sessionKey = 'login_logged_' . $user->id;
 
-        // 嘗試獲取鎖，如果這把鎖已經被別人拿走了，就直接結束
-        // 如果沒人拿，我們就拿走並執行閉包內的程式碼
-        Cache::lock($lockKey, 10)->get(function () use ($user) {
+        if (session()->has($sessionKey)) {
+            // 如果已經標記過，代表是重複觸發，直接回傳不執行後續動作
+            return;
+        }
 
-            // 3. 執行正式寫入
-            $this->saveLoginLog($user);
+        // 執行資料庫寫入
+        $this->saveLoginLog($user);
 
-            // 這裡不需要手動釋放鎖，10秒後會自動過期
-            // 這樣可以保證這 10 秒內該帳號不會再產生第二筆「登入成功」紀錄
-        });
+        // 【關鍵步驟】寫入完畢後，在 Session 中蓋章，標記為 true
+        // 這樣在同一個連線週期內，這段程式就不會再跑第二次
+        session()->put($sessionKey, true);
     }
 
     /**

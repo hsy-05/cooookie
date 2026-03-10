@@ -87,7 +87,7 @@
                                     </td>
 
                                     {{-- 標題（多語系取第一筆） --}}
-                                    <td>{{ $item->descs->first()->title ?? '--' }}</td>
+                                    <td>{{ $item->title ?? '--' }}</td>
 
                                     {{-- 是否顯示 --}}
                                     <td class="text-center hidden-xs">

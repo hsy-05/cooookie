@@ -124,14 +124,6 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
 
         /*
         |--------------------------------------------------------------------------
-        | 富文本編輯器圖片刪除
-        |--------------------------------------------------------------------------
-        */
-        // 建議放在 admin 中間件群組內，確保安全性
-        Route::post('delete-editor-image', [BaseAdminController::class, 'deleteEditorImage']);
-
-        /*
-        |--------------------------------------------------------------------------
         | 語系管理
         |--------------------------------------------------------------------------
         */
@@ -225,8 +217,12 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         */
 
         // Summernote 圖片上傳
-        Route::post('upload-image', [UploadController::class, 'uploadImage'])
+        Route::post('upload-editor-image', [UploadController::class, 'uploadEditorImage'])
             ->name('upload.image');
+
+        // Summernote 圖片移除
+        Route::post('delete-editor-image', [UploadController::class, 'deleteEditorImage']);
+
 
         // 【新增】取得編輯器系統參數設定 (供 summernote-init.js 使用)
         Route::get('editor-settings', [UploadController::class, 'getEditorSettings'])

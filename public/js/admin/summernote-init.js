@@ -2,11 +2,18 @@
  * Summernote 編輯器初始化設定
  * 適用於：Laravel 12 + AdminLTE
  * 功能：圖片 AJAX 上傳、HTML 範本插入、響應式配置、動態系統設定載入
+ * 補強：新增 editor_id 機制，用於追蹤未儲存的圖片。
  */
 $(document).ready(function () {
-    // --- 1. 環境變數設定 ---
+    // --- 環境變數設定 ---
     const BASE_URL = $('meta[name="base-url"]').attr("content") || window.location.origin;
     const CSRF_TOKEN = $('meta[name="csrf-token"]').attr("content");
+
+    /**
+     * 為本次頁面生成唯一的編輯器標記 (使用時間戳記 + 隨機數)
+     * 用途：讓後端知道哪些圖片屬於同一次編輯行為
+     */
+    const EDITOR_SESSION_ID = "editor_" + Date.now() + Math.floor(Math.random() * 1000);
 
     /**
      * 初始化 Summernote 實例
@@ -185,25 +192,42 @@ $(document).ready(function () {
                     },
                 },
 
-                // 事件監聽
+                // 核心事件處理
                 callbacks: {
+                    /**
+                     * 當使用者拖入或選擇圖片時觸發
+                     */
                     onImageUpload: function (files) {
                         if (files.length > 0) {
-                            handleImageUpload(files[0], $(this), BASE_URL, CSRF_TOKEN);
+                            // 呼叫上傳函式，並帶入本次頁面的 EDITOR_SESSION_ID
+                            handleImageUpload(files[0], $(this), BASE_URL, CSRF_TOKEN, EDITOR_SESSION_ID);
                         }
                     },
+                    /**
+                     * 當使用者在編輯器點選圖片並按下刪除鍵時
+                     */
                     onMediaDelete: function (target) {
-                        const imageUrl = target[0].src;
-                        if (!imageUrl.startsWith("data:")) {
-                            handleImageDelete(imageUrl, BASE_URL, CSRF_TOKEN);
-                        }
+                       // 註：實體檔案刪除目前由後端儲存時自動比對處理
+                        console.log("圖片已從編輯器移除，待儲存後伺服器將自動清理實體檔案。");
+                        // const imageUrl = target[0].src;
+                        // if (!imageUrl.startsWith("data:")) {
+                        //     handleImageDelete(imageUrl, BASE_URL, CSRF_TOKEN);
+                        // }
                     },
                 },
             });
+
+            // 【關鍵防呆】將 ID 注入表單，確保按下儲存按鈕時，後端知道要 Commit 哪些圖片
+            if ($el.closest('form').length > 0) {
+                // 如果表單內還沒這個 ID，就塞一個 hidden input
+                if ($el.closest('form').find('input[name="editor_id"]').length === 0) {
+                    $el.closest('form').append(`<input type="hidden" name="editor_id" value="${EDITOR_SESSION_ID}">`);
+                }
+            }
         });
     }
 
-    // --- 3. 執行初始化：從 API 獲取設定 ---
+    // --- 執行初始化：從系統設定 API 獲取配置 ---
     $.getJSON(`${BASE_URL}/admin/editor-settings`)
         .done(function (response) {
             console.log("API 請求成功，原始回應內容：", response);
@@ -229,7 +253,7 @@ $(document).ready(function () {
             context.invoke("editor.pasteHTML", htmlContent);
             $("#templateModal").modal("hide");
         }).fail(function () {
-            alert("範本檔案載入失敗。");
+            alert("範本載入失敗，請檢查檔案是否存在。");
         });
     });
 });
@@ -238,29 +262,37 @@ $(document).ready(function () {
  * AJAX 上傳圖片至伺服器
  * @param {File} file 檔案物件
  * @param {Object} $editor 編輯器 jQuery 物件
+ * @param {string} baseUrl 網站根路徑
+ * @param {string} token CSRF Token
+ * @param {string} editorId 本次編輯的唯一編號
  */
-function handleImageUpload(file, $editor, baseUrl, token) {
+function handleImageUpload(file, $editor, baseUrl, token, editorId) {
     let formData = new FormData();
     formData.append("image", file);
+    formData.append("editor_id", editorId); // 【關鍵】傳送 ID 給後端記錄暫存
+
     $.ajax({
-        url: `${baseUrl}/admin/upload-image`,
+        url: `${baseUrl}/admin/upload-editor-image`,
         method: "POST",
         data: formData,
         contentType: false,
         processData: false,
         headers: { "X-CSRF-TOKEN": token },
         success: function (response) {
-            if (response.url) {
+            if (response.success && response.url) {
                 $editor.summernote("insertImage", response.url);
+            } else {
+                alert("圖片上傳失敗：" + (response.error || "未知錯誤"));
             }
         },
-        error: function (xhr) {
-            alert("圖片上傳發生錯誤");
+        error: function () {
+            alert("伺服器通訊錯誤，請稍後再試。");
         },
     });
 }
 
 /**
+ * 【X 無用】
  * AJAX 刪除伺服器上的圖片檔案
  * @param {string} url 圖片的完整網址
  */

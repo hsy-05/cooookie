@@ -105,7 +105,7 @@
 
 > **答：** 「這是為了『搬家』做準備。如果未來網站從測試站搬到正式站（網域變了），資料庫內的網址標記會自動還原成當前的正確網域，不會發生圖片通通破圖的問題。」
 
-
+**********************************************************************************
 ## 1. 系統整體邏輯說明
 這套系統採用 「資料驅動介面 (Data-Driven UI)」 的邏輯：
 
@@ -116,3 +116,103 @@ Model: 利用 Laravel 的 Casts 功能，將 JSON 自動轉換成 PHP 陣列。�
 Controller: 負責批次更新，並具備「合法性檢查」，只允許更新資料庫中已定義的 Key，防止非法注入。
 
 Blade: 根據 type 切換對應的 HTML 結構，不處理任何字串解析。
+
+
+**************************************************************
+HasImageFields.php 觸發流程圖
+
+[ 使用者點擊網頁按鈕 ]
+       |
+       v
+[ AJAX 請求 (POST /admin/news/delete-image/15) ]
+       |
+       v
+[ Laravel Route 路由中心 ] -- (配對到) --> [ NewsController@deleteImageField ]
+                                              |
+                                              | 呼叫
+                                              v
+[ HasImageFields Trait ] <--- (提供技能) --- [ News Model 物件 ]
+       |
+       | 執行 deleteImageFieldGeneric()
+       | 裡面再執行 removeImageFromField()
+       |
+       v
+[ 執行 ImageHelper 刪檔 ] ----> [ 回傳 JSON 結果給前端 ]
+
+
+----- 流程圖：從網址到物件的誕生 ------
+[ 瀏覽器 ] -> 發送請求: DELETE admin/news/delete-image/15
+    |
+    v
+[ Route 路由 ] -> 發現參數 {news} = 15
+    |
+    v
+[ Laravel 核心 ] -> 檢查 Controller 參數型別為 News
+    |      |
+    |      +--> 自動執行: News::where('news_id', 15)->firstOrFail()
+    |             (如果沒這筆資料，直接回傳 404)
+    v
+[ NewsController ] -> 拿到已經裝滿資料的 $news 物件
+    |
+    +--> 執行 $news->deleteImageFieldGeneric($request)
+
+========================================================
+多語系設定
+
+流程圖：後台編輯 vs. 系統設定
+【後台編輯模式 (Form)】
+getActiveLanguages() -> 拿到 [中, 英, 日]
+      |
+      v
+Blade @foreach -> 產生三個輸入框
+      |
+      v
+一次儲存所有語系到 NewsDesc 表
+
+------------------------------------
+
+【系統顯示模式 (Index/前台)】
+SetLocale Middleware -> 確定現在是 "zh_TW" (ID: 1)
+      |
+      v
+Model $news->title -> 自動去抓 lang_id = 1 的描述
+      |
+      v
+畫面顯示：「中文標題」
+
+
+===========================================================
+===========================================================
+
+## 權限與操作紀錄邏輯流程圖
+
+管理者請求 (Request)
+      |
+      v
+[ CheckBackendPermission ] <--- (中介層攔截)
+      |
+      +--- [ 否 ] ---> 顯示「權限不足」訊息 -> 跳回前一頁 (withInput)
+      |
+      +--- [ 是 ] ---> 進入 Controller (執行功能)
+              |
+              v
+      [ User::canDo($perm) ] <--- (權限判斷核心)
+              |
+      /-------+-------\
+      |       |       |
+ [Developer] [Admin] [Role/User]
+  (全部過)   (排除系統) (依權限清單)
+              |
+              v
+      [ 執行資料庫操作 ] <--- (觸發自動化機制)
+              |
+      /-------+-------\
+      |               |
+ [ HasImageFields ]  [ Loggable ]
+ (自動清理舊圖檔)    (手動/自動寫入日誌)
+      |               |
+      \-------+-------/
+              |
+              v
+        [ ActionLog ] <--- (資料庫紀錄)
+      (格式化顯示: 去除重複動作字眼)

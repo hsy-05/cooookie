@@ -96,8 +96,9 @@ class NewsCategoryController extends BaseAdminController
                 $category->is_visible = $request->has('is_visible');
                 $category->save();
 
-                // 提交 Summernote 圖片
-                SummernoteImageHelper::commitTempImages();
+                // 【關鍵補強】存檔成功，告知 Helper 這個編輯器 ID 的圖片不用再被掃除
+                $editorId = $request->input('editor_id', 'default');
+                SummernoteImageHelper::commitTempImages($editorId);
 
                 $this->saveTranslations($category, $request->desc);
                 $category->writeLog('新增', $category->desc->name ?? '未知名分類');
@@ -105,10 +106,12 @@ class NewsCategoryController extends BaseAdminController
                 // 5. 寫入操作日誌 (Loggable Trait)
                 $category->writeLog('新增', $category->desc->name ?? '未知名分類');
 
+                $backUrl = $request->input('back_url', route('admin.news_category.index'));
+
                 ContentHelper::showMsg(0, '分類新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news_category.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
-                    ['text' => '返回列表', 'href' => route('admin.news_category.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ], true);
 
                 return redirect()->back();
@@ -158,9 +161,11 @@ class NewsCategoryController extends BaseAdminController
                 // 寫入日誌
                 $category->writeLog('編輯', $category->desc->name ?? '未知名分類');
 
+                $backUrl = $request->input('back_url', route('admin.news_category.index'));
+
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
-                    ['text' => '返回列表', 'href' => route('admin.news_category.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ], true);
 
                 return redirect()->back();
@@ -188,7 +193,14 @@ class NewsCategoryController extends BaseAdminController
 
         $title = $category->desc->name ?? '未知名分類';
 
-        // 執行刪除 (HasImageFields Trait 會自動清理實體檔案)
+        // 刪除整筆資料時，也要清空所有語系編輯器內的圖片
+        foreach ($category->descs as $desc) {
+            SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($desc->content), null);
+        }
+
+        // 注意：這裡不再需要手動用 ImageHelper::deleteImage 了！
+        // 因為 News Model 掛載了 HasImageFields Trait，
+        // 只要執行 delete()，Trait 會自動根據 $imageFields 屬性清理檔案。
         $category->delete();
 
         $category->writeLog('刪除', $title);
@@ -233,6 +245,9 @@ class NewsCategoryController extends BaseAdminController
             $this->buildTreeOptions($root, 0, $parentsList, $category->cat_id, $maxLevel);
         }
 
+        // 【防呆掃除】進入頁面時，把上次「沒存檔就關掉」的圖片清空
+        SummernoteImageHelper::cleanAbandonedImages();
+
         // 獲取目前啟用的語系設定
         $langs = $this->getActiveLanguages();
         // 將配置傳給前端，以便顯示建議尺寸提示
@@ -249,8 +264,11 @@ class NewsCategoryController extends BaseAdminController
             }
         }
 
+        // 預設返回按鈕路由
+        $backUrl = $this->getBackUrl('admin.news_category.index');
+
         return $this->view('admin.news_category.form', compact(
-            'category', 'isEdit', 'parentsList', 'langs', 'descMap', 'fileConfigs', 'maxLevel'
+            'category', 'isEdit', 'parentsList', 'langs', 'descMap', 'fileConfigs', 'maxLevel', 'backUrl'
         ));
     }
 
@@ -346,7 +364,13 @@ class NewsCategoryController extends BaseAdminController
         foreach ($descData as $langId => $data) {
             // 如果名稱為空，視為刪除該語系內容
             if (empty($data['name'])) {
-                NewsCategoryDesc::where('cat_id', $category->cat_id)->where('lang_id', $langId)->delete();
+                // 刪除前，先抓出舊內容，把裡面的圖片也清掉，避免佔用空間
+                $oldDesc = NewsCategoryDesc::where('cat_id', $category->cat_id)->where('lang_id', $langId)->first();
+                if ($oldDesc) {
+                    SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($oldDesc->content), null);
+
+                    $oldDesc->delete();
+                }
                 continue;
             }
 

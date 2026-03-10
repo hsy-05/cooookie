@@ -14,7 +14,7 @@ class NewsCategoryRequest extends FormRequest
             'parent_id'     => 'nullable|integer',
             'is_visible'    => 'nullable|boolean',
             'display_order' => 'nullable|integer',
-            'image_url'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'image_url'     => $this->getImageRules(),
             'desc'          => 'nullable|array',
             'desc.*.name'   => 'required_with:desc.*|string|max:255',
         ];

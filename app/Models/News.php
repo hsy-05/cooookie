@@ -83,20 +83,22 @@ class News extends Model
      */
     public function getTitleAttribute()
     {
-        $locale = app()->getLocale();
+        // 強制轉型為整數，避免 Session 抓到的是字串 "2" 而資料庫是數字 2
+        $langId = (int)(session('lang_id'));
 
-        // 靜態快取語系 ID，避免在同一 Request 內重複查詢資料庫
-        static $langIdCache = null;
-        if ($langIdCache === null) {
-            $langIdCache = \App\Models\Language::where('code', $locale)->value('lang_id');
-        }
-
-        // 效能優化：如果已經 load 了 descs，就直接從 collection 找，不額外查 DB
         if ($this->relationLoaded('descs')) {
-            return optional($this->descs->firstWhere('lang_id', $langIdCache))->title;
+            // 使用 filter 確保能精確比對
+            $desc = $this->descs->first(function ($item) use ($langId) {
+                return (int)$item->lang_id === $langId;
+            });
+
+            // 如果該語系找不到，回傳第一筆（通常是中文）作為備援
+            return $desc ? $desc->title : ($this->descs->first()->title ?? '--');
         }
 
-        return optional($this->descs()->where('lang_id', $langIdCache)->first())->title;
+        // 沒預載時的處理
+        $desc = $this->descs()->where('lang_id', $langId)->first();
+        return $desc ? $desc->title : ($this->descs()->first()->title ?? '--');
     }
 
     /**

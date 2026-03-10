@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\SystemSetting;
 use App\Helpers\ImageHelper;
 use App\Http\Requests\Admin\UpdateSystemSettingRequest;
-use Illuminate\Support\Facades\DB;
+use App\Models\{Language};
+use Illuminate\Support\Facades\{DB, Cache};
 
 class SystemSettingController extends BaseAdminController
 {
@@ -22,7 +23,9 @@ class SystemSettingController extends BaseAdminController
             ->orderBy('display_order', 'asc')
             ->get();
 
-        return view('admin.system_settings.index', compact('tabs'));
+            $languages = Language::where('enabled', 1)->get();
+
+        return view('admin.system_settings.index', compact('tabs', 'languages'));
     }
 
     /**
@@ -62,6 +65,14 @@ class SystemSettingController extends BaseAdminController
                 }
             }
         });
+
+        // 強制清除系統設定的快取
+        Cache::forget('site_settings');
+
+        // 只要 Session Key 包含 'lang' 或 'locale' 的全部清掉
+        $keys = collect(session()->all())->keys();
+        $langKeys = $keys->filter(fn($key) => str_contains($key, 'lang') || str_contains($key, 'locale'));
+        session()->forget($langKeys->toArray());
 
         return redirect()->back()->with('form_success_swal', '所有設定已成功儲存並同步至快取。');
     }

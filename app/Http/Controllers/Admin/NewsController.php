@@ -44,16 +44,12 @@ class NewsController extends BaseAdminController
             ->orderByDesc('news_id')
             ->paginate($perPage);
 
-        $langs = $this->getActiveLanguages();
-
-        return $this->view('admin.news.index', compact('newsList', 'langs', 'search'));
+        return $this->view('admin.news.index', compact('newsList', 'search'));
     }
 
     public function create()
     {
-        // 👇 打開頁面時，先大掃除上次可能遺留的廢棄圖片
-        SummernoteImageHelper::cleanAbandonedImages();
-
+        // 移除不必要的清空暫存呼叫，保持邏輯單純
         return $this->renderForm(new News());
     }
 
@@ -72,8 +68,10 @@ class NewsController extends BaseAdminController
                 $news->is_visible = $request->has('is_visible');
                 $news->is_visible_home = $request->has('is_visible_home');
                 $news->save();
-                // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片
-                SummernoteImageHelper::commitTempImages();
+
+                // 【關鍵補強】存檔成功，告知 Helper 這個編輯器 ID 的圖片不用再被掃除
+                $editorId = $request->input('editor_id', 'default');
+                SummernoteImageHelper::commitTempImages($editorId);
 
                 // 儲存多語系
                 $this->saveTranslations($news, $request->desc);
@@ -81,11 +79,13 @@ class NewsController extends BaseAdminController
                 // 紀錄紀錄
                 $news->writeLog('新增', $news->desc->title ?? '未知名消息');
 
+                $backUrl = $request->input('back_url', route('admin.news.index'));
+
                 // 成功回傳
                 ContentHelper::showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
-                    ['text' => '返回列表', 'href' => route('admin.news.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ]);
 
                 return redirect()->back();
@@ -98,9 +98,6 @@ class NewsController extends BaseAdminController
 
     public function edit(News $news)
     {
-        // 👇 編輯頁面也順手清一下
-        SummernoteImageHelper::cleanAbandonedImages();
-
         return $this->renderForm($news);
     }
 
@@ -118,17 +115,16 @@ class NewsController extends BaseAdminController
                 $news->is_visible_home = $request->has('is_visible_home');
                 $news->save();
 
-                // 👇 儲存成功！將「觀察名單」清空，保護這些正式被啟用的圖片
-                SummernoteImageHelper::commitTempImages();
-
-                // 更新多語系資料
+                // 更新多語系並自動比對清理圖片
                 $this->saveTranslations($news, $request->desc);
 
                 $news->writeLog('編輯', $news->desc->title ?? '未知名消息');
 
+                $backUrl = $request->input('back_url', route('admin.news.index'));
+
                 ContentHelper::showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
-                    ['text' => '返回列表', 'href' => route('admin.news.index')],
+                    ['text' => '返回列表', 'href' => $backUrl],
                 ]);
 
                 return redirect()->back();
@@ -147,10 +143,14 @@ class NewsController extends BaseAdminController
         $news->load('desc');
         $title = $news->desc->title ?? '未知名消息';
 
+        // 刪除整筆資料時，也要清空所有語系編輯器內的圖片
+        foreach ($news->descs as $desc) {
+            SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($desc->content), null);
+        }
+
         // 注意：這裡不再需要手動用 ImageHelper::deleteImage 了！
         // 因為 News Model 掛載了 HasImageFields Trait，
         // 只要執行 delete()，Trait 會自動根據 $imageFields 屬性清理檔案。
-
         $news->delete();
 
         $news->writeLog('刪除', $title);
@@ -174,6 +174,9 @@ class NewsController extends BaseAdminController
         $isEdit = (bool)$news->exists;
         $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderByDesc('display_order')->get();
 
+        // 【防呆掃除】進入頁面時，把上次「沒存檔就關掉」的圖片清空
+        SummernoteImageHelper::cleanAbandonedImages();
+
         // 獲取目前啟用的語系設定
         $langs = $this->getActiveLanguages();
         // 將配置傳給前端，以便顯示建議尺寸提示
@@ -189,7 +192,10 @@ class NewsController extends BaseAdminController
             }
         }
 
-        return $this->view('admin.news.form', compact('news', 'isEdit', 'categories', 'langs', 'descMap', 'fileConfigs'));
+        // 預設返回按鈕路由
+        $backUrl = $this->getBackUrl('admin.news.index');
+
+        return $this->view('admin.news.form', compact('news', 'isEdit', 'categories', 'langs', 'descMap', 'fileConfigs', 'backUrl'));
     }
 
     /**
@@ -211,25 +217,46 @@ class NewsController extends BaseAdminController
         }
     }
 
+    /**
+     * 儲存多語系資料並同步清理編輯器中的圖片
+     * * @param News $news 消息主體物件
+     * @param array|null $descData 來自 Request 的語系資料陣列
+     */
     private function saveTranslations(News $news, ?array $descData)
     {
         if (!$descData) return;
 
         foreach ($descData as $langId => $data) {
-            // 防呆：如果標題是空的，就當作這語系沒資料，直接刪除
+            // 先抓出舊資料（後續刪除或同步圖片都需要它）
+            $oldDesc = NewsDesc::where('news_id', $news->news_id)
+                ->where('lang_id', $langId)
+                ->first();
+
+            // 處理刪除邏輯
             if (empty($data['title'])) {
-                NewsDesc::where('news_id', $news->news_id)->where('lang_id', $langId)->delete();
+                if ($oldDesc) {
+                    SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($oldDesc->content), null);
+                    $oldDesc->delete();
+                }
                 continue;
             }
 
-            // 使用 updateOrInsert 簡化邏輯 (有則更，無則增)
+            // 處理更新/新增邏輯
+            $newContent = $data['content'] ?? '';
+
+            // 同步編輯器圖片 (傳入舊內容 vs 新內容)
+            SummernoteImageHelper::syncEditorImages(
+                $oldDesc ? ContentHelper::decodeSiteUrl($oldDesc->content) : null,
+                $newContent
+            );
+
+            // 更新資料庫
             NewsDesc::updateOrInsert(
                 ['news_id' => $news->news_id, 'lang_id' => $langId],
                 [
                     'title'       => $data['title'],
                     'description' => $data['description'] ?? null,
-                    // Summernote 內容需編碼網址，避免換網域時圖片破圖
-                    'content'     => ContentHelper::encodeSiteUrl($data['content'] ?? ''),
+                    'content'     => ContentHelper::encodeSiteUrl($newContent),
                 ]
             );
         }

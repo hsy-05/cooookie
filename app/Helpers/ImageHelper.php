@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; // 引入 Str 處理字串
 
 class ImageHelper
-{/**
+{
+    /**
      * 萬用上傳入口
      * * @param UploadedFile $file 檔案物件
      * @param string $folder 儲存目錄
@@ -144,14 +145,21 @@ class ImageHelper
      */
     private static function getSmartFilename(UploadedFile $file, string $folder, string $disk): string
     {
-        // 確保原檔名安全 (過濾掉特殊字元)
-        $originalName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+        // --- 修改這部分 ---
+        // 取得原始檔名（不含副檔名）
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        // 過濾掉檔案系統不允許的非法字元 ( / \ ? % * : | " < > )，但保留中文
+        $originalName = preg_replace('/[\/\\\\\?\%\*\:\|\"\<\>]/', '_', $originalName);
+        // ------------------
+
         $extension = $file->getClientOriginalExtension();
         $filename = "{$originalName}.{$extension}";
         $counter = 1;
 
+        // 檢查重複邏輯保持不變
         while (Storage::disk($disk)->exists("{$folder}/{$filename}")) {
-            $filename = "{$originalName}-{$counter}.{$extension}"; // 改用 - 比較符合網址規範
+            $filename = "{$originalName}-{$counter}.{$extension}";
             $counter++;
         }
 

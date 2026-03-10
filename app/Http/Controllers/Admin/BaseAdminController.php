@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Validator, Log, Auth, Schema, Route};
+use Illuminate\Support\Facades\{Validator, Log, Auth, Schema, Route, URL};
 use App\Models\{Language, ActionLog};
 use App\Traits\HasImageFields;
 use App\Helpers\ImageHelper;
@@ -236,40 +236,20 @@ class BaseAdminController extends Controller
     }
 
     /**
-     * 刪除編輯器內容中的圖片
-     * 用於 Summernote 等編輯器在刪除圖片按鈕觸發時的後端處理
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * 取得安全且精準的返回網址
+     * @param string $defaultRoute 找不到來源時的預設路由
+     * @return string
      */
-    public function deleteEditorImage(Request $request)
+    protected function getBackUrl(string $defaultRoute): string
     {
-        $imageUrl = $request->input('image_url');
+        $backUrl = URL::previous();
 
-        if (empty($imageUrl)) {
-            return response()->json(['status' => 'error', 'message' => '未傳入圖片網址'], 400);
+        // 防呆：如果前一頁是「編輯」或「新增」或「空的」，就回預設列表
+        // 這樣可以防止使用者在表單驗證失敗後，按返回卻跳回表單自己的 Bug
+        if (preg_match('/(edit|create)/', $backUrl) || !$backUrl) {
+            return route($defaultRoute);
         }
 
-        // 安全檢查：只允許處理本站儲存空間內的檔案
-        $searchKey = '/storage/';
-        if (!str_contains($imageUrl, $searchKey)) {
-            return response()->json(['status' => 'error', 'message' => '非本站檔案，拒絕操作'], 403);
-        }
-
-        // 解析相對路徑
-        $pathParts = explode($searchKey, $imageUrl);
-        $relativePath = end($pathParts);
-
-        // 安全防呆：防止路徑穿越攻擊 (Directory Traversal)
-        if (str_contains($relativePath, '..')) {
-            return response()->json(['status' => 'error', 'message' => '非法路徑請求'], 403);
-        }
-
-        // 執行實體檔案刪除
-        if (ImageHelper::deleteImage($relativePath, 'public')) {
-            return response()->json(['status' => 'success', 'message' => '伺服器端檔案已同步移除']);
-        }
-
-        return response()->json(['status' => 'error', 'message' => '檔案不存在或已提前移除'], 404);
+        return $backUrl;
     }
 }
