@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Admin\NewsRequest;
 use App\Models\{News, NewsDesc, NewsCategory};
 use Illuminate\Support\Facades\{DB, Log};
-use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper};
+use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper, TagHelper};
 
 class NewsController extends BaseAdminController
 {
@@ -250,13 +250,22 @@ class NewsController extends BaseAdminController
                 $newContent
             );
 
+            // 使用 TagHelper 手動處理。即便未來有 10 個標籤欄位，也只是多寫幾行而已
+            $metaKeyword = TagHelper::toString($data['meta_keyword'] ?? null);
+            // $otherTags   = TagHelper::toString($data['other_tags'] ?? null); // 假設有的話
+
+
             // 更新資料庫
             NewsDesc::updateOrInsert(
                 ['news_id' => $news->news_id, 'lang_id' => $langId],
                 [
-                    'title'       => $data['title'],
-                    'description' => $data['description'] ?? null,
-                    'content'     => ContentHelper::encodeSiteUrl($newContent),
+                    'title'            => $data['title'],
+                    'description'      => $data['description'] ?? null,
+                    'content'          => ContentHelper::encodeSiteUrl($newContent),
+                    'meta_title'       => $data['meta_title'] ?? null,
+                    'meta_description' => $data['meta_description'] ?? null,
+                    'meta_keyword'     => $metaKeyword,
+                    'seo_h1'           => $data['seo_h1'] ?? null,
                 ]
             );
         }

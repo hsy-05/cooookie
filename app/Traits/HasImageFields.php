@@ -42,7 +42,7 @@ trait HasImageFields
     public function removeImageFromField(string $field): bool
     {
         // 防呆：確保欄位存在且有值
-        if (!Schema::hasColumn($this->getTable(), $field) || empty($this->$field)) {
+        if (empty($this->$field)) {
             return false;
         }
 

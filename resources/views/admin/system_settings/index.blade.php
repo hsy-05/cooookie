@@ -106,15 +106,13 @@
 
                                                     {{-- 標籤輸入：修正跑版問題，移除多餘 Input --}}
                                                     @case('tags')
-                                                    <div
-                                                        class="js-tags-input"
-                                                        data-name="settings[{{ $item->setting_key }}][]"
-                                                        data-placeholder="請輸入標籤並按 Enter"
-                                                    >
-                                                        @foreach($item->tags_array as $tag)
-                                                            <span class="tag-item" data-value="{{ $tag }}">{{ $tag }}</span>
-                                                        @endforeach
-                                                    </div>
+                                                        <x-admin.tag-input
+                                                            {{-- label 留空，因為外層的 setting-item-card 已經有寫 title 了 --}}
+                                                            label=""
+                                                            name="settings[{{ $item->setting_key }}][]"
+                                                            :value="$item->setting_value"
+                                                            placeholder="請輸入標籤並按 Enter"
+                                                        />
                                                     @break
 
                                                     {{-- 顏色選擇 --}}

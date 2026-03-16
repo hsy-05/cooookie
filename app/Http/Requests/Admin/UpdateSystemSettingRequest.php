@@ -18,25 +18,26 @@ class UpdateSystemSettingRequest extends FormRequest
      * 定義驗證規則：這是防止惡意寫入的關鍵
      */
     public function rules(): array
-    {
-        return [
-            // 驗證 settings 必須是陣列
-            'settings' => 'required|array',
-            // 限制圖片格式與大小 (2MB)
-            'settings.*' => 'nullable|sometimes',
-            'settings.*' => [
-                function ($attribute, $value, $fail) {
-                    if (request()->hasFile($attribute)) {
-                        $file = request()->file($attribute);
-                        if (!in_array($file->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'webp'])) {
-                            $fail('不支援的檔案格式。');
-                        }
-                        if ($file->getSize() > 2048 * 1024) {
-                            $fail('檔案大小不能超過 2MB。');
-                        }
+{
+    return [
+        'settings' => 'required|array',
+        // 對於每一個設定項，根據其特性進行基礎驗證
+        'settings.*' => [
+            'nullable',
+            function ($attribute, $value, $fail) {
+                // 如果是檔案上傳
+                if (request()->hasFile($attribute)) {
+                    $file = request()->file($attribute);
+                    $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
+                    if (!in_array(strtolower($file->getClientOriginalExtension()), $allowedExt)) {
+                        $fail('不支援的檔案格式，僅限：' . implode(', ', $allowedExt));
                     }
-                },
-            ],
-        ];
-    }
+                    if ($file->getSize() > 2 * 1024 * 1024) {
+                        $fail('圖片大小不能超過 2MB');
+                    }
+                }
+            }
+        ],
+    ];
+}
 }
