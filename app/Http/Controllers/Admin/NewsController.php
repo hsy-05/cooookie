@@ -19,7 +19,7 @@ class NewsController extends BaseAdminController
     protected $pageCfg = [
         'files' => [
             'image_url' => [
-                'path'   => 'news',     // 儲存路徑
+                'path'   => 'news',            // 儲存路徑
                 'width'  => 600,               // 寬度 (若不縮圖可設為 null)
                 'height' => 400,               // 高度
                 'mode'   => 'center_crop',     // 處理模式：center_crop, scale_fit
@@ -136,7 +136,7 @@ class NewsController extends BaseAdminController
     }
 
     /**
-     * 刪除消息 (優化寫法)
+     * 刪除單筆資料
      */
     public function destroy(News $news)
     {

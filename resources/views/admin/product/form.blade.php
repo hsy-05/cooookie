@@ -8,7 +8,7 @@
     {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
     <x-admin.page-message>
         <!-- 📄 Summernote 範本插入 Modal -->
-        @include('components.summernote.template-modal')
+        @include('components.admin.summernote.template-modal')
         <form action="{{ isset($isEdit) ? route('admin.product.update', $product->product_id) : route('admin.product.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf

@@ -8,7 +8,7 @@
 
 @section('content')
     <!-- 📄 Summernote 範本插入 Modal -->
-    @include('components.summernote.template-modal')
+    @include('components.admin.summernote.template-modal')
 
     <form action="{{ isset($isEdit) ? route('admin.product_category.update', $product_category->cat_id) : route('admin.product_category.store') }}"
         method="POST" enctype="multipart/form-data">

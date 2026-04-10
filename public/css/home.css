@@ -1,213 +1,169 @@
 /* =========================================
-   5. Hero Slider
+   A. 全域輔助與動畫 (Global Helpers & Anim)
    ========================================= */
-.hero-slider {
-    position: relative; width: 100%; height: 100vh; min-height: 700px; overflow: hidden;
+
+/* 骨架屏掃光效果：提升圖片加載前的使用者體驗 */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
+
+/* 統一管理需要初始化隱藏的輪播元件，防止 JS 載入前的排版閃爍 */
+.product-cat-swiper,
+.news-swiper {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease;
+    overflow: hidden;
+}
+
+/* 圖片與輪播容器的預載樣式 */
+.product-cat-img-box,
+.news-img-box {
+    background-color: #f2f2f2;
+    background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite linear;
+}
+
+/* JS 啟動後的通用類別 */
+.swiper-initialized, .is-loaded {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* =========================================
+   B. Hero Slider: 主視覺輪播
+   ========================================= */
+
+.hero-slider {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    min-height: 700px;
+    overflow: hidden;
+}
+
+/* 內部容器與圖片：確保視差空間 */
+.js-hero-swiper { height: 100%; }
 .swiper-slide { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
 .banner-bg-img {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover; transform: scale(1.1); transition: transform 8s ease-out;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.1); /* 預留縮放空間給視差或動畫 */
+    transition: transform 8s ease-out;
 }
 
+/* 預設防呆圖：當後台未上傳圖片時顯示 */
+.banner-empty-fallback {
+    background-image: url('https://images.unsplash.com/photo-1499636138143-bd630f5cf388?q=80&w=1920&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+}
+
+/* 文字內容遮罩層 */
+.banner-content-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.banner-text-container {
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.banner-main-title {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    font-family: var(--font-title);
+    color: var(--c-light);
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 1.2s var(--ease-smooth), transform 1.2s var(--ease-smooth);
+}
+
+.banner-sub-title {
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* 當前幻燈片啟動時的動畫觸發 */
 .swiper-slide-active .banner-main-title {
     opacity: 1;
     transform: translateY(0);
 }
 
-.banner-content-overlay {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.25);
-    display: flex; align-items: center; justify-content: center; z-index: 10;
-}
-.banner-text-container {
-    text-align: center; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.banner-main-title {
-    font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: 0.15em;
-    font-family: var(--font-title); color: var(--c-light);
-    margin-bottom: 20px; opacity: 0; transform: translateY(50px);
-
-    transition: opacity 1.2s var(--ease-smooth), transform 1.2s var(--ease-smooth);
-}
-
-.banner-sub-title {
-    font-size: 1.2rem; letter-spacing: 0.2em; text-transform: uppercase;
-    opacity: 0; transform: translateY(30px);
-}
-
-/* 分頁器容器：設定為左側垂直置中 */
+/* Swiper 分頁點：側邊垂直排版 */
 .hero-slider .swiper-pagination {
-    left: 40px !important; /* 距離左邊邊界距離，可依設計稿調整 */
+    left: 40px !important;
     right: auto !important;
     top: 50% !important;
-    bottom: auto !important;
-    transform: translateY(-50%); /* 垂直置中精髓 */
+    transform: translateY(-50%);
     width: auto !important;
     display: flex;
-    flex-direction: column; /* 讓點點由上往下排 */
-    gap: 15px; /* 點點之間的間距 */
+    flex-direction: column;
+    gap: 15px;
     z-index: 20;
 }
-/* 個別分頁點樣式 */
+
 .hero-slider .swiper-pagination-bullet {
-    width: 3px;          /* 垂直設計通常寬度較細 */
-    height: 30px;        /* 增加高度感，使其呈現專業細長條狀 */
+    width: 3px;
+    height: 30px;
     background: #fff;
     border-radius: 0;
-    margin: 0 !important; /* 清除 swiper 預設的 margin */
+    margin: 0 !important;
     opacity: 0.3;
     transition: all 0.4s ease;
 }
 
-/* 啟動狀態的樣式 */
 .hero-slider .swiper-pagination-bullet-active {
     opacity: 1;
-    height: 50px;        /* 啟動時拉長，增加動態視覺層次 */
+    height: 50px;
     background: var(--c-light);
 }
 
-/* 手機版適應：通常手機版會回到下方水平排列，避免擋到正中心文字 */
-@media (max-width: 768px) {
-    .hero-slider .swiper-pagination {
-        left: 0 !important;
-        right: 0 !important;
-        top: auto !important;
-        bottom: 30px !important;
-        transform: translateY(0);
-        flex-direction: row; /* 回復水平排列 */
-        justify-content: center;
-        width: 100% !important;
-    }
-
-    .hero-slider .swiper-pagination-bullet {
-        width: 25px;
-        height: 3px;
-    }
-
-    .hero-slider .swiper-pagination-bullet-active {
-        width: 40px;
-        height: 3px;
-    }
-}
-
-@media (max-width: 768px) {
-    .banner-main-title { font-size: 3.5rem; }
-}
-
-/* -------------- 響應式 -------------- */
-
-/* 4K (2560px 以上)
-   大螢幕避免畫面太矮，保持視覺氣勢 */
-@media (min-width: 2560px) {
-    .hero-slider {
-        min-height: 900px;
-    }
-
-    .banner-main-title {
-        font-size: 8rem;
-    }
-}
-
-/* Laptop L (1440px)
-   稍微降低最小高度，避免畫面過長 */
-@media (max-width: 1440px) {
-    .hero-slider {
-        min-height: 750px;
-    }
-}
-
-/* Laptop (1024px)
-   主標避免過大造成壓迫 */
-@media (max-width: 1024px) {
-    .hero-slider {
-        min-height: 650px;
-    }
-
-    .banner-main-title {
-        font-size: 4.5rem;
-    }
-}
-
-/* Tablet (768px)
-   分頁點改到底部橫排已存在，這裡補高度比例 */
-@media (max-width: 768px) {
-    .hero-slider {
-        height: 85vh;
-        min-height: 600px;
-    }
-
-    .banner-main-title {
-        font-size: 3.5rem;
-    }
-
-    .banner-sub-title {
-        font-size: 1rem;
-    }
-}
-
-/* Mobile L (425px) */
-@media (max-width: 425px) {
-    .hero-slider {
-        height: 80vh;
-        min-height: 520px;
-    }
-
-    .banner-main-title {
-        font-size: 2.6rem;
-    }
-
-    .banner-sub-title {
-        font-size: 0.9rem;
-    }
-}
-
-/* Mobile M (375px) */
-@media (max-width: 375px) {
-    .banner-main-title {
-        font-size: 2.3rem;
-    }
-}
-
-/* Mobile S (320px)
-   最小裝置避免字體爆版 */
-@media (max-width: 320px) {
-    .banner-main-title {
-        font-size: 2rem;
-    }
-}
-
 /* =========================================
-   3. Intro Section: 品牌理念 (精準響應式)
+   C. Intro Section: 品牌理念
    ========================================= */
 
 .section-intro {
-    /* 使用 clamp 讓間距在 4K 到手機間自動過度 */
     padding: clamp(60px, 8vw, 160px) 0;
     background-color: #fff;
     overflow: hidden;
 }
 
-/* 網格系統：設定最大寬度以符合 4K 與 Laptop L 佈局 */
 .intro-container {
-    max-width: 1920px; /* 防止在 4K 螢幕散得太開 */
+    max-width: 1920px;
     margin: 0 auto;
     padding: 0 clamp(20px, 5vw, 100px);
 }
 
 .intro-grid {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr; /* 寬長方形圖片 vs 精緻文字區 */
+    grid-template-columns: 1.2fr 0.8fr;
     gap: clamp(40px, 6vw, 120px);
     align-items: center;
 }
 
-/* 圖片區塊：3:2 寬長方形比例 */
 .intro-img-wrap {
     position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 2; /* 嚴格定義長方形比例 */
+    aspect-ratio: 3 / 2;
     overflow: hidden;
     box-shadow: 30px 30px 0 var(--c-light);
 }
@@ -216,17 +172,13 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
-    /* 給予視差動畫的預留空間 */
     transform: scale(1.15);
     will-change: transform;
 }
 
-/* 文字內容區排版 */
-.intro-text {
-    max-width: 600px;
-}
+.intro-text { max-width: 600px; }
 
+/* 標籤樣式：如 HOW WE MAKE IT */
 .section-tag {
     display: block;
     font-size: clamp(0.8rem, 1vw, 0.95rem);
@@ -238,7 +190,7 @@
 }
 
 .section-title {
-    font-size: clamp(1.8rem, 2.8vw, 3.5rem); /* 在 4K 會變大，筆電則適中 */
+    font-size: clamp(1.8rem, 2.8vw, 3.5rem);
     line-height: 1.25;
     color: #1a1a1a;
     margin-bottom: 2rem;
@@ -258,14 +210,12 @@
     text-align: justify;
 }
 
-/* 閱讀更多按鈕：精緻線條感 */
 .btn-read-more {
     display: inline-flex;
     align-items: center;
     padding: 14px 45px;
     border: 1px solid #1a1a1a;
     color: #1a1a1a;
-    text-decoration: none;
     font-weight: 500;
     letter-spacing: 0.1em;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -277,112 +227,75 @@
     transform: translateX(5px);
 }
 
-/* -------------- 響應式 -------------- */
+/* =========================================
+   A. 通用組件與加載管理
+   ========================================= */
 
-/* 4K (2560px)
-   放寬容器，避免兩側太空 */
-@media (min-width: 2560px) {
-    .intro-container {
-        max-width: 2100px;
-    }
-
-    .intro-text {
-        max-width: 750px;
-    }
+/**
+ * 骨架屏掃光效果：提升圖片加載前的使用者體驗
+ */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-/* Laptop L (1440px) */
-@media (max-width: 1440px) {
-    .intro-grid {
-        gap: 80px;
-    }
+/**
+ * Swiper 外層包裝：預設最小高度防止高度塌陷導致 GSAP 座標抓取錯誤
+ */
+.swiper-wrap {
+    position: relative;
+    width: 100%;
+    min-height: 250px; /* 確保初始化時有基礎高度 */
+    opacity: 0;
+    transition: opacity 0.8s ease;
 }
 
-/* Laptop (1024px) */
-@media (max-width: 1024px) {
-    .intro-grid {
-        gap: 50px;
-    }
+/**
+ * 當 Swiper 或頁面載入完成後顯現
+ */
+.swiper-initialized, .is-loaded {
+    opacity: 1 !important;
 }
 
-/* Tablet (768px) */
-@media (max-width: 768px) {
-    .intro-img-wrap {
-        display: none;
-    }
-
-    .intro-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .intro-text {
-        max-width: 100%;
-        padding: 0 15px;
-    }
+/**
+ * 圖片容器基礎樣式與骨架屏
+ */
+.product-cat-img-box,
+.news-img-box {
+    position: relative;
+    overflow: hidden;
+    background-color: #f2f2f2;
+    background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite linear;
 }
 
-/* Mobile L (425px) */
-@media (max-width: 425px) {
-    .section-intro {
-        padding: 50px 0;
-    }
-
-    .section-title {
-        font-size: 1.75rem;
-    }
-
-    .section-desc {
-        font-size: 0.95rem;
-        line-height: 1.7;
-    }
-
-    .btn-read-more {
-        width: 100%;
-        justify-content: center;
-    }
+/**
+ * 圖片基礎樣式：預設透明，加載後透過 JS 加入 .is-loaded 顯示
+ */
+.product-cat-img,
+.news-img {
+    position: absolute; /* 統一使用絕對定位填滿容器 */
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
 }
 
-/* Mobile M (375px) */
-@media (max-width: 375px) {
-    .section-title {
-        font-size: 1.6rem;
-    }
-}
-
-/* Mobile S (320px) */
-@media (max-width: 320px) {
-    .section-title {
-        font-size: 1.45rem;
-    }
-
-    .btn-read-more {
-        padding: 12px 20px;
-        font-size: 0.85rem;
-    }
+.product-cat-img.is-loaded,
+.news-img.is-loaded {
+    opacity: 1;
 }
 
 /* =========================================
-   Product Categories (產品系列)
+   D. Product Categories: 產品系列
    ========================================= */
+
 .section-product-cat {
     padding: var(--section-spacing) 0;
     background: linear-gradient(to bottom, var(--c-bg) 0%, var(--c-light) 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-/* 核心修正：初始化前隱藏，防止閃爍 */
-.product-cat-swiper, .news-swiper {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.6s ease;
-    overflow: hidden;
-}
-
-/* 當 Swiper 準備好時，由 JS 加入此類別 */
-.swiper-initialized {
-    opacity: 1 !important;
-    visibility: visible !important;
 }
 
 .product-cat-card {
@@ -392,23 +305,8 @@
 }
 
 .product-cat-img-box {
-    position: relative;
-    width: 100%;
     aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: 12px; /* 增加一點圓角感 */
-}
-
-/* 核心修正：圖片在載入時必須絕對定位，避免撐開容器 */
-.product-cat-img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease-in-out;
-    opacity: 0; /* 初始透明 */
+    border-radius: 12px;
 }
 
 .product-cat-overlay {
@@ -416,11 +314,10 @@
     inset: 0;
     display: flex;
     align-items: flex-end;
-    justify-content: center;
-    background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 60%);
     padding: 24px;
-    transition: background 0.5s ease;
+    background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 60%);
     z-index: 2;
+    transition: 0.5s;
 }
 
 .product-cat-glass-box {
@@ -432,29 +329,22 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transform: translateY(15px);
     transition: all 0.5s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .product-cat-title {
     font-size: 1.25rem;
-    color: #ffffff;
+    color: #fff;
     font-family: var(--font-serif);
-    justify-content: center; /* 修正主架構 Flex 造成的靠左問題 */
-    text-align: center;
     margin-bottom: 4px;
-    transition: color 0.4s ease;
 }
 
 .product-cat-subtitle {
     font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.8);
-    text-transform: uppercase;
+    color: rgba(255,255,255,0.8);
     letter-spacing: 2px;
-    font-weight: 600;
-    transition: color 0.4s ease;
-    margin-block-end: 0;
+    text-transform: uppercase;
 }
 
 .product-cat-more {
@@ -462,120 +352,71 @@
     font-size: 0.7rem;
     font-weight: 700;
     color: #604747;
-    margin-top: 0;
     height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all 0.4s ease;
     border-top: 1px solid rgba(0,0,0,0.08);
+    transition: 0.4s ease;
 }
 
-/* Hover 狀態 */
+/* 交互 */
 .product-cat-card:hover .product-cat-img { transform: scale(1.1); }
-.product-cat-card:hover .product-cat-overlay { background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 70%); }
 .product-cat-card:hover .product-cat-glass-box {
     transform: translateY(0);
     background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
-.product-cat-card:hover .product-cat-title { font-weight: 700; color: #2c2420; }
-.product-cat-card:hover .product-cat-subtitle { color: #464341; }
-.product-cat-card:hover .product-cat-more { margin-top: 15px; height: auto; padding-top: 10px; opacity: 1; }
+.product-cat-card:hover .product-cat-more {
+    margin-top: 15px;
+    height: auto;
+    padding-top: 10px;
+    opacity: 1;
+}
 
 /* =========================================
-   6. Latest News: 最新消息
+   E. Latest News: 最新消息
    ========================================= */
+
 .section-news {
     padding: var(--section-spacing) 0;
     background: #fdfbf8;
 }
 
-/* 輪播初始化控制 */
-.news-swiper {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.8s ease;
-}
-
-.news-swiper.swiper-initialized {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* 卡片容器 */
 .news-card {
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    border-radius: 5px;
-    overflow: hidden;
-    height: 100%;
-    text-decoration: none;
+    background: #fff;
     border: 2px solid #e5e0d8;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    position: relative;
-}
-
-.news-card:hover {
-    border-color: var(--c-primary);
-    transform: translateY(-5px); /* 微幅上移增加動態感 */
-}
-
-/* 圖片盒：調整為 500*360 比例
-   使用 aspect-ratio: 500 / 360 確保比例精準
-*/
-.news-img-box {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 500 / 360; /* 鎖定最新消息比例 */
-    overflow: hidden;
-    background: #f0f0f0;
-}
-
-.news-img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    border-radius: 5px;
     height: 100%;
-    object-fit: cover;
-    transition: transform 1.5s ease;
+    transition: 0.4s;
+    overflow: hidden;
+}
+
+.news-card:hover { border-color: var(--c-primary); }
+
+.news-img-box {
+    aspect-ratio: 4 / 3; /* 統一比例，確保高度一致 */
 }
 
 .news-card:hover .news-img { transform: scale(1.1); }
 
-/* 日期標籤 */
 .news-date-badge {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
     z-index: 3;
-    background: #ffffff;
+    background: #fff;
     padding: 8px 12px;
     border-radius: 8px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.news-date-badge .day {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--c-primary);
-}
+.news-date-badge .day { display: block; font-size: 1.2rem; font-weight: 800; color: var(--c-primary); }
+.news-date-badge .month { display: block; font-size: 0.7rem; color: #999; }
 
-.news-date-badge .month {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #999;
-}
-
-/* 內容區塊 */
 .news-content {
-    padding: 24px;
+    padding: 20px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -583,181 +424,159 @@
 
 .news-category {
     font-size: 0.75rem;
-    font-weight: 700;
     color: var(--c-primary);
-    margin-bottom: 12px;
-    letter-spacing: 1.5px;
-}
-
-/* 標題對齊優化：預留兩行高度 */
-.news-title {
-    font-size: 1.2rem;
-    line-height: 1.5;
-    color: #2c2420;
     margin-bottom: 10px;
-    transition: color 0.3s ease;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-weight: 600;
+}
+
+.news-title {
+    font-size: 1.15rem;
+    line-height: 1.5;
     min-height: 3em;
-}
-
-/* 簡述對齊優化：預留兩行高度並處理空值 */
-.news-excerpt {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #777;
-    margin-bottom: 25px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 3.4em;
-    flex-grow: 1;
+    margin-bottom: 20px;
+    color: var(--c-text);
 }
 
-/* 底部按鈕 */
 .news-footer {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
     margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 20px;
-    border-top: 1px solid #f0f0f0;
 }
 
-.news-btn-text {
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: #2c2420;
-}
+.news-btn-text { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; }
 
-.news-arrow-icon {
-    width: 24px;
-    height: 1px;
-    background: var(--c-primary);
-    position: relative;
-    transition: width 0.3s ease;
-}
-
+.news-arrow-icon { width: 24px; height: 1px; background: var(--c-primary); position: relative; transition: 0.3s; }
 .news-arrow-icon::after {
     content: '';
     position: absolute;
-    right: 0;
-    top: -3px;
-    width: 7px;
-    height: 7px;
+    right: 0; top: -3px;
+    width: 7px; height: 7px;
     border-right: 1px solid var(--c-primary);
     border-top: 1px solid var(--c-primary);
     transform: rotate(45deg);
 }
+.news-card:hover .news-arrow-icon { width: 35px; }
 
-.news-card:hover .news-arrow-icon { width: 40px; }
+/* =========================================
+   F. 響應式佈局調整 (Full Responsive)
+   ========================================= */
 
-/* 響應式調整 */
+/* 4K - 2560px */
+@media (min-width: 2500px) {
+    .container-1280 { max-width: 1800px; }
+}
+
+/* 大型筆電 - 1440px (由 container-1280 控制) */
+
+/* 筆電 - 1024px */
 @media (max-width: 1024px) {
-    .news-content { padding: 20px; }
+    .product-cat-title { font-size: 1.1rem; }
+    .news-title { font-size: 1.05rem; }
+    .news-content { padding: 15px; }
 }
 
+/* 平板 - 768px */
 @media (max-width: 768px) {
-    /* 手機版建議將固定高度取消，讓版面更緊湊 */
-    .news-title { font-size: 1.15rem; min-height: auto; }
-    .news-excerpt { min-height: auto; }
+    .product-cat-overlay { padding: 15px; }
+    .product-cat-glass-box { padding: 12px; }
+    .news-date-badge { top: 10px; left: 10px; padding: 6px 10px; }
 }
 
+/* 手機端 - 425px 以下 */
+@media (max-width: 425px) {
+    .section-header { margin-bottom: 30px; }
+    .news-title { min-height: auto; -webkit-line-clamp: 3; }
+}
 /* =========================================
-   Skeleton Shimmer (骨架屏掃光動畫)
+   F. Process Section: 製作工藝
    ========================================= */
 
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
+.section-process { padding: var(--section-spacing) 0; background: var(--c-light); position: relative; }
+.process-steps { display: flex; justify-content: space-between; max-width: 1200px; margin: 0 auto; z-index: 2; position: relative; }
 
-.product-cat-img-box, .news-img-box {
-    background-color: #f2f2f2;
-    background-image: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.6) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.8s infinite linear;
-}
+/* 步驟連貫線條 */
+.process-line { position: absolute; top: 30px; left: 0; width: 100%; height: 1px; background: #e0e0e0; z-index: 0; }
+.process-line-fill { position: absolute; top: 30px; left: 0; height: 1px; background: var(--c-primary); width: 0; transition: width 1.5s ease-out; }
 
-/* 當圖片載入完成後 */
-.is-loaded {
-    opacity: 1 !important;
-}
+.process-step { flex: 1; text-align: center; padding: 0 20px; opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+.is-delay-200 { transition-delay: 0.2s; }
+.is-delay-400 { transition-delay: 0.4s; }
+.is-delay-600 { transition-delay: 0.6s; }
 
-/* =========================================
-   Process Section: 製作工藝
-   ========================================= */
-.section-process { padding: var(--section-spacing) 0; overflow: hidden; position: relative;
-    background:  var(--c-light); }
-.process-steps {
-    display: flex; justify-content: space-between; position: relative; max-width: 1200px; margin: 0 auto; z-index: 2;
-}
-.process-line {
-    position: absolute; top: 30px; left: 0; width: 100%; height: 1px; background: #e0e0e0; z-index: 0;
-}
-.process-line-fill {
-    position: absolute; top: 30px; left: 0; height: 1px; background: var(--c-primary);
-    width: 0; z-index: 0; transition: width 1.5s ease-out;
-}
-.process-step { position: relative; z-index: 1; flex: 1; text-align: center; padding: 0 20px; opacity: 0; transform: translateY(30px); }
 .step-icon-box {
-    width: 60px; height: 60px; margin: 0 auto 30px; background: var(--c-bg);
-    border: 1px solid var(--c-primary); border-radius: 50%;
+    width: 60px; height: 60px; margin: 0 auto 30px;
+    background: var(--c-bg); border: 1px solid var(--c-primary); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem; color: var(--c-primary); transition: 0.4s;
 }
 .process-step:hover .step-icon-box { background: var(--c-primary); color: #fff; transform: scale(1.1); }
-.step-title { font-size: 1.2rem; margin-bottom: 10px; }
-.step-desc { font-size: 0.9rem; color: #777; }
 
+/* =========================================
+   G. 響應式斷點整合 (Media Queries)
+   ========================================= */
 
-/* -------------- 響應式 -------------- */
-
-/* 4K (2560px)
-   避免流程區看起來太窄 */
+/* --- 4K 超大型螢幕 (2560px+) --- */
 @media (min-width: 2560px) {
-    .process-steps {
-        max-width: 1600px;
-    }
+    .hero-slider { min-height: 900px; }
+    .banner-main-title { font-size: 8rem; }
+    .intro-container { max-width: 2100px; }
+    .intro-text { max-width: 750px; }
+    .process-steps { max-width: 1600px; }
 }
 
-/* Laptop (1024px) */
+/* --- Laptop L (1440px) --- */
+@media (max-width: 1440px) {
+    .hero-slider { min-height: 750px; }
+    .intro-grid { gap: 80px; }
+    .process-steps { max-width: 1100px; }
+}
+
+/* --- Laptop (1024px) --- */
 @media (max-width: 1024px) {
-    .process-step {
-        padding: 0 10px;
-    }
+    .hero-slider { min-height: 650px; }
+    .intro-grid { gap: 50px; }
+    .news-content { padding: 20px; }
+    .process-steps { max-width: 900px; }
 }
 
-/* Tablet (768px) */
+/* --- Tablet (768px) --- */
 @media (max-width: 768px) {
-    .section-process {
-        padding: 80px 0;
+    /* Hero 重排 */
+    .hero-slider { height: 85vh; min-height: 600px; }
+    .hero-slider .swiper-pagination {
+        left: 0 !important; bottom: 30px !important; top: auto !important;
+        transform: none; flex-direction: row; justify-content: center; width: 100% !important;
     }
+    .hero-slider .swiper-pagination-bullet { width: 25px; height: 3px; }
+
+    /* Intro 重排：隱藏圖片加強閱讀 */
+    .intro-img-wrap { display: none; }
+    .intro-grid { grid-template-columns: 1fr; }
+
+    /* News & Process */
+    .news-title, .news-excerpt { min-height: auto; }
+    .section-process { padding: 80px 0; }
 }
 
-/* Mobile L (425px) */
+/* --- Mobile L (425px) --- */
 @media (max-width: 425px) {
-    .step-title {
-        font-size: 1rem;
-    }
+    .hero-slider { height: 80vh; min-height: 520px; }
+    .section-intro { padding: 50px 0; }
+    .btn-read-more { width: 100%; justify-content: center; }
 
-    .step-desc {
-        font-size: 0.85rem;
-    }
+    /* Process 改為垂直排列避免擠壓 */
+    .process-line, .process-line-fill { display: none; }
+    .process-steps { flex-direction: column; gap: 40px; }
 }
 
-/* Mobile S (320px) */
+/* --- Mobile S (320px) --- */
 @media (max-width: 320px) {
-    .step-icon-box {
-        width: 50px;
-        height: 50px;
-    }
+    .step-icon-box { width: 50px; height: 50px; font-size: 1.2rem; }
 }

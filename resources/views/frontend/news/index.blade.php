@@ -7,13 +7,13 @@
 @section('content')
 
     {{-- 頁面橫幅標題區 --}}
-    <section class="page-banner">
+    <section class="page-banner news-page">
         <div class="banner-img-wrap">
-            <img src="https://images.unsplash.com/photo-1622170456996-eb5bdf4eb5e8?q=80&w=1920&auto=format&fit=crop" alt="News Banner" class="banner-img js-parallax-img">
+            <img src="https://images.unsplash.com/photo-1622170456996-eb5bdf4eb5e8?q=80&w=1920" alt="News Banner" class="banner-img js-parallax-img">
         </div>
-        <div class="banner-txt">
-            <h2 class="banner-title js-fade-up">最新消息</h2>
-            <span class="banner-subtitle js-fade-up">LATEST NEWS</span>
+        <div class="c-banner-block">
+            <span class="c-banner-subtitle">LATEST NEWS</span>
+            <h2 class="c-banner-title">最新消息</h2>
         </div>
     </section>
 

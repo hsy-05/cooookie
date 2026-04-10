@@ -1,0 +1,17 @@
+/* 控制內容區域的最小高度與行高 */
+.lh-1-6 {
+    line-height: 1.6;
+}
+.min-h-150 {
+    min-height: 150px;
+}
+
+/* 回覆紀錄區塊的最大高度限制，確保在長對話時不會撐破頁面 */
+.contact-history-area {
+    max-height: 500px;
+}
+
+/* 調整時間軸項目的背景微調 */
+.bg-light-hint {
+    background-color: #f8f9fa;
+}

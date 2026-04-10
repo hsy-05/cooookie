@@ -58,4 +58,13 @@ return [
             ],
         ]
     ],
+    'contact_management' => [
+        'label' => '聯絡管理',
+        'subs' => [
+            'contact' => [
+                'label' => '聯絡單列表',
+                'actions' => ['view' => '瀏覽', 'create' => '回覆', 'delete' => '刪除'],
+            ],
+        ]
+    ],
 ];

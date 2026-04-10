@@ -559,16 +559,24 @@ function validateRequiredFields(formSelector) {
 
 /**
  * syncSummernoteContent
- * 功能：將 Summernote 內容同步回 textarea
- * 只在特定表單頁面使用，不與 validateRequiredFields 綁定
+ * 用途：將 Summernote 編輯器的內容同步回原始的 HTML textarea 欄位
+ * 理由：因為 Summernote 會隱藏原始欄位，如果不手動同步，Laravel Request 會抓到空的內容
+ * @param {string} formSelector - 表單的選擇器，例如 'form[name="the-form"]'
  */
 function syncSummernoteContent(formSelector) {
-    $(formSelector)
-        .find(".summernote")
-        .each(function () {
-            const content = $(this).summernote("code");
-            $(this).val(content);
-        });
+    // 透過選擇器找到該表單
+    var $targetForm = $(formSelector);
+
+    // 如果找不到表單，直接結束（防呆）
+    if ($targetForm.length === 0) return;
+
+    // 尋找表單內所有帶有 .summernote 類別的元素並逐一處理
+    $targetForm.find(".summernote").each(function () {
+        // 取得該編輯器的 HTML 代碼
+        var content = $(this).summernote("code");
+        // 將內容塞回原始的 textarea
+        $(this).val(content);
+    });
 }
 
 /**

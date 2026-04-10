@@ -7,32 +7,28 @@
 
 @section('content')
     <main class="smooth-wrapper">
-        {{-- 全域雜訊優化 --}}
-        <div class="global-noise"></div>
-
         {{-- 1. PAGE BANNER --}}
-        <section class="page-banner">
-            <div class="page-banner__bg">
-                {{-- Banner 圖片尺寸需求：1920x1080px --}}
-                <img src="https://images.unsplash.com/photo-1572347570868-af6e3c3d6be7?q=80&w=1920" alt="COOOOKIE 手作工藝"
-                    class="js-parallax-img">
-                <div class="page-banner__overlay"></div>
+        <section class="about-banner">
+            <div class="about-banner__bg">
+                <img src="https://images.unsplash.com/photo-1572347570868-af6e3c3d6be7?q=80&w=1920" alt="COOOOKIE 手作工藝" class="js-parallax-img">
+                <div class="overlay-dark"></div>
             </div>
 
-            <div class="container page-banner__container">
-                <div class="page-banner__content js-hero-text">
-                    <nav class="page-banner__meta">EST. 2024 • TAINAN</nav>
-                    <h2 class="page-banner__title">
+            <div class="container">
+                <div class="about-banner__content js-hero-text">
+                    <nav class="about-banner__meta">EST. 2024 • TAINAN</nav>
+                    <h2 class="about-banner__title">
                         THE ART OF <br class="d-md-none">
                         <span class="text-italic">IMPERFECT</span> PERFECTION.
                     </h2>
-                    <p class="page-banner__desc">
+                    <p class="about-banner__desc">
                         不完美的圓，才是手作的靈魂。<br>
                         我們拒絕工業標準化，用溫度定義甜點。
                     </p>
                 </div>
 
-                <div class="page-banner__deco js-rotate-scroll">
+                <div class="about-banner__deco js-rotate-scroll">
+
                     <svg viewBox="0 0 100 100" width="100%" height="100%">
                         <path id="curve" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
                             fill="transparent" />

@@ -6,7 +6,7 @@
 
 @section('content')
     <x-admin.page-message>
-        @include('components.summernote.template-modal')
+        @include('components.admin.summernote.template-modal')
 
         <form name="the-form" action="{{ $isEdit ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
             method="POST" enctype="multipart/form-data">
@@ -279,25 +279,26 @@
 
 @stop
 
-@section('js')
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-zh-TW.min.js"></script>
-    <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
+{{-- 這裡放第三方套件的 CDN 資源 --}}
+@push('js')
+    {{-- 這裡我們依然建議用 @include 抽離，保持頁面乾淨 --}}
+    @include('components.admin.summernote._summernote')
+@endpush
 
+@section('js')
     <script>
         $(function() {
-            // 初始化 Tooltip
-            $('[data-toggle="tooltip"]').tooltip();
-
-            // 表單送出前的驗證
+            // 表單送出前的最後檢查與資料同步
             $('form[name="the-form"]').on('submit', function(e) {
+                // 1. 驗證必填 (common.js)
                 if (typeof validateRequiredFields === "function" && !validateRequiredFields(this)) {
                     e.preventDefault();
                     return false;
                 }
-                if (typeof syncSummernoteContentOnSubmit === "function") {
-                    syncSummernoteContentOnSubmit();
+
+                // 2. 同步內容 (common.js)
+                if (typeof syncSummernoteContent === "function") {
+                    syncSummernoteContent('form[name="the-form"]');
                 }
             });
         });

@@ -1,0 +1,81 @@
+/* ==========================================================================
+   1. Design System & Variables (SCSS Version)
+   說明：將 CSS 變數轉換為 SCSS 變數，以解決 Vite 編譯時的 Undefined 錯誤。
+   ========================================================================== */
+
+// 🎨 配色：高端日系/大地色系
+$c-primary:       #8c6a4b; // 焦糖棕
+$c-primary-dark:  #5d4037; // 咖啡棕
+$c-secondary:     #2c2420; // 深炭灰
+$c-accent:        #d4a373; // 金黃色
+$c-light-orange:  #db9c55; // 亮橘色
+$c-bg:            #eee8e0; // 米灰色
+$c-surface:       #ffffff; // 純白色
+$c-light:         #f4f1ea; // 淺米色
+
+// 📝 字體系統
+$font-heading: "Rubik", "Noto Sans TC", sans-serif;
+$font-body:    "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+
+// 語意化應用 (讓 home.scss 可以直接用 $font-title)
+$font-title: $font-heading;
+$font-nav:   $font-body;
+
+// 📐 佈局與間距
+$header-h: 80px;
+$container-width: 1440px;
+$padding-space: 25px;
+$gutter: 24px;
+$section-spacing: clamp(50px, 10vw, 100px);
+
+// 圓角
+$radius-md: 12px;
+$radius-lg: 32px;
+$radius-pill: 100px;
+
+// 動畫曲線
+$ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+$ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+$transition-time: 0.3s;
+
+/* ----------------------------------------------------------------------
+   以下保留 :root 供瀏覽器 Runtime 使用 (選擇性，若 JS 有需要用到再留)
+   ---------------------------------------------------------------------- */
+:root {
+    --c-primary: #{$c-primary};
+    --c-light: #{$c-light};
+    --font-title: #{$font-title};
+    --ease-smooth: #{$ease-smooth};
+    --ease-out: #{$ease-out};
+
+    /* ----------- 佈局與間距 ----------- */
+    --header-h: 80px;
+    --container-width: 1440px;
+    --gutter: 24px;
+    --padding-space: 25px;
+    --section-spacing: clamp(50px, 10vw, 100px);
+    --container-1765: calc(1765px + (var(--padding-spac) * 2));
+    --container-1600: calc(1600px + (var(--padding-spac) * 2));
+    --container-1440: calc(1440px + (var(--padding-spac) * 2));
+    --container-1280: calc(1280px + (var(--padding-spac) * 2));
+    --container-1070: calc(1070px + (var(--padding-spac) * 2));
+}
+
+/* ----------------------------------------------------------------------
+   SCSS Mixins
+   ---------------------------------------------------------------------- */
+
+// 快速處理 RWD (響應式斷點)
+@mixin rwd($breakpoint) {
+    @if $breakpoint == "pc" { @media (min-width: 1025px) { @content; } }
+    @if $breakpoint == "tablet" { @media (max-width: 1024px) { @content; } }
+    @if $breakpoint == "mobile" { @media (max-width: 768px) { @content; } }
+    @if $breakpoint == "sm-mobile" { @media (max-width: 425px) { @content; } }
+}
+
+// 硬體加速防閃爍
+@mixin gpu-fix {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}

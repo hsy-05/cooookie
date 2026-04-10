@@ -93,36 +93,117 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     };
 
-    /**
-     * 萬用輪播初始化器
-     */
-    const initSwiper = (selector, nav, showCount = 3) => {
-        const target = document.querySelector(selector);
-        if (!target) return;
+/**
+ * 【無用】初始化 Swiper 輪播
+ *
+ * 具備：
+ * - 自動隱藏控制項（資料太少時不顯示分頁與前後按鈕）
+ * - RWD 斷點（手機 → 平板 → 桌機）
+ * - loop + fraction 分頁顯示正常，不會出現 05 / 07 這種亂增筆數
+ * - 5 筆資料也能正常循環，不會卡在 03 / 05
+ *
+ * @param {string} selector Swiper 容器選擇器，例如 '.js-product-cat-swiper'
+ * @param {object} navConfig 控制元件選擇器物件
+ * @param {string} navConfig.pagination 分頁容器選擇器，例如 '.js-product-cat-pagination'
+ * @param {string} navConfig.prev 上一張按鈕選擇器，例如 '.js-product-cat-prev'
+ * @param {string} navConfig.next 下一張按鈕選擇器，例如 '.js-product-cat-next'
+ * @param {number} desktopCount 桌機版 slidesPerView 數量（預設 3）
+ */
+const initSwiper = (selector, navConfig, desktopCount = 3) => {
+    const el = document.querySelector(selector);
+    if (!el) return null;
 
-        return new Swiper(target, {
-            slidesPerView: 1,
-            spaceBetween: 24,
-            loop: true,
-            speed: 900,
-            grabCursor: true,
-            watchSlidesProgress: true,
-            navigation: { nextEl: nav.next, prevEl: nav.prev },
-            breakpoints: {
-                480: { slidesPerView: 1.2, spaceBetween: 16 },
-                768: { slidesPerView: 2, spaceBetween: 24 },
-                1024: { slidesPerView: showCount, spaceBetween: 32 }
-            },
-            on: {
-                init: function() {
-                    // 初始化完成後，讓容器顯示
-                    target.classList.add('swiper-initialized');
-                    // 再次觸發圖片檢查，確保圖片狀態正確
-                    handleImagePreload();
-                }
-            }
-        });
+    // 取得資料總張數（原始資料張數，不是 loop 後的複製張數）
+    const slides = el.querySelectorAll('.swiper-slide');
+    const total = slides.length;
+
+    // 取得控制元件
+    const paginationEl = document.querySelector(navConfig.pagination);
+    const prevBtn = document.querySelector(navConfig.prev);
+    const nextBtn = document.querySelector(navConfig.next);
+
+    /**
+     * 檢查是否需要顯示控制項（前後按鈕、分頁）
+     * 只有資料比目前顯示張數多時才顯示
+     *
+     * @param {number} currentSlidesPerView 當前斷點的 slidesPerView
+     * @returns {boolean} 是否啟用控制
+     */
+    const checkVisibility = (currentSlidesPerView) => {
+        if (total <= currentSlidesPerView) {
+            if (paginationEl) paginationEl.style.display = 'none';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            return false;
+        } else {
+            if (paginationEl) paginationEl.style.display = 'flex';
+            if (prevBtn) prevBtn.style.display = 'block';
+            if (nextBtn) nextBtn.style.display = 'block';
+            return true;
+        }
     };
+
+    // 初始化 Swiper
+    const swiper = new Swiper(selector, {
+        // 防止小數位誤差導致左右切卡
+        roundLengths: true,
+        spaceBetween: 0,
+        slidesPerView: 1,
+
+        // 只有資料 >=2 筆才開啟 loop，少於 2 筆就當純直向輪播
+        loop: total > 1,
+
+        // 取消「強制整張複製」的 loopedSlides，讓 Swiper 用預設邏輯
+        // 這樣分頁顯示才不會變成 05 / 07、03 / 06 這種亂增數字
+        // 如果你真的碰到 5 筆卡住，再用 `loopAdditionalSlides` 微調，而不是直接設 loopedSlides = total
+        // loopedSlides: total,  // 這行會讓分頁 total 跳亂，所以先拿掉
+
+        navigation: {
+            nextEl: navConfig.next,
+            prevEl: navConfig.prev,
+        },
+
+        pagination: {
+            el: navConfig.pagination,
+            type: 'fraction',
+
+            formatFractionCurrent:  function (number) {
+                return ('0' + number).slice(-2);
+            },
+            formatFractionTotal: function (number) {
+                return ('0' + number).slice(-2);
+            },
+            renderFraction: function (currentClass, totalClass, index) {
+                return `<span class="${currentClass}"></span>` +
+                            `<span class="gap"></span>` +
+                            `<span class="${totalClass}"></span>`;
+            }
+        },
+
+        // 響應式：支援 320px 到 4K，不同斷點顯示不同張數
+        breakpoints: {
+            768: { slidesPerView: 2, spaceBetween: 20 },
+            1024: { slidesPerView: desktopCount, spaceBetween: 30 },
+            1440: { slidesPerView: desktopCount, spaceBetween: 40 }
+        },
+
+        on: {
+            // Swiper 初始化完成時，檢查目前顯示張數，決定是否顯示控制項
+            init: function () {
+                checkVisibility(this.params.slidesPerView);
+            },
+
+            // 當螢幕尺寸變動導致斷點切換時，重新檢查顯示張數和控制項
+            breakpoint: function () {
+                checkVisibility(this.params.slidesPerView);
+            }
+        }
+    });
+
+    return swiper;
+};
+
+
 
     const initProcessSteps = () => {
         const triggerEl = document.querySelector('.process-steps');
@@ -156,8 +237,6 @@ document.addEventListener("DOMContentLoaded", function() {
         initVisualDepth();
         initDecoLoops();
         initProcessSteps();
-        initSwiper('.js-product-cat-swiper', { next: '.js-product-cat-next', prev: '.js-product-cat-prev' }, 3);
-        initSwiper('.js-news-swiper', { next: '.js-news-next', prev: '.js-news-prev' }, 3);
     } catch (error) {
         console.error("專業提醒：動畫初始化發生錯誤:", error);
     }

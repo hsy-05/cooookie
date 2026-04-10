@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
 use App\Http\Controllers\Frontend\AboutController;
+use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\ClearCacheController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\SystemLogController;
+use App\Http\Controllers\Admin\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,7 +41,6 @@ use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UploadController;
 use Faker\Provider\Base;
-
 /*
 |--------------------------------------------------------------------------
 | Frontend Routes（前台）
@@ -47,24 +48,29 @@ use Faker\Provider\Base;
 */
 
 // 前台首頁
-Route::get('/', [HomeController::class, 'index'])
-    ->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// 最新消息列表
-Route::get('/news', [FrontendNewsController::class, 'index'])
-    ->name('news.index');
-
-// 最新消息分類列表
-Route::get('/news/category/{category}', [FrontendNewsController::class, 'index'])
-    ->name('news.category');
-
-// 最新消息內頁（使用 Laravel 隱式模型綁定）
-Route::get('/news/{news}', [FrontendNewsController::class, 'show'])
-    ->name('news.show');
+// 最新消息模組
+Route::group(['prefix' => 'news', 'as' => 'news.'], function () {
+    // 列表頁
+    Route::get('/', [FrontendNewsController::class, 'index'])->name('index');
+    // 分類過濾
+    Route::get('/category/{category}', [FrontendNewsController::class, 'index'])->name('category');
+    // 內頁詳情
+    Route::get('/{news}', [FrontendNewsController::class, 'show'])->name('show');
+});
 
 // 關於我們
-Route::get('/about', [AboutController::class, 'index'])
-    ->name('about');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+
+// 聯絡我們模組 (對接 reCAPTCHA 驗證邏輯)
+Route::group(['prefix' => 'contact', 'as' => 'contact.'], function () {
+    // 顯示聯絡頁面
+    Route::get('/', [FrontendContactController::class, 'index'])->name('index');
+
+    // 提交表單 - 此路徑需對應 JavaScript 中的 fetch URL
+    Route::post('/store', [FrontendContactController::class, 'store'])->name('store');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -128,6 +134,22 @@ Route::middleware(['auth', 'verified', 'admin.theme']) // 加入 admin.theme 中
         |--------------------------------------------------------------------------
         */
         Route::resource('languages', LanguageController::class);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 聯絡我們管理
+        |--------------------------------------------------------------------------
+        */
+
+        // 批次刪除（一定要放在 resource 之前）
+        Route::delete('contact/batch', [ContactController::class, 'batchDestroy'])
+            ->name('contact.batch_destroy');
+
+        // 刪除封面圖片
+        Route::post('contact/delete-image/{contact}', [ContactController::class, 'deleteImageField'])->name('news.delete-image');
+
+        Route::resource('contact', ContactController::class);
 
         /*
         |--------------------------------------------------------------------------

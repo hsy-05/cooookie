@@ -1,0 +1,502 @@
+/* ==========================================================================
+    1. Design System & Variables (SCSS Optimized)
+   ========================================================================== */
+@import 'variables';
+@import 'mixins';
+
+/* ==========================================================================
+    2. Reset & Base (基礎重置)
+   ========================================================================== */
+* {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+    scrollbar-width: auto;
+    scrollbar-color: #b7a48e #000;
+}
+
+/* 滾動條美化 */
+*::-webkit-scrollbar {
+    width: 16px;
+}
+*::-webkit-scrollbar-track {
+    background: #000;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: #c3c3c3;
+    border-radius: 10px;
+    border: 3px solid #2c404c;
+
+    &:hover {
+        background: #d5d5d5;
+    }
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+body {
+    font-family: $font-body;
+    font-weight: 400; /* 統一內文權重，避免過粗 */
+    background-color: $c-bg;
+    color: $c-secondary;
+    line-height: 1.8; /* 提升易讀性 */
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Lenis 平滑捲動 */
+html.lenis { height: auto; }
+.lenis {
+    &.lenis-smooth {
+        scroll-behavior: auto !important;
+        [data-lenis-prevent] { overscroll-behavior: contain; }
+    }
+    &.lenis-stopped {
+        overflow: hidden;
+    }
+}
+
+/* 精準硬體加速 (GPU Acceleration) */
+.js-fade-up,
+.swiper-slide,
+.btn-pill,
+.news-card,
+.back-to-top,
+.site-header,
+.nav-link::after {
+    @include gpu-fix; // 使用 mixin 統一處理
+}
+
+/* ==========================================================================
+    3. Typography & UI Base
+   ========================================================================== */
+
+h1, h2, h3, h4 {
+    font-family: $font-title;
+}
+
+h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+}
+
+h3 {
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: $c-primary;
+}
+
+h4 {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    color: $c-primary-dark;
+}
+
+ul, ol, dl { margin: 0; padding: 0; list-style: none; }
+img { display: block; max-width: 100%; height: auto; object-fit: cover; }
+a {
+    transition: $transition-time;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        text-decoration: none;
+        color: $c-primary;
+    }
+}
+
+b, strong {
+    font-weight: 700;
+}
+
+.ele-hidden {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    font-size: 0;
+}
+
+/* --- Layout Containers --- */
+%container-shared {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto;
+    padding: 0 $padding-space;
+    width: 100%;
+}
+
+.container {
+    max-width: $container-width;
+    margin: 0 auto;
+    padding: 0 $gutter;
+    position: relative;
+}
+
+/* 標題與裝飾線段 */
+.section-header { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
+.section-tag {
+    font-family: $font-nav;
+    font-size: 0.85rem;
+    color: $c-primary;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: block;
+    text-transform: uppercase;
+}
+.section-title { font-size: 2.2rem; margin-bottom: 20px; }
+.deco-line {
+    width: 0; height: 1px; background: $c-secondary;
+    margin: 30px 0; transition: width 1s $ease-out;
+}
+
+/* 共用按鈕 */
+.btn-pill {
+    font-family: $font-nav;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px 32px; border-radius: $radius-pill;
+    font-size: 0.95rem; font-weight: 700; letter-spacing: 1px;
+    border: 1px solid $c-secondary; color: $c-secondary;
+    background: transparent; transition: all $transition-time ease;
+    position: relative; overflow: hidden;
+    text-transform: uppercase;
+
+    &:hover {
+        background: $c-secondary;
+        color: $c-surface;
+    }
+}
+
+/* ==========================================================================
+    4. 輪播控制系統 - 專業優化版
+   ========================================================================== */
+
+.news-swiper-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.swiper-wrap.swiper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* 控制盒核心 */
+.control-box {
+    display: flex;
+    align-items: center;
+    z-index: 100;
+
+    @include rwd(pc) {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        width: auto;
+    }
+
+    @include rwd(tablet) {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        transform: translateY(-50%);
+        justify-content: space-between;
+        padding: 0 10px;
+        pointer-events: none;
+    }
+
+    /* 分頁數字 */
+    .swiper-dots {
+        display: flex;
+        align-items: center;
+        margin: 0 15px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #222;
+        font-family: 'Inter', sans-serif;
+
+        @include rwd(tablet) { display: none !important; }
+
+        .gap {
+            margin: 0 15px;
+            display: block;
+            width: 1px;
+            height: 16px;
+            background-color: #222;
+            transform: rotate(30deg);
+        }
+    }
+
+    /* 左右按鈕 */
+    .swiper-button {
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        background: url('../images/arrow1.png') no-repeat center center;
+        background-size: 40px 40px;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+        pointer-events: auto;
+
+        &::before, &::after { display: none !important; }
+
+        &.swiper-next { transform: scaleX(-1); }
+
+        &:hover { opacity: 0.6; }
+
+        @include rwd(tablet) {
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 50%;
+        }
+
+        @include rwd(sm-mobile) {
+            flex: 0 0 32px;
+            height: 32px;
+            background-size: 24px 24px;
+        }
+    }
+}
+
+.swiper-slide { box-sizing: border-box; }
+
+/* ==========================================================================
+    5. Global Components
+   ========================================================================== */
+
+/* --- 主導覽列 (Header) --- */
+.site-header {
+    position: fixed; top: 0; left: 0; width: 100%; height: $header-h;
+    background: rgba(0, 0, 0, 0.1); border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px); z-index: 1000; transition: all 0.5s $ease-out;
+
+    & > .container-1600 { height: $header-h; }
+
+    &.scrolled {
+        background: rgba(0, 0, 0, 0.6); border-bottom: 0.2px solid rgba(253, 252, 248, 0.1);
+        backdrop-filter: blur(5px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-inner { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+
+    .nav-list {
+        display: flex; gap: 50px;
+
+        @include rwd(tablet) {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100vh;
+            flex-direction: column; gap: 25px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(25,25,25,0.95));
+            padding: 140px $gutter 50px; z-index: 1000;
+            transform: translateX(100%); transition: transform 0.5s $ease-out;
+            justify-content: center; align-items: center; backdrop-filter: blur(15px);
+        }
+    }
+
+    .nav-link {
+        font-family: $font-nav; font-weight: 700; letter-spacing: 0.5px;
+        position: relative; padding: 8px 4px 0px 0px; color: $c-light;
+        transition: color $transition-time ease;
+
+        &::after {
+            content: ""; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: $c-light-orange; transition: width 0.4s $ease-out;
+        }
+
+        &:hover, &.active {
+            color: $c-light-orange;
+            &::after { width: 100%; }
+        }
+
+        @include rwd(tablet) {
+            font-size: 2rem; padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; text-align: center;
+        }
+        @include rwd(mobile) { font-size: 1.8rem; }
+    }
+}
+
+.main-nav.is-open .nav-list { transform: translateX(0); }
+
+.hamburger {
+    display: none; cursor: pointer; flex-direction: column; gap: 6px; padding: 10px; z-index: 1001;
+
+    @include rwd(tablet) { display: flex; }
+
+    span {
+        width: 24px; height: 2px; background: $c-light;
+        transition: all 0.4s $ease-out; transform-origin: center;
+    }
+
+    &.is-active {
+        span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        span:nth-child(2) { opacity: 0; }
+        span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    }
+}
+
+/* --- 麵包屑 Breadcrumbs --- */
+.breadcrumb-wrap { padding: max(1.6vw, 10px) 0 max(2vw, 20px); width: 100%; }
+.breadcrumb__nav {
+    display: flex; font-size: 0.9rem; color: #494338;
+
+    @include rwd(mobile) { font-size: 0.8rem; }
+
+    li {
+        position: relative; line-height: 1.2; display: inline-block;
+        &:not(:last-child) {
+            padding-right: 30px;
+            @include rwd(mobile) { padding-right: 20px; }
+
+            &::after {
+                content: ""; position: absolute; top: 50%; right: 15px;
+                width: 5px; height: 5px; border-width: 1px; border-style: solid;
+                border-color: #494338 #494338 transparent transparent;
+                transform: translateY(-50%) rotate(45deg);
+                @include rwd(mobile) { right: 9px; }
+            }
+        }
+        &.home a { font-weight: 700; }
+        &:last-child a { pointer-events: none; color: #8c8c8c; }
+    }
+}
+
+/* --- 回到頂部按鈕 (Back to Top) --- */
+.back-to-top {
+    position: fixed; bottom: 40px; right: 40px;
+    width: 60px; height: 60px; z-index: 900;
+    opacity: 0; visibility: hidden; transition: all 0.4s ease;
+    background: rgba(0, 0, 0, 0.4); border: none; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+    @include rwd(tablet) { bottom: 20px; right: 20px; width: 50px; height: 50px; }
+
+    &.is-visible { opacity: 1; visibility: visible; }
+}
+
+.progress-ring {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform: rotate(-90deg); pointer-events: none;
+
+    &__background { fill: transparent; stroke: rgba(255, 255, 255, 0.1); stroke-width: 4px; }
+    &__circle {
+        fill: transparent; stroke: $c-light-orange; stroke-width: 4px; stroke-linecap: round;
+        stroke-dasharray: 175.93; stroke-dashoffset: 175.93; transition: stroke-dashoffset 0.1s linear;
+    }
+}
+.btt-icon { font-size: 1.5rem; color: #FFFFFF; z-index: 2; }
+
+/* --- Marquee --- */
+.marquee {
+    background: $c-primary; color: #fff; padding: 18px 0; overflow: hidden;
+    white-space: nowrap; position: relative; z-index: 2;
+
+    &__inner { display: inline-block; animation: marquee 25s linear infinite; }
+    &__item { font-size: 1.2rem; margin: 0 40px; font-family: $font-nav; font-style: italic; letter-spacing: 0.05em; }
+}
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* --- 試吃申請區塊 (Tasting Section) --- */
+.i-tasting {
+    position: relative; margin-top: -3px; padding-bottom: 32.304%;
+    line-height: 0; overflow: hidden; font-family: $font-body;
+
+    @include rwd(tablet) { padding-bottom: 45%; }
+    @include rwd(mobile) { padding-bottom: 380px; }
+
+    &__overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 1; }
+
+    &__content {
+        position: absolute; z-index: 2; top: 54%; left: 50%; width: 100%;
+        color: $c-light; text-align: center; line-height: 1.6;
+        transform: translate(-50%, -50%); padding: 0 20px; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.85);
+
+        @include rwd(pc) { @media (max-width: 1559px) { top: 50%; } }
+    }
+
+    .container-1440 { animation: up-down 6s ease-out forwards infinite; }
+
+    .g__box-ti {
+        margin-bottom: 15px; color: $c-light; font-family: $font-title;
+        font-size: 2.8rem; letter-spacing: 10.8px; text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
+
+        @include rwd(tablet) { font-size: 2.1rem; }
+        @include rwd(mobile) { font-size: 1.7rem; }
+        @include rwd(sm-mobile) { font-size: 1.5rem; }
+
+        .en { display: block; font-size: 0.8em; opacity: 0.85; margin-bottom: 5px; }
+        .tw { display: block; font-size: 1em; }
+    }
+
+    &__text {
+        font-size: 1.3rem; line-height: 1.9; margin: 0 auto 30px; max-width: 800px;
+        text-shadow: 1.5px 1.5px 6px rgba(0, 0, 0, 0.85);
+
+        @include rwd(tablet) { font-size: 1.05rem; }
+        @include rwd(mobile) { font-size: 0.95rem; margin-bottom: 20px; }
+
+        br { @include rwd(mobile) { display: none; } }
+    }
+
+    .g-btn-link {
+        display: inline-block; padding: 14px 36px; color: #fff; border-radius: 30px;
+        font-family: $font-title; font-size: 1.2rem; font-weight: 700; letter-spacing: 1.2px;
+        transition: all $transition-time ease; background-color: $c-primary-dark;
+        box-shadow: 0 8px 25px rgba(88, 42, 25, 0.7); overflow: hidden; position: relative;
+
+        @include rwd(mobile) { padding: 12px 28px; font-size: 1.05rem; }
+
+        &:hover {
+            color: $c-primary-dark; background-color: $c-accent;
+            box-shadow: 0 6px 20px rgba(248, 233, 192, 0.4); transform: translateY(-4px); text-shadow: none;
+        }
+    }
+
+    &__bg {
+        position: absolute; inset: 0; z-index: 0;
+        img {
+            position: absolute; top: 50%; left: 50%; width: 100% !important; height: 100% !important;
+            max-width: none !important; object-fit: cover; transform: translate(-50%, -50%);
+        }
+    }
+}
+
+@keyframes up-down {
+    0%, 100% { transform: translateY(20px); }
+    25%, 75% { transform: translateY(0); }
+    50% { transform: translateY(20px); }
+}
+
+/* --- Site Footer --- */
+.site-footer {
+    background: #221b18; color: rgba(255, 255, 255, 0.7); padding: 80px 0 40px;
+    text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    @include rwd(tablet) { padding: 50px 0 30px; }
+
+    .footer-logo img { height: 50px; margin: 0 auto 30px; }
+
+    .footer-nav {
+        @include rwd(tablet) { display: flex; flex-direction: column; gap: 15px; }
+        a {
+            margin: 0 15px;
+            &:hover { color: #fff; }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 {{-- 試吃申請區塊 --}}
 <section class="i-tasting">
-    <div class="i-tasting__overlay"></div> <!-- 新增遮罩層 -->
+    <div class="overlay-dark"></div> <!-- 新增遮罩層 -->
     <div class="i-tasting__content">
         <div class="container-1440">
             <h2 class="g__box-ti">

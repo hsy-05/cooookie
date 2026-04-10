@@ -1,0 +1,47 @@
+/* -----------------------------------------
+   功能混合器 (Mixins)
+   ----------------------------------------- */
+
+/**
+ * 響應式中斷點控制 (RWD)
+ * 讓你在寫樣式時，直接在 Class 內部處理不同裝置的表現
+ * @param {String} $device - 傳入裝置關鍵字 (4k, lg, md, sm, xs)
+ */
+@mixin rwd($device) {
+    @if $device == '4k' { @media (min-width: 2560px) { @content; } }
+    @if $device == 'lg' { @media (max-width: 1024px) { @content; } }
+    @if $device == 'md' { @media (max-width: 768px)  { @content; } }
+    @if $device == 'sm' { @media (max-width: 425px)  { @content; } }
+    @if $device == 'xs' { @media (max-width: 375px)  { @content; } }
+}
+
+/**
+ * 文字截斷 (解決標題或簡述長度不一的問題)
+ * 防止後台人員輸入太多文字導致排版壞掉
+ * @param {Number} $line - 限制顯示幾行
+ */
+@mixin text-limit($line) {
+    display: -webkit-box;
+    -webkit-line-clamp: $line;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/**
+ * 圖片容器比例固定 (防止圖片還沒載入時畫面閃爍/跳動)
+ * @param {Number} $width - 寬度比例
+ * @param {Number} $height - 高度比例
+ */
+@mixin aspect($width, $height) {
+    aspect-ratio: #{$width} / #{$height};
+    position: relative;
+    overflow: hidden;
+    img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}

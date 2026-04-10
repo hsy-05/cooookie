@@ -216,3 +216,147 @@ Model $news->title -> 自動去抓 lang_id = 1 的描述
               v
         [ ActionLog ] <--- (資料庫紀錄)
       (格式化顯示: 去除重複動作字眼)
+
+
+===========================================================
+===========================================================
+## ===== 聯絡我們 相關檔案說明 =====
+
+| 檔案路徑 | 類型 | 說明 |
+| :--- | :--- | :--- |
+| app/Helpers/MailConfigHelper.php | 工具類 | 負責動態修改 SMTP 設定，解決 TLS 憑證報錯問題。 |
+| app/Http/Controllers/Admin/ContactController.php | 後台控制 | 處理列表顯示、讀取狀態更新、回覆儲存與寄信邏輯。 |
+| app/Http/Controllers/Frontend/ContactController.php | 前台控制 | 處理表單顯示、資料存檔、通知管理員的邏輯。 |
+| app/Mail/ContactNotification.php | 郵件物件 | 定義郵件的主旨與指定對應的 Blade 樣板。 |
+| app/Models/Contact.php | 模型 | 定義聯絡單主表，包含與回覆表的一對多關聯。 |
+| app/Models/ContactReply.php | 模型 | 定義回覆紀錄表，關聯回主表。 |
+| database/seeders/MailSettingsSeeder.php | 資料填充 | 初始設定 SMTP 所需的資料庫欄位與預設值。 |
+
+<pre>
+
+[前台使用者] ---- 填寫表單 ----> [Frontend ContactController@store]
+                                        |
+                                  1. 驗證資料 (validate)
+                                  2. ContentHelper::cleanHtml (防呆/安全性)
+                                  3. Contact::create (存入 contact 表，狀態=0，產生序號)
+                                  4. MailConfigHelper::applyFromDatabase (套用 SMTP 設定)
+                                  5. Mail::send (發送通知信給客服 / 管理員)
+                                        |
+                                        v
+                              (建立客服單完成)
+
+
+[管理員登入] ---- 進入列表 ----> [Admin ContactController@index]
+      |                                 |
+      |                           1. 顯示分頁列表 (具記憶功能)
+      |                                 |
+      +---------- 點擊查看 ----> [Admin ContactController@edit]
+                                        |
+                                  1. 讀取 Contact 資料
+                                  2. 更新狀態為 1 (已讀)
+                                  3. 清理無效暫存圖 (SummernoteImageHelper)
+                                  4. 顯示 Summernote 編輯器
+                                        |
+      +---------- 提交回覆 ----> [Admin ContactController@update]
+                                        |
+                                  1. [ DB Transaction Start ]
+                                  |    2. ContentHelper::encodeSiteUrl (標籤化)
+                                  |    3. ContactReply::create (存入 contact_reply)
+                                  |    4. 更新狀態為 2 (已回覆)
+                                  |    5. SummernoteImageHelper::commit (圖片轉正)
+                                  |    6. MailConfigHelper::applyFromDatabase
+                                  |    7. Mail::send (發送回覆信給客戶)
+                                  |    8. 寫入操作日誌 (ActionLog)
+                                  9. [ DB Transaction Commit ]
+                                        |
+                                        v
+                                   [完成回覆]
+
+</pre>
+
+<pre>
+[ 前台使用者 ]          [ Laravel 路由 ]          [ 邏輯處理層 ]          [ 外部/資料儲存 ]
+      |                      |                      |                      |
+      |-- 填寫表單內容 ------>|                      |                      |
+      |-- (含 reCAPTCHA)     |-- POST /contact/store |                      |
+      |                      |--------+             |                      |
+      |                      |        |--[ 1. 驗證 ]|-- reCAPTCHA API 驗證 ->| (Google 伺服器)
+      |                      |        |             |                      |
+      |                      |        |--[ 2. 過濾 ]|-- ContentHelper 清理 ->|
+      |                      |        |             |                      |
+      |                      |        |--[ 3. 儲存 ]|-- 寫入 Contact 表 ---->| (Database)
+      |                      |        |             |                      |
+      |                      |        |--[ 4. 配置 ]|-- MailConfigHelper --+
+      |                      |        |             |                      | |
+      |                      |        |--[ 5. 發信 ]|-- 寄送通知信 -------->| (SMTP Server)
+      |<-- 回傳 JSON 成功 ----|        |             |                      |
+      |                      |        +-------------+                      |
+      |                      |                                             |
+[ 後台管理員 ]               |                                             |
+      |                      |                                             |
+      |-- 登入查看列表 ------>|-- GET /admin/contact |                      |
+      |                      |--[ 狀態更新 ]-------->|-- 更新 status 為 1 --->| (Database)
+      |                      |                      |                      |
+      |-- 填寫回覆內容 ------>|-- PUT /contact/{id}  |                      |
+      |                      |--------+             |                      |
+      |                      |        |--[ 1. 事務 ]|-- DB::transaction    |
+      |                      |        |--[ 2. 儲存 ]|-- 寫入 Reply 表 ----->| (Database)
+      |                      |        |--[ 3. 更新 ]|-- status 改為 2 ------>| (Database)
+      |                      |        |--[ 4. 發信 ]|-- 寄回覆信給客戶 ------>| (Email)
+      |<-- Redirect 返回 -----|        +-------------+                      |
+</pre>
+---
+---
+## ===== 功能檔案清單與用途說明 =====
+
+| 分類 | 檔案路徑 | 功能說明 | 主要用途 (解決什麼問題) |
+| :--- | :--- | :--- | :--- |
+| 系統核心 | bootstrap/app.php | 應用程式啟動配置 | 註冊 Middleware（如權限、語系）與全局異常處理（如 CSRF 過期跳轉）。 |
+| 配置定義 | config/backend_permissions.php | 後台權限目錄 | 定義模組標籤與操作代碼，供系統自動生成標題與判斷權限。 |
+| 基礎控制 | app/Http/Controllers/Admin/BaseAdminController.php | 後台基礎控制器 | 所有後台功能之母，處理分頁記憶、自動標題、AJAX 狀態切換與權限綁定。 |
+| 資料驗證 | app/Http/Requests/Admin/BaseFormRequest.php | 基礎表單驗證器 | 集中定義全站統一的圖片與檔案上傳規則（如副檔名、大小限制）。 |
+| 內容輔助 | app/Helpers/ContentHelper.php | 內容標籤化與過濾 | 解決開發/正式環境網址遷移問題（[[SITE_URL]]）並過濾危險 HTML 標籤。 |
+| 影像處理 | app/Helpers/ImageHelper.php | 影像處理核心工具 | 負責圖片上傳後的裁切、縮放、補白背景與隨機檔名生成。 |
+| 編輯器工具 | app/Helpers/SummernoteImageHelper.php | Summernote 圖片管理 | 比對新舊內容，自動刪除被移除的圖片，並清理未儲存的暫存圖檔。 |
+| 模型擴充 | app/Traits/HasImageFields.php | 圖片欄位自動化處理 | 讓 Model 刪除資料時，自動連動刪除 ImageHelper 產生的實體檔案。 |
+| 視覺元件 | resources/views/admin/page-message.blade.php | 統一操作結果頁面 | 顯示操作成功/失敗提示，並包含自動跳轉與自定義按鈕連結。 |
+---
+---
+<pre>
+[ 管理員操作 ]          [ 系統核心層 ]               [ 邏輯處理 / Helper 層 ]           [ 資料/實體儲存 ]
+      |                      |                           |                           |
+      |--- 1. 進入頁面 ----> [ bootstrap/app.php ]       |                           |
+      |                      | (Middleware 檢查權限)      |                           |
+      |                      |           |               |                           |
+      |                      v           |               |                           |
+      |                [ BaseAdminController ] <--- [ config/backend_permissions.php ]
+      |                (自動產生頁面標題) |               (讀取模組中文名稱)             |
+      |                      |           |               |                           |
+      |--- 2. 上傳圖片 ----> [ ImageHelper ] ------------+------------> [ /storage/app/public ]
+      |      (編輯器內)      (處理縮放/補色) |               |               (儲存實體圖檔)
+      |                      |           |               |                           |
+      |                      v           |               |                           |
+      |--- 3. 提交表單 ----> [ BaseFormRequest ]         |                           |
+      |                      (驗證圖片格式與大小)          |                           |
+      |                              |                   |                           |
+      |                              v                   |                           |
+      |                      [ Controller@store ]        |                           |
+      |                              |                   |                           |
+      |                              |--[ ContentHelper::encodeSiteUrl ] ----------> [[SITE_URL]]
+      |                              |   (將絕對網址轉為標籤存入 DB)                   (資料庫字串)
+      |                              |                   |                           |
+      |                              |--[ SummernoteImageHelper::commit ]            |
+      |                              |   (確認存檔，移除暫存觀察名單)                     |
+      |                              |                   |                           |
+      |                              v                   |                           |
+      |--- 4. 完成跳轉 <---- [ page-message.blade.php ]  |                           |
+      |                      (顯示成功並倒數跳轉)          |                           |
+      |                                                  |                           |
+      |                                                  |                           |
+[ 5. 刪除資料 ] ----------------------------------------> [ App\Models\XXX ]          |
+      |                                                  (使用了 HasImageFields)      |
+      |                                                          |                   |
+      |                                                          v                   |
+      |                                                  [ ImageHelper::delete ] --> [ 刪除實體檔案 ]
+</pre>
+

@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
 
-    <title>{{ $pageTitle }}</title>
+    <title>{{ $pageTitle ?? '' }}</title>
 
-    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:title" content="{{ $pageTitle ?? '' }}">
     <meta name="description" content="@yield('meta_description', config('site.site_meta_description') ?? '')">
 
     <meta name="keywords" content="@yield('meta_keywords', config('site.site_meta_keywords') ?? '')">
@@ -30,14 +30,12 @@
 
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
+    {{-- @vite(['resources/css/app.scss', 'resources/js/app.js']) --}}
 
     @stack('styles')
 </head>
 
 <body>
-    {{-- 全域雜訊紋理 --}}
-    <div class="global-noise"></div>
-
     {{-- 頁首 (Sticky + Glassmorphism) --}}
     <header class="site-header js-header">
         <h1 class="ele-hidden">{{ $currentTitle }}</h1>
@@ -58,7 +56,7 @@
                     <li><a href="{{ url('/news') }}"
                             class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a></li>
                     <li><a href="{{ url('/contact') }}"
-                            class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">聯絡我們</a></li>
+                            class="nav-link {{ request()->routeIs('contact.index') ? 'active' : '' }}">聯絡我們</a></li>
                 </ul>
             </nav>
 
@@ -122,7 +120,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
     {{-- 全站核心交互 (已移至外部檔案以維護可讀性) --}}
 
+    {{-- @vite(['resources/js/app.js']) --}}
     <script src="{{ asset('js/frontend/common.js') }}"></script>
+
 
     @stack('scripts')
 </body>

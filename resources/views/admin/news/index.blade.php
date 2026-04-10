@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-{{-- 1. 瀏覽器分頁標題：依然使用完整標題，方便搜尋與辨識 --}}
+{{-- 瀏覽器分頁標題：依然使用完整標題，方便搜尋與辨識 --}}
 @section('title', $pageTitle)
 
-{{-- 2. 頁面內容區標題：使用組件並傳入預先處理好的標題物件 --}}
+{{-- 頁面內容區標題：使用組件並傳入預先處理好的標題物件 --}}
 @component('components.admin.page_content_header', [
     'pageTitle' => $pageTitle, // 傳入字串（供組件內的備援邏輯使用）
     'titleConfig' => $titleConfig, // [關鍵] 傳入物件，讓組件直接抓 $titleConfig['main']
@@ -26,7 +26,7 @@
         <div class="card">
             <div class="card-body">
 
-                {{-- ===== 1. 搜尋 + 新增 ===== --}}
+                {{-- ===== 搜尋 + 新增 ===== --}}
                 <div class="d-flex justify-content-between align-items-center mb-3 px-width-600">
                     {{-- 搜尋表單 --}}
                     <form action="{{ route('admin.news.index') }}" method="GET" class="form-inline">
@@ -55,12 +55,12 @@
 
                 </div>
 
-                {{-- ===== 2. 批次刪除表單 ===== --}}
+                {{-- ===== 批次刪除表單 ===== --}}
                 <form action="{{ route('admin.news.batch_destroy') }}" method="POST" id="batchDeleteForm">
                     @csrf
                     @method('DELETE')
 
-                    {{-- ===== 3. 資料列表 ===== --}}
+                    {{-- ===== 資料列表 ===== --}}
                     <table class="table table-bordered table-striped table-hover">
                         <thead class="thead-dark">
                             <tr>
@@ -69,9 +69,10 @@
                                     <input type="checkbox" id="checkAll">
                                 </th>
                                 <th class="text-center">標題</th>
-                                <th class="text-center px-width-150 hidden-xs">是否顯示</th>
-                                <th class="text-center px-width-150 hidden-xs">首頁顯示</th>
-                                <th class="text-center px-width-150 hidden-md">排序</th>
+                                <th class="text-center px-width-140">分類</th>
+                                <th class="text-center px-width-100 hidden-xs">是否顯示</th>
+                                <th class="text-center px-width-100 hidden-xs">首頁顯示</th>
+                                <th class="text-center px-width-100 hidden-md">排序</th>
                                 <th class="text-center px-width-150 hidden-sm">更新時間</th>
                                 <th class="text-center px-width-120">操作</th>
                             </tr>
@@ -88,6 +89,10 @@
 
                                     {{-- 標題（多語系取第一筆） --}}
                                     <td>{{ $item->title ?? '--' }}</td>
+
+                                    {{-- 分類 --}}
+                                    <td class="text-center hidden-xs">{{ $item->category->desc->name ?? '未分類' }}
+                                    </td>
 
                                     {{-- 是否顯示 --}}
                                     <td class="text-center hidden-xs">

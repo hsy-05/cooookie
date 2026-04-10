@@ -7,6 +7,7 @@ export default defineConfig({
       input: [
         'resources/js/app.js',  // 編譯的 JS 文件入口
         'resources/css/app.css', // 編譯的 CSS 文件入口
+        'resources/css/home.scss',
       ],
       refresh: true,  // 啟用自動刷新
     }),

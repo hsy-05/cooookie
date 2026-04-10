@@ -15,6 +15,13 @@ const SITE_CONFIG = {
 window.addEventListener('load', () => {
 
     /**
+     * 初始化 GSAP 插件與 Lenis 同步
+     */
+    if (typeof gsap !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+    }
+
+    /**
      * 初始化 Lenis 平滑滾動
      * 解決原生滾動生硬問題，並為 GSAP 動畫提供基準。
      * @returns {Object|null} Lenis 實例
@@ -32,7 +39,9 @@ window.addEventListener('load', () => {
             smoothTouch: false // 行動版通常維持原生手感以利操作
         });
 
-        // 串接瀏覽器的渲染循環
+        // 將 Lenis 滾動事件同步到 ScrollTrigger，這能解決座標偵測不準的問題
+        lenis.on('scroll', ScrollTrigger.update);
+
         const raf = (time) => {
             lenis.raf(time);
             requestAnimationFrame(raf);
@@ -44,12 +53,7 @@ window.addEventListener('load', () => {
 
     const lenis = initLenis();
 
-    // 啟動 GSAP 滾動插件
-    if (typeof gsap !== 'undefined') {
-        gsap.registerPlugin(ScrollTrigger);
-    }
-
-    // 統一選取常用的 DOM 元素，避免重複選取浪費效能
+    // 常用 DOM 元素選取
     const dom = {
         body: document.body,
         header: document.querySelector('.site-header'),
@@ -61,8 +65,7 @@ window.addEventListener('load', () => {
     };
 
     /**
-     * 初始化回頂端按鈕的圓環進度條
-     * 利用 SVG stroke-dasharray 特性計算總長度。
+     * 回頂端進度環初始化
      */
     let circumference = 0;
     if (dom.ringCircle) {
@@ -73,8 +76,7 @@ window.addEventListener('load', () => {
     }
 
     /**
-     * 處理所有隨滾動產生的 UI 變化
-     * 效能優化：將所有判斷寫在同一個滾動監聽內。
+     * 捲動監聽 UI 變化
      */
     if (lenis) {
         lenis.on('scroll', (e) => {
@@ -82,17 +84,16 @@ window.addEventListener('load', () => {
             const docHeight = document.body.scrollHeight - window.innerHeight;
             const scrollPercent = (scrollTop / docHeight) * 100;
 
-            // 1. 頂部導覽列：切換深淺色狀態
+            // 頂部導覽列：切換深淺色狀態
             if (dom.header) {
                 dom.header.classList.toggle('scrolled', scrollTop > SITE_CONFIG.headerTrigger);
             }
-
-            // 2. 回頂端按鈕：控制顯現與消失
+            // 回頂端按鈕：控制顯現與消失
             if (dom.backToTop) {
                 dom.backToTop.classList.toggle('is-visible', scrollTop > SITE_CONFIG.backToTopTrigger);
             }
 
-            // 3. 回頂端圓環：根據捲動比例填滿路徑
+            // 回頂端圓環：根據捲動比例填滿路徑
             if (dom.ringCircle) {
                 const offset = circumference - (scrollPercent / 100) * circumference;
                 dom.ringCircle.style.strokeDashoffset = offset;
@@ -101,8 +102,7 @@ window.addEventListener('load', () => {
     }
 
     /**
-     * 行動版側邊選單切換邏輯
-     * @param {boolean} shouldOpen - 強制設定開啟或關閉
+     * 行動版側邊選單控制
      */
     if (dom.hamburger && dom.mainNav) {
         const toggleMenu = (shouldOpen) => {
@@ -121,18 +121,15 @@ window.addEventListener('load', () => {
             }
         };
 
-        // 漢堡鈕點擊事件
+        // 手機板點擊事件
         dom.hamburger.addEventListener('click', () => {
-            const isOpen = dom.mainNav.classList.contains('is-open');
-            toggleMenu(!isOpen);
+            toggleMenu(!dom.mainNav.classList.contains('is-open'));
         });
 
         // 選單內部鏈接點擊後自動關閉（用於單頁捲動或行動版體驗）
         dom.navLinks.forEach(link => {
             link.addEventListener('click', () => {
-                if (window.innerWidth <= SITE_CONFIG.mobileBreakpoint) {
-                    toggleMenu(false);
-                }
+                if (window.innerWidth <= SITE_CONFIG.mobileBreakpoint) toggleMenu(false);
             });
         });
 
@@ -145,7 +142,7 @@ window.addEventListener('load', () => {
     }
 
     /**
-     * 點擊回頂端功能
+     * 回頂端按鈕點擊
      */
     if (dom.backToTop && lenis) {
         dom.backToTop.addEventListener('click', () => {
@@ -154,12 +151,12 @@ window.addEventListener('load', () => {
     }
 
     /**
-     * 全站通用視差背景與圖層
-     * 效能優化：使用 FastScrollEnd 並優化遍歷方式。
+     * 全站通用視差效果
      */
-    if (typeof gsap !== 'undefined') {
-        const parallaxElements = gsap.utils.toArray('.js-parallax-img');
+    const initParallax = () => {
+        if (typeof gsap === 'undefined') return;
 
+        const parallaxElements = gsap.utils.toArray('.js-parallax-img');
         parallaxElements.forEach(container => {
             const img = container.querySelector('img');
             if (!img) return;
@@ -177,20 +174,60 @@ window.addEventListener('load', () => {
                 }
             });
         });
-    }
-
-    /**
-     * 通用 Fade Up 效果
-     */
-    const initFadeUp = () => {
-        gsap.utils.toArray('.js-fade-up').forEach(el => {
-            gsap.fromTo(el, { autoAlpha: 0, y: 30 }, {
-                autoAlpha: 1, y: 0, duration: 1, ease: "power2.out",
-                scrollTrigger: { trigger: el, start: "top 90%", toggleActions: "play none none reverse" }
-            });
-        });
     };
 
-    // 依序執行
+    /**
+     * 初始化通用上浮動畫 (Fade Up)
+     * 加入了高度校正與座標刷新防呆。
+     */
+    const initFadeUp = () => {
+        if (typeof gsap === 'undefined') return;
+
+        const fadeElements = gsap.utils.toArray('.js-fade-up');
+
+        // 先清理舊有的 ScrollTrigger 避免重複計算高度
+        ScrollTrigger.getAll().forEach(st => {
+            if (st.vars.trigger && st.vars.trigger.classList && st.vars.trigger.classList.contains('js-fade-up')) {
+                st.kill();
+            }
+        });
+
+        fadeElements.forEach(el => {
+            gsap.fromTo(el,
+                { autoAlpha: 0, y: 30 },
+                {
+                    autoAlpha: 1,
+                    y: 0,
+                    duration: 1,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 90%",
+                        toggleActions: "play none none reverse",
+                        markers: true // 完成除錯後改為 false
+                    }
+                }
+            );
+        });
+
+        /**
+         * 強制高度刷新邏輯：
+         * 使用延遲刷新確保 Swiper 與圖片撐開高度後才鎖定偵測點。
+         */
+        setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 100);
+    };
+
+    /**
+     * 專業啟動流程：
+     * 1. 執行視差 -> 2. 執行上浮 -> 3. 延遲刷新座標
+     */
+    initParallax();
     initFadeUp();
+
+    // 最終防呆：當頁面完全穩定後再次校正座標，解決頁尾多餘空白問題
+    setTimeout(() => {
+        ScrollTrigger.refresh();
+    }, 500);
 });

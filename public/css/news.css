@@ -12,82 +12,25 @@
     --news-border-color: #eeeeee;
 }
 
-/* --- 1. Page Banner --- */
-.page-banner {
-    position: relative;
-    width: 100%;
-    height: 45vh;             /* 稍微增加高度，更有旗艦感 */
-    min-height: 350px;
-    background-color: var(--c-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
+/* ==========================================================================
+   最新消息分頁微調 (News Page Styles)
+   用途：繼承 frontend.css 後，針對 news 頁面進行視覺優化
+   ========================================================================== */
 
-/* 專業技巧：增加半透明遮罩層，確保文字在任何底圖下都清晰 */
-.page-banner::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.1) 0%,
-        rgba(0, 0, 0, 0.3) 100%
-    );
-    z-index: 1;
-}
-
-.banner-img {
-    position: absolute;
-    width: 100%;
-    height: 120%;             /* 預留滾動視差 (Parallax) 的空間 */
-    object-fit: cover;
-    opacity: 0.6;             /* 稍微調高不透明度，讓層次感更好 */
+/* 覆蓋圖片透明度，讓層次感更好 */
+.page-banner .banner-img {
+    opacity: 0.7;
+    /* 這裡原本有 height: 120% 是為了視差效果，建議保留 */
+    height: 120%;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* 確保圖片置中 */
-    transition: transform 1.2s var(--ease-smooth);
+    position: absolute;
+    transform: translate(-50%, -50%);
 }
 
-.banner-txt {
-    position: relative;
-    z-index: 2;               /* 確保文字在遮罩層之上 */
-    text-align: center;
-    color: #ffffff;
-    padding: 0 var(--gutter);
-}
-
-/* 整合全域標題樣式，並強化 banner 特有屬性 */
-.banner-title,
-.banner-txt h1,
-.banner-txt h2 {
-    /* 繼承 frontend.css 的 h2 基礎，並在此微調 */
-    color: #ffffff;
-    margin-bottom: 12px;
-    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2); /* 增加微妙的深度感 */
-}
-
-.banner-subtitle {
-    display: block;           /* 確保佔據一行 */
-    font-family: var(--font-sans);
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.4em;    /* 比大標題更開的字距，顯現日系細節 */
-    text-transform: uppercase;
-    opacity: 0.8;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-/* 響應式微調 */
-@media (max-width: 768px) {
-    .page-banner {
-        height: 35vh;
-        min-height: 280px;
-    }
+/* 針對最新消息的 Banner 增加特定遮罩漸層 */
+.page-banner::after {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
 /* --- 2. Filter Tabs (分類篩選) --- */

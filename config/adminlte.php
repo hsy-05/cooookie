@@ -358,6 +358,18 @@ return [
             ],
         ],
         [
+            'text' => '客服管理',
+            'icon' => 'fas fa-fw fa-user-tie',
+            'submenu' => [
+                [
+                    'text' => '聯絡我們',
+                    // 'route' => 'admin.contact',   // 優先使用 route（如果你有命名路由）
+                    'url' => 'admin/contact',
+                    'active' => ['regex:@^admin/contact($|/)@'], // 可用陣列 / 通配符，*代表匹配所有後綴
+                ],
+            ],
+        ],
+        [
             'text' => 'pages',
             'url' => 'admin/pages',
             'icon' => 'far fa-fw fa-file',

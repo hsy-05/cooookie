@@ -1,69 +1,57 @@
 /* ==========================================================================
-    1. Design System & Variables (2025 Optimized)
+    1. Design System & Variables (參數化管理區)
+    說明：專業設計公司的核心，修改此處可連動全站。
     ========================================================================== */
+
 :root {
-    /* 🎨 配色：高端日系/大地色系 */
-    --c-primary: #8c6a4b;       /* 主色：焦糖棕 */
-    --c-primary-dark: #5d4037;  /* 深色：咖啡棕 */
-    --c-secondary: #2c2420;     /* 文字：深炭灰 */
-    --c-accent: #d4a373;        /* 點綴：金黃色 */
-    --c-light-orange: #db9c55;  /* 強調：亮橘色 */
-    --c-bg: #eee8e0;            /* 背景：米灰色 */
-    --c-surface: #ffffff;       /* 表面：純白色 */
-    --c-light: #f4f1ea;         /* 裝飾：淺米色 */
-/* ==========================================================================
-   Font System
-   說明：
-   使用 System Font Stack，參考 BUT 品牌網站
-   優點：
-   - 不需要載入 Google Fonts
-   - 速度更快
-   - 在 Mac / Windows / iOS / Android 都會使用最適合的系統字體
-   - 台灣品牌網站常用策略
-   ========================================================================== */
+    /* 🎨 配色：維持原樣 */
+    --c-primary: #8c6a4b;
+    --c-primary-dark: #5d4037;
+    --c-secondary: #2c2420;
+    --c-accent: #d4a373;
+    --c-light-orange: #db9c55;
+    --c-bg: #eee8e0;
+    --c-surface: #ffffff;
+    --c-light: #f4f1ea;
 
-
-    /* ---------------- 字體 ---------------- */
-
-    /* 標題專用：Quicksand (英) + Noto Sans TC (中)
-       邏輯：優先套用圓潤的英文字，中文則自動對接思源黑體
-    */
+    /* ---------------- 字體系統 (Typography) ---------------- */
     --font-heading: "Rubik", "Noto Sans TC", sans-serif;
-
-    /* 內文專用：Noto Sans TC (中) + 系統預設英文字
-       邏輯：內文講求長篇閱讀的穩定感，以中文黑體為主
-    */
     --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
 
-    /* ----------------------------------------------------------------------
-       語意化應用
-       ---------------------------------------------------------------------- */
-    --font-title: var(--font-heading);    /* 應用於 h1~h4, .logo */
-    --font-body: var(--font-body);        /* 應用於 p, span, li */
-    --font-nav: var(--font-body);         /* 應用於導覽列選單 */
+    /* 專業標題縮放邏輯 (Fluid Typography)
+       用法：clamp(最小尺寸, 響應式變動值, 最大尺寸)
+       這樣設定後，你幾乎不需要在 Media Query 裡面重複寫 font-size
+    */
+    --fs-h1: clamp(2.2rem, 5vw, 3.5rem);    /* 網頁主標題 */
+    --fs-h2: clamp(1.8rem, 4vw, 2.8rem);    /* 區塊大標題 */
+    --fs-h3: clamp(1.4rem, 3vw, 2.0rem);    /* 區塊內中標題 */
+    --fs-h4: clamp(1.1rem, 2vw, 1.4rem);    /* 小標題/卡片標題 */
+    --fs-h5: 1.1rem;                        /* 微細節標題 */
 
+    --fs-body: clamp(0.95rem, 1vw, 1.1rem); /* 標準內文大小 */
+    --fs-small: 0.85rem;                    /* 輔助說明/標籤 */
+    --fs-nav: 1rem;                         /* 導覽列文字 */
 
-    /* ----------- 佈局與間距 ----------- */
+    /* ----------- 佈局與間距 (維持原樣) ----------- */
     --header-h: 80px;
     --container-width: 1440px;
     --gutter: 24px;
     --padding-space: 25px;
     --section-spacing: clamp(50px, 10vw, 100px);
 
-    /* ----------- 容器寬度變數 ----------- */
+    /* ----------- 容器寬度變數 (維持原樣) ----------- */
     --container-1765: calc(1765px + (var(--padding-space) * 2));
     --container-1600: calc(1600px + (var(--padding-space) * 2));
     --container-1440: calc(1440px + (var(--padding-space) * 2));
     --container-1280: calc(1280px + (var(--padding-space) * 2));
     --container-1070: calc(1070px + (var(--padding-space) * 2));
 
-    /* ----------- 圓角 ----------- */
+    /* ----------- 圓角 (維持原樣) ----------- */
     --radius-md: 12px;
     --radius-lg: 32px;
     --radius-pill: 100px;
 
-
-    /* ----------- 動畫 ----------- */
+    /* ----------- 動畫 (維持原樣) ----------- */
     --transition-time: 0.3s;
     --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
@@ -81,7 +69,7 @@
     scrollbar-color: #b7a48e #000;
 }
 
-/* 滾動條美化 */
+/* 滾動條美化 (維持原樣) */
 *::-webkit-scrollbar { width: 16px; }
 *::-webkit-scrollbar-track { background: #000; }
 *::-webkit-scrollbar-thumb {
@@ -95,77 +83,68 @@ html, body {
     width: 100%;
     overflow-x: hidden;
     position: relative;
+    /* 這裡設定基底大小，影響全站 rem 單位 */
     font-size: 16px;
     line-height: 1.6;
 }
 
 body {
     font-family: var(--font-body);
-    font-weight: 400; /* 統一內文權重，避免過粗 */
+    font-size: var(--fs-body); /* 引用變數：確保全站內文統一 */
+    font-weight: 400;
     background-color: var(--c-bg);
     color: var(--c-secondary);
-    line-height: 1.8; /* 提升易讀性 */
+    line-height: 1.8;
     -webkit-font-smoothing: antialiased;
 }
 
-/* Lenis 平滑捲動 */
+/* Lenis 平滑捲動 (維持原樣) */
 html.lenis { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-/* 精準硬體加速 (GPU Acceleration)
-   用途：僅針對需要流暢動畫、輪播、或有懸停位移的元件開啟
-   這能有效解決 3D 閃爍問題，同時保持極低的 GPU 負擔
-*/
-.js-fade-up,           /* 會向上浮現的動畫元件 */
-.swiper-slide,         /* 輪播圖的每一格 */
-.btn-pill,             /* 有 Hover 縮放效果的按鈕 */
-.news-card,            /* 帶有 Hover 效果的卡片 */
-.back-to-top,          /* 固定定位且有透明度變化的按鈕 */
-.site-header,          /* 滾動時會縮放或變色的導覽列 */
-.nav-link::after       /* 帶有寬度變化的底線 */
-{
+/* GPU 加速優化 (維持原樣) */
+.js-fade-up, .swiper-slide, .btn-pill, .box, .back-to-top, .site-header, .nav-link::after {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     will-change: transform, opacity;
 }
 
-/* 全域雜訊紋理 */
-.global-noise {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 1; opacity: 0.04;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
-}
-
 /* ==========================================================================
-    3. Typography & UI Base
+    3. Typography (文字階層系統)
+    說明：專業公司會統一在此定義標題的視覺重量
     ========================================================================== */
 
-/* 字體 */
-h1, h2, h3, h4 {
-    font-family: var(--font-title);
+h1, h2, h3, h4, h5 {
+    font-family: var(--font-heading);
+    margin-top: 0;
+    color: var(--c-secondary);
+}
+
+h1 {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 h2 {
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: var(--fs-h2);
     font-weight: 600;
     line-height: 1.3;
-    /* 甜點網站不要太大字距 */
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     margin-bottom: 1.5rem;
 }
 
 h3 {
-
-    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-size: var(--fs-h3);
     font-weight: 600;
     letter-spacing: 0.03em;
     color: var(--c-primary);
 }
 
 h4 {
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-size: var(--fs-h4);
     font-weight: 600;
     line-height: 1.5;
     letter-spacing: 0.05em;
@@ -173,14 +152,24 @@ h4 {
     color: var(--c-primary-dark);
 }
 
+h5 {
+    font-size: var(--fs-h5);
+    font-weight: 600;
+    color: var(--c-primary-dark);
+}
+
+/* 內文標籤優化 */
+p {
+    font-size: var(--fs-body);
+    margin-bottom: 1rem;
+}
+
 ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 img { display: block; max-width: 100%; height: auto; object-fit: cover; }
 a { transition: var(--transition-time); text-decoration: none; color: inherit; }
 a:hover { text-decoration: none; color: var(--c-primary); }
 
-b, strong {
-    font-weight: 700; /* Ubuntu 和 Noto Sans TC 都支援 700 */
-}
+b, strong { font-weight: 700; }
 
 .ele-hidden {
   opacity: 0;
@@ -192,7 +181,11 @@ b, strong {
   font-size: 0;
 }
 
-/* --- Layout Containers --- */
+/* ==========================================================================
+    4. Layout Components (佈局元件)
+    ========================================================================== */
+
+/* 容器系統 (維持原樣) */
 .container { max-width: var(--container-width); margin: 0 auto; padding: 0 var(--gutter); position: relative; }
 .container-1765, .container-1600, .container-1440, .container-1280, .container-1070 {
     position: relative; z-index: 2; margin: 0 auto; padding: 0 var(--padding-space); width: 100%;
@@ -203,25 +196,39 @@ b, strong {
 .container-1280 { max-width: var(--container-1280); }
 .container-1070 { max-width: var(--container-1070); }
 
-/* 標題與裝飾線段 */
+/* 區塊標題 */
 .section-header { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
+
 .section-tag {
-    font-family: var(--font-nav);
-    font-size: 0.85rem; color: var(--c-primary); letter-spacing: 0.2em;
-    font-weight: 700; margin-bottom: 15px; display: block; text-transform: uppercase;
+    /* 這裡使用 small 字體變數 */
+    font-size: var(--fs-small);
+    color: var(--c-primary);
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: block;
+    text-transform: uppercase;
 }
-.section-title { font-size: 2.2rem; margin-bottom: 20px; }
+
+.section-title {
+    /* 這裡連動 h2 的大小 */
+    font-size: var(--fs-h2);
+    margin-bottom: 20px;
+}
+
 .deco-line {
     width: 0; height: 1px; background: var(--c-secondary);
     margin: 30px 0; transition: width 1s var(--ease-out);
 }
 
-/* 共用按鈕 */
+/* 按鈕系統 */
 .btn-pill {
-    font-family: var(--font-nav);
+    font-family: var(--font-heading);
     display: inline-flex; align-items: center; justify-content: center;
     padding: 12px 32px; border-radius: var(--radius-pill);
-    font-size: 0.95rem; font-weight: 700; letter-spacing: 1px;
+    /* 引用按鈕專用大小 */
+    font-size: var(--fs-nav);
+    font-weight: 700; letter-spacing: 1px;
     border: 1px solid var(--c-secondary); color: var(--c-secondary);
     background: transparent; transition: all var(--transition-time) ease;
     position: relative; overflow: hidden;
@@ -230,110 +237,130 @@ b, strong {
 .btn-pill:hover { background: var(--c-secondary); color: var(--c-surface); }
 
 /* ==========================================================================
-    Swiper 導航按鈕
+   輪播控制系統 (樣式維持原樣，僅調整分頁數字大小)
    ========================================================================== */
 
-/* 1. 包裝容器：這是定位的母體 */
-.swiper-nav-wrapper {
+.swiper-wrap.swiper { position: relative; width: 100%; overflow: hidden; }
+
+@media (min-width: 1025px) {
+    .control-box {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        top: -50px; /* 置於標題右下方 */
+        right: 0;
+        z-index: 100;
+        width: auto;
+    }
+}
+
+/* 4. 控制盒內部元件重置（防止跟 Swiper 內建樣式衝突） */
+.control-box .swiper-button,
+.control-box .swiper-dots {
     position: relative;
-    width: 100%;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 0;
+    padding: 0;
 }
 
-/* 2. 輪播本體：確保內容不會切到按鈕 */
-.product-cat-swiper, .news-swiper {
-    width: 100%;
-    /* 這裡一定要 hidden，確保卡片不會溢出 */
-    overflow: hidden !important;
-}
-
-/* 3. 按鈕基礎樣式 */
-.swiper-aw {
-    position: absolute !important;
-    top: 50% !important;
-    transform: translateY(-50%);
-    width: 54px;
-    height: 54px;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 50%;
+/* 5. 分頁數字樣式 */
+.control-box .swiper-dots {
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 30; /* 提升層級確保在卡片之上 */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s var(--ease-out);
-    margin: 0 !important;
-}
-.swiper-aw::after { display: none !important; }
-
-/* 4. 位置修正：直接貼齊兩側 (不再使用負值) */
-.swiper-btn-prev {
-    left: 30px; /* 留出 15px 的呼吸空間 */
+    margin: 0 15px;
+    /* 調整數字大小，使其更專業 */
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #222;
+    font-family: 'Inter', sans-serif;
 }
 
-.swiper-btn-next {
-    right: 30px;
-}
-
-/* 箭頭樣式 */
-.swiper-aw i {
+/* 分頁斜線 */
+.control-box .swiper-dots .gap {
+    margin: 0 15px;
     display: block;
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid #333;
-    border-right: 2px solid #333;
-}
-.swiper-btn-prev i { transform: rotate(-135deg); margin-left: 3px; }
-.swiper-btn-next i { transform: rotate(45deg); margin-left: -8px; }
-
-/* 懸停效果 */
-.swiper-aw:hover {
-    background: var(--c-primary, #2c2420);
-    border-color: var(--c-primary, #2c2420);
-    transform: translateY(-50%) scale(1.1);
+    width: 1px;
+    height: 16px;
+    background-color: #222;
+    transform: rotate(30deg);
 }
 
-.swiper-aw:hover i { border-color: #fff; }
+/* 6. 左右按鈕樣式 */
+.control-box .swiper-button {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    background: url('../images/arrow1.png') no-repeat center center;
+    background-size: 40px 40px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-/* --------------------------------------------------------------------------
-   響應式斷點調整：確保 4K 到 320px 都不跑版
-   -------------------------------------------------------------------------- */
+/* 移除 Swiper 內建箭頭 */
+.control-box .swiper-button::before,
+.control-box .swiper-button::after {
+    display: none !important;
+}
 
-/* 大型螢幕 (1440px 以上) */
-@media (min-width: 1440px) {
-    .swiper-aw {
-        width: 50px;
-        height: 50px;
+/* 下一頁按鈕翻轉 */
+.control-box .swiper-button.swiper-next {
+    transform: scaleX(-1);
+}
+
+.control-box .swiper-button:hover {
+    opacity: 0.6;
+}
+
+/* 7. 響應式調整 - 平板/手機版 (1024px 以下) */
+@media (max-width: 1024px) {
+    .control-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        transform: translateY(-50%);
+        z-index: 100;
+        padding: 0 10px;
+        pointer-events: none; /* 不擋住卡片點擊 */
     }
-    /* 螢幕大時，按鈕可以稍微往外一點點貼齊 container 邊緣 */
-    .swiper-btn-prev { left: 20px; }
-    .swiper-btn-next { right: 20px; }
+
+    .control-box .swiper-button {
+        pointer-events: auto;
+        background-color: rgba(255,255,255,0.9);
+        border-radius: 50%;
 }
 
-/* 平板 (768px) */
-@media (max-width: 768px) {
-    .swiper-aw {
-        width: 36px;
-        height: 36px;
-        /* 手機平板通常不顯示按鈕以免遮擋，或將其縮小 */
-        background: rgba(255, 255, 255, 0.7);
+    .control-box .swiper-dots {
+        display: none !important;
     }
-    .swiper-btn-prev { left: 10px; }
-    .swiper-btn-next { right: 10px; }
 }
 
-/* 小型手機 (320px) */
-@media (max-width: 320px) {
-    .swiper-aw {
-        display: none; /* 極小螢幕建議隱藏按鈕，讓使用者用手滑就好，這也是專業考量 */
+/* 8. 小型手機微調 */
+@media (max-width: 425px) {
+    .control-box .swiper-button {
+        flex: 0 0 32px;
+        height: 32px;
+        background-size: 24px 24px;
     }
 }
+
+/* 9. 卡片通用設定（確保 box-sizing 正確） */
+.swiper-slide {
+    box-sizing: border-box;
+}
+
 /* ==========================================================================
-    5. Global Components
+    Global Components (導覽與頁尾)
     ========================================================================== */
 
-/* --- 裝飾圖案基礎型 (具體位置移至對應的 CSS 以防耦合) --- */
+/* --- 裝飾圖案基礎型 (維持原樣) --- */
 .deco-shape {
     position: absolute; z-index: 0; pointer-events: none;
     opacity: 0.6; border-radius: 50%;
@@ -346,20 +373,36 @@ b, strong {
     background: rgba(0, 0, 0, 0.1); border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px); z-index: 1000; transition: all 0.5s var(--ease-out);
 }
+
+/* 確保容器高度撐滿，且符合 1600px 規範 */
 .site-header > .container-1600 { height: var(--header-h); }
+
+/* 捲動後的樣式變更 */
 .site-header.scrolled {
     background: rgba(0, 0, 0, 0.6); border-bottom: 0.2px solid rgba(253, 252, 248, 0.1);
     backdrop-filter: blur(5px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
+
 .header-inner { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+
+/* Logo 尺寸與動畫 */
 .logo img { height: 45px; width: auto; transition: transform 0.4s ease; }
 
-.main-nav { position: relative; padding-right: 50px; }
-.nav-list { display: flex; gap: 50px; }
+/* 導覽區域基礎設定 */
+.main-nav { position: relative; }
+
+/* 橫向選單基礎設定 */
+.nav-list { display: flex; gap: 50px; transition: gap 0.3s ease; }
+
+/* 選單文字連結 */
 .nav-link {
-    font-family: var(--font-nav); font-weight: 700; letter-spacing: 0.5px;
+    font-size: var(--fs-nav);
+    font-family: var(--font-body); font-weight: 700; letter-spacing: 0.5px;
     position: relative; padding: 8px 4px 0px 0px; color: var(--c-light); transition: color var(--transition-time) ease;
+    white-space: nowrap; /* 避免文字被擠壓換行 */
 }
+
+/* 懸停底線效果 */
 .nav-link::after {
     content: ""; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
     background: var(--c-light-orange); transition: width 0.4s var(--ease-out);
@@ -367,36 +410,121 @@ b, strong {
 .nav-link:hover, .nav-link.active { color: var(--c-light-orange); }
 .nav-link:hover::after, .nav-link.active::after { width: 100%; }
 
+/* 漢堡選單按鈕基礎 (預設隱藏) */
 .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; padding: 10px; z-index: 1001; }
 .hamburger span { width: 24px; height: 2px; background: var(--c-light); transition: all 0.4s var(--ease-out); transform-origin: center; }
+
+/* 漢堡選單動畫：轉為叉號 */
 .hamburger.is-active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
 .hamburger.is-active span:nth-child(2) { opacity: 0; }
 .hamburger.is-active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
+
 /* -----------------------------------------
-   響應式調整：Site Header
+    響應式調整：Site Header (精準分層)
    ----------------------------------------- */
-@media (max-width: 1024px) {
-    .nav-list {
-        position: fixed; top: 0; right: 0; width: 100%; height: 100vh;
-        flex-direction: column; gap: 25px;
-        background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(25,25,25,0.95));
-        padding: 140px var(--gutter) 50px; z-index: 1000;
-        transform: translateX(100%); transition: transform 0.5s var(--ease-out);
-        justify-content: center; align-items: center; backdrop-filter: blur(15px);
+
+/* --- [4K 螢幕] 2560px --- */
+@media (min-width: 2560px) {
+    .header-inner {
+        max-width: 2400px; /* 大螢幕下限制容器寬度，避免 Logo 與選單分太開 */
+        margin: 0 auto;
     }
-    .main-nav.is-open .nav-list { transform: translateX(0); }
-    .nav-link { font-size: 2rem; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; text-align: center; }
-    .hamburger { display: flex; }
-}
-@media (max-width: 768px) {
-    .nav-link { font-size: 1.8rem; padding: 10px 0; letter-spacing: 0.3px; }
-    .nav-list { gap: 20px; padding: 120px var(--gutter) 40px; }
 }
 
-/* --- 麵包屑 Breadcrumbs --- */
+/* --- [大型筆記型電腦] 1440px 以下 --- */
+@media (max-width: 1440px) {
+    .nav-list { gap: 30px; } /* 縮減間距 */
+    .logo img { height: 40px; }
+}
+
+/* --- [筆記型電腦] 1024px 以下 --- */
+@media (max-width: 1024px) {
+    .nav-list { gap: 20px; }
+    .nav-link { font-size: 0.95rem; letter-spacing: 0; }
+    .logo img { height: 38px; }
+    .main-nav { padding-right: 0; }
+}
+
+/* --- [平板電腦] 768px 以下 ---
+   開始進入漢堡選單模式，並修正選單位置太下面的問題
+*/
+@media (max-width: 768px) {
+    .hamburger { display: flex; }
+
+    .nav-list {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100vh;
+        flex-direction: column;
+
+        /* 專業公司修正點：
+           1. 改用 flex-start 讓內容靠上。
+           2. padding-top 設定為 20vh (螢幕高度的 20%)，
+              這能確保在任何長度的手機，選單開頭都在同樣的視覺高度。
+        */
+        justify-content: flex-start;
+        align-items: center;
+        padding: 20vh var(--gutter) 50px;
+
+        gap: 10px; /* 縮小連結間的距離，讓結構更緊湊 */
+        background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(25,25,25,0.95));
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.5s var(--ease-out);
+        backdrop-filter: blur(15px);
+    }
+
+    .main-nav.is-open .nav-list { transform: translateX(0); }
+
+    .nav-link {
+        font-size: 1.6rem;
+        padding: 15px 0; /* 加大點擊範圍（防呆），防止誤點 */
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        width: 80%; /* 讓底線不要撐滿，視覺較精緻 */
+        text-align: center;
+    }
+}
+
+/* --- [大型手機] 425px 以下 --- */
+@media (max-width: 425px) {
+    .nav-list {
+        padding-top: 15vh; /* 螢幕變短，稍微往上提 */
+        gap: 5px;
+    }
+    .nav-link {
+        font-size: 1.4rem;
+        padding: 12px 0;
+    }
+}
+
+/* --- [中型手機] 375px --- */
+@media (max-width: 375px) {
+    .logo img { height: 32px; }
+    .nav-list { padding-top: 100px; } /* 固定高度，避免小螢幕擠壓 */
+    .nav-link { font-size: 1.3rem; }
+}
+
+/* --- [小型手機] 320px --- */
+@media (max-width: 320px) {
+    .nav-list {
+        padding-top: 80px;
+        gap: 0; /* 極小螢幕取消間距，靠連結內距(padding)撐開即可 */
+    }
+    .nav-link {
+        font-size: 1.2rem;
+        padding: 10px 0;
+    }
+}
+
+
+/* ==========================================================================
+    麵包屑 Breadcrumbs
+   ========================================================================== */
 .breadcrumb-wrap { padding: max(1.6vw, 10px) 0 max(2vw, 20px); width: 100%; }
-.breadcrumb__nav { display: flex; font-size: 0.9rem; color: #494338; }
+.breadcrumb__nav { display: flex; font-size: var(--fs-small); color: #494338; }
 .breadcrumb__nav li { position: relative; line-height: 1.2; display: inline-block; }
 .breadcrumb__nav li:not(:last-child) { padding-right: 30px; }
 .breadcrumb__nav li:not(:last-child)::after {
@@ -415,109 +543,680 @@ b, strong {
     .breadcrumb__nav li:not(:last-child) { padding-right: 20px; }
     .breadcrumb__nav li:not(:last-child)::after { right: 9px; }
 }
+/* ==========================================================================
+   回到頂部按鈕 (Back to Top) - 專業設計公司寫法
+   ========================================================================== */
 
-/* --- 回到頂部按鈕 (Back to Top) --- */
-.back-to-top {
-    position: fixed; bottom: 40px; right: 40px;
-    width: 60px; height: 60px; z-index: 900;
-    opacity: 0; visibility: hidden; transition: all 0.4s ease;
-    background: rgba(0, 0, 0, 0.4); border: none; border-radius: 50%;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+:root {
+    /* 定義按鈕基礎尺寸，方便統一修改 */
+    --btt-size: 60px;
 }
-.back-to-top.is-visible { opacity: 1; visibility: visible; }
-.progress-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
-.progress-ring__background, .progress-ring__circle { fill: transparent; stroke-width: 4px; }
-.progress-ring__background { stroke: rgba(255, 255, 255, 0.1); }
-.progress-ring__circle { stroke: var(--c-light-orange); stroke-linecap: round; stroke-dasharray: 175.93; stroke-dashoffset: 175.93; transition: stroke-dashoffset 0.1s linear; }
-.btt-icon { font-size: 1.5rem; color: #FFFFFF; z-index: 2; }
+
+.back-to-top {
+    /* 基礎定位與佈局 */
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: var(--btt-size);
+    height: var(--btt-size);
+    z-index: 900;
+
+    /* 狀態控制：預設隱藏 */
+    opacity: 0;
+    visibility: hidden;
+
+    /* 視覺樣式 */
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px); /* 增加磨砂玻璃感 */
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s var(--ease-out);
+}
+
+/* 顯示狀態 */
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 滑鼠懸停效果：顏色稍微加深並上浮 */
+.back-to-top:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: translateY(-5px);
+}
+
+/* 進度圓圈容器：填滿父層 */
+.progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* 讓起點從上方開始 */
+    pointer-events: none;
+}
+
+/* 圓圈線條基礎設定 */
+.progress-ring__background,
+.progress-ring__circle {
+    fill: transparent;
+    stroke-width: 4px; /* 稍微縮減線寬增加精緻度 */
+}
+
+/* 底色軌道 */
+.progress-ring__background {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+/* 實際進度條 */
+.progress-ring__circle {
+    stroke: var(--c-light-orange);
+    stroke-linecap: round;
+    /* 175.93 是根據半徑 28 計算出的圓周 (2 * PI * 28) */
+    stroke-dasharray: 175.93;
+    stroke-dashoffset: 175.93;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+/* 圖示樣式 */
+.btt-icon {
+    font-size: 1.2rem;
+    color: #FFFFFF;
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
+/* 懸停時箭頭稍微跳動提示 */
+.back-to-top:hover .btt-icon {
+    transform: translateY(-2px);
+}
 
 /* -----------------------------------------
    響應式調整：Back to Top
    ----------------------------------------- */
+
+/* 4K 超高解析度 (2560px+) */
+@media (min-width: 2560px) {
+    :root { --btt-size: 80px; }
+    .back-to-top { bottom: 60px; right: 60px; }
+    .btt-icon { font-size: 1.8rem; }
+}
+
+/* 大型筆記型電腦 (1440px) */
+@media (max-width: 1440px) {
+    .back-to-top { bottom: 30px; right: 30px; }
+}
+
+/* 平板與手機 (768px 以下) */
 @media (max-width: 768px) {
-    .back-to-top { bottom: 20px; right: 20px; --btt-size: 50px; }
+    :root { --btt-size: 50px; }
+    .back-to-top { bottom: 20px; right: 20px; }
+    .btt-icon { font-size: 1rem; }
 }
 
-/* --- Marquee --- */
-.marquee { background: var(--c-primary); color: #fff; padding: 18px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 2; }
-.marquee__inner { display: inline-block; animation: marquee 25s linear infinite; }
-.marquee__item { font-size: 1.2rem; margin: 0 40px; font-family: var(--font-nav); font-style: italic; letter-spacing: 0.05em; }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* 小型手機 (375px 以下) */
+@media (max-width: 375px) {
+    :root { --btt-size: 44px; } /* 符合 iOS 最小點擊區域建議 */
+    .back-to-top { bottom: 15px; right: 15px; }
+}
 
-/* --- 試吃申請區塊 (Tasting Section) --- */
+/* ==========================================================================
+   跑馬燈 (Marquee) - 專業設計公司寫法
+   ========================================================================== */
+
+.marquee {
+    background: var(--c-primary);
+    color: #ffffff;
+    padding: clamp(12px, 1.2vw, 20px) 0; /* 隨螢幕寬度微調上下距 */
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+
+.marquee__inner {
+    display: inline-block;
+    /* 預設動畫：若 JS 沒載入時的保險方案 */
+    animation: marquee 25s linear infinite;
+    will-change: transform; /* 提醒瀏覽器開啟 GPU 加速 */
+}
+
+/* 懸停時暫停動畫，增加使用者閱讀體驗 */
+.marquee:hover .marquee__inner {
+    animation-play-state: paused;
+}
+
+.marquee__item {
+    display: inline-block;
+    font-size: var(--fs-body); /* 引用全站基底字體變數 */
+    margin: 0 40px;
+    font-family: var(--font-heading);
+    font-style: italic;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+/* -----------------------------------------
+   響應式調整：Marquee
+   ----------------------------------------- */
+
+/* 4K 超高解析度 (2560px) */
+@media (min-width: 2560px) {
+    .marquee__item { font-size: 1.5rem; margin: 0 80px; }
+}
+
+/* 大型筆記型電腦 (1440px) */
+@media (max-width: 1440px) {
+    .marquee__item { margin: 0 30px; }
+}
+
+/* 筆記型電腦與平板 (1024px - 768px) */
+@media (max-width: 1024px) {
+    .marquee { padding: 14px 0; }
+    .marquee__item { font-size: 1rem; margin: 0 25px; }
+}
+
+/* 手機版 (425px 以下) */
+@media (max-width: 425px) {
+    .marquee { padding: 10px 0; }
+    .marquee__item {
+        font-size: 0.9rem;
+        margin: 0 20px;
+        letter-spacing: 0.02em; /* 手機上略微縮減字距 */
+    }
+}
+
+/* 基礎動畫定義 */
+@keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+/* ==========================================================================
+   試吃申請區塊 (Tasting Section) - 專業設計公司寫法
+   ========================================================================== */
+
 .i-tasting {
-    position: relative; margin-top: -3px; padding-bottom: 32.304%;
-    line-height: 0; overflow: hidden; font-family: var(--font-body);
-}
-.i-tasting__overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1; }
-.i-tasting__content {
-    position: absolute; z-index: 2; top: 54%; left: 50%; width: 100%;
-    color: var(--c-light); text-align: center; line-height: 1.6;
-    transform: translate(-50%, -50%); padding: 0 20px; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.85);
-}
-.i-tasting .container-1440 { animation: up-down 6s ease-out forwards infinite; }
-.i-tasting .g__box-ti {
-    margin-bottom: 15px; color: var(--c-light); font-family: var(--font-title);
-    font-size: 2.8rem; letter-spacing: 10.8px; text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
-}
-.i-tasting .g__box-ti .en { display: block; font-size: 0.8em; opacity: 0.85; margin-bottom: 5px; }
-.i-tasting .g__box-ti .tw { display: block; font-size: 1em; }
-.i-tasting__text { font-size: 1.3rem; line-height: 1.9; margin: 0 auto 30px; max-width: 800px; text-shadow: 1.5px 1.5px 6px rgba(0, 0, 0, 0.85); }
-.i-tasting .g-btn-wrap { padding-top: 0; }
-.g-btn-link {
-    display: inline-block; padding: 14px 36px; color: #fff; border-radius: 30px;
-    font-family: var(--font-title); font-size: 1.2rem; font-weight: 700; letter-spacing: 1.2px;
-    transition: all var(--transition-time) ease; background-color: var(--c-primary-dark);
-    box-shadow: 0 8px 25px rgba(88, 42, 25, 0.7); overflow: hidden; position: relative;
-}
-.g-btn-link:hover {
-    color: var(--c-primary-dark); background-color: var(--c-accent);
-    box-shadow: 0 6px 20px rgb(248, 233, 192, 0.4); transform: translateY(-4px); text-shadow: none;
-}
-.i-tasting__bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.i-tasting__bg img {
-    position: absolute; top: 50%; left: 50%; width: 100% !important; height: 100% !important;
-    max-width: none !important; object-fit: cover; transform: translate(-50%, -50%);
+    position: relative;
+    /* 這裡使用 min-height 確保內容不論多寡都能撐開，padding-bottom 作為預設比例 */
+    min-height: 450px;
+    padding-bottom: 32.304%;
+    margin-top: -3px;
+    line-height: 1.6;
+    overflow: hidden;
+    font-family: var(--font-body);
 }
 
+/* 遮罩層：提升文字閱讀品質 */
+.overlay-dark {
+    position: absolute;
+    /* 使用現代縮寫，等同於 top/left/right/bottom: 0 */
+    inset: 0;
+
+    /* 設計重點：
+       使用線性漸層而非純色。
+       頂部 rgba(0,0,0,0.2) 保留圖片細節。
+       底部 rgba(0,0,0,0.6) 確保下方描述文字與標題有足夠對比度。
+    */
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.2) 0%,
+        rgba(0, 0, 0, 0.6) 100%
+    );
+
+    /* 確保遮罩位於背景圖之上，文字內容之下 */
+    z-index: 1;
+
+    /* 防止遮罩攔截滑鼠事件，確保底下的連結可點擊 */
+    pointer-events: none;
+}
+
+/* 內容容器：垂直水平置中 */
+.i-tasting__content {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    color: var(--c-light);
+    text-align: center;
+    padding: 0 var(--padding-space);
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.85);
+}
+
+/* 內容漂浮動畫 */
+.i-tasting .container-1440 {
+    animation: up-down 6s var(--ease-smooth) forwards infinite;
+    will-change: transform;
+}
+
+/* 區塊標題樣式 */
+.i-tasting .g__box-ti {
+    margin-bottom: 20px;
+    color: var(--c-light);
+    font-family: var(--font-heading);
+    font-size: var(--fs-h1);
+    letter-spacing: 0.3em;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
+}
+
+.i-tasting .g__box-ti .en {
+    display: block;
+    font-size: 0.5em;
+    opacity: 0.85;
+    margin-bottom: 8px;
+    letter-spacing: 0.5em;
+}
+
+.i-tasting .g__box-ti .tw {
+    display: block;
+    font-size: 1em;
+}
+
+/* 說明文字樣式 */
+.i-tasting__text {
+    font-size: var(--fs-h4);
+    line-height: 1.8;
+    margin: 0 auto 35px;
+    max-width: 850px;
+    font-weight: 400;
+}
+
+/* 申請按鈕樣式 */
+.g-btn-link {
+    display: inline-block;
+    padding: 14px 45px;
+    color: #ffffff;
+    border-radius: 30px;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    transition: all var(--transition-time) var(--ease-out);
+    background-color: var(--c-primary-dark);
+    box-shadow: 0 8px 25px rgba(88, 42, 25, 0.7);
+    position: relative;
+    text-decoration: none;
+}
+
+/* 按鈕懸停效果 */
+.g-btn-link:hover {
+    color: var(--c-primary-dark);
+    background-color: var(--c-accent);
+    box-shadow: 0 6px 20px rgba(248, 233, 192, 0.5);
+    transform: translateY(-4px);
+    text-shadow: none;
+}
+
+/* 背景圖容器 */
+.i-tasting__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* 背景圖優化：確保不變形且填滿 */
+.i-tasting__bg img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+}
+
+/* 漂浮動畫定義 */
 @keyframes up-down {
-    0%, 100% { transform: translateY(20px); }
-    25%, 75% { transform: translateY(0); }
-    50% { transform: translateY(20px); }
+    0%, 100% { transform: translateY(10px); }
+    50% { transform: translateY(-10px); }
 }
 
 /* -----------------------------------------
    響應式調整：Tasting Section
    ----------------------------------------- */
-@media (max-width: 1559px) { .i-tasting__content { top: 50%; } }
-@media (max-width: 1365px) { .i-tasting { padding-bottom: 38%; } .i-tasting .g__box-ti { font-size: 2.4rem; } .i-tasting__text { font-size: 1.15rem; } }
-@media (max-width: 1079px) { .i-tasting { padding-bottom: 45%; } .i-tasting .g__box-ti { font-size: 2.1rem; } .i-tasting__text { font-size: 1.05rem; } }
-@media (max-width: 991px) { .i-tasting { padding-bottom: 52%; } .i-tasting .g__box-ti { font-size: 1.9rem; } .i-tasting__text { font-size: 1rem; } }
-@media (max-width: 839px) { .i-tasting { padding-bottom: 380px; } }
+
+/* 4K 螢幕 (2560px) */
+@media (min-width: 2560px) {
+    .i-tasting { min-height: 800px; }
+    .i-tasting__text { max-width: 1200px; }
+}
+
+/* 大型筆電 (1440px) */
+@media (max-width: 1440px) {
+    .i-tasting { padding-bottom: 35%; }
+}
+
+/* 筆電與平板 (1024px - 768px) */
+@media (max-width: 1024px) {
+    .i-tasting { padding-bottom: 45%; }
+    .i-tasting__text { font-size: 1.1rem; padding: 0 40px; }
+}
+
+/* 手機版通用 (767px 以下) */
 @media (max-width: 767px) {
-    .i-tasting .g__box-ti { font-size: 1.7rem; }
-    .i-tasting__text { font-size: 0.95rem; margin-bottom: 20px; }
-    .g-btn-link { padding: 12px 28px; font-size: 1.05rem; }
+    .i-tasting {
+        padding: 80px 0; /* 手機版改用內距撐開，不再依賴 padding-bottom 比例 */
+        padding-bottom: 80px;
+        min-height: auto;
+    }
+    .i-tasting__content {
+        position: relative;
+        top: 0; left: 0;
+        transform: translate(0, 0);
+    }
+    .i-tasting .g__box-ti { font-size: 1.8rem; letter-spacing: 0.1em; }
+    .i-tasting .g__box-ti .en { letter-spacing: 0.2em; }
+    .i-tasting__text {
+        font-size: var(--fs-small);
+        line-height: 1.6;
+        margin-bottom: 30px;
+        padding: 0px;
+    }
 }
-@media (max-width: 575px) { .i-tasting__text br { display: none; } }
 
-@media (max-width: 575px) {
-    .i-tasting__text br { display: none; }
+/* 小型手機 (375px - 320px) */
+@media (max-width: 375px) {
+    .i-tasting { padding: 60px 0; }
+    .g-btn-link { padding: 12px 30px; font-size: 1rem; }
     .i-tasting .g__box-ti { font-size: 1.5rem; }
-    .i-tasting__text { font-size: 0.9rem; }
 }
 
-/* --- Site Footer --- */
-.site-footer { background: #221b18; color: rgba(255, 255, 255, 0.7); padding: 80px 0 40px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-.footer-logo img { height: 50px; margin: 0 auto 30px; }
-.footer-nav a { margin: 0 15px; }
-.footer-nav a:hover { color: #fff; }
+/* ==========================================================================
+   頁尾區塊 (Site Footer) - 專業設計公司交接標準
+   ========================================================================== */
+
+.site-footer {
+    background: #221b18;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 80px 0 40px;
+    text-align: center;
+    font-family: var(--font-body);
+    position: relative;
+    z-index: 2;
+}
+
+/* 頁尾 Logo 容器：控制品牌標識的居中與縮放 */
+.footer-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.footer-logo img {
+    height: 65px;
+    width: auto;
+    transition: transform 0.4s var(--ease-out);
+    /* filter: brightness(0) invert(1); 確保 Logo 在深色背景為白色可見 */
+    opacity: 0.9;
+}
+
+/* 頁尾導覽選單：核心邏輯為 flex 橫向排列，超過寬度自動換行 */
+.footer-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* 關鍵：寬度不足時自動流動至下一行 */
+    gap: 20px 30px; /* 設定上下間距 20px，左右間距 30px */
+    margin-bottom: 30px;
+    padding: 0 var(--gutter);
+}
+
+/* 頁尾連結文字：保持與主導覽一致的品牌感 */
+.footer-nav a {
+    font-size: var(--fs-nav);
+    font-family: var(--font-body);
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--c-light);
+    text-decoration: none;
+    transition: color var(--transition-time) ease, opacity var(--transition-time) ease;
+    white-space: nowrap; /* 確保單個選單文字不會在中間斷行 */
+}
+
+.footer-nav a:hover {
+    color: var(--c-light-orange);
+    opacity: 1;
+}
+
+/* 版權資訊 */
+.footer-copy {
+    font-size: var(--fs-small);
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+    padding: 0 var(--gutter);
+}
 
 /* -----------------------------------------
-   響應式調整：Site Footer
+   響應式調整：Site Footer (全斷點精確管理)
    ----------------------------------------- */
-@media (max-width: 768px) {
+
+/* 4K 超大型顯示器 (2560px) */
+@media (min-width: 2560px) {
+    .site-footer { padding: 120px 0 60px; }
+    .footer-logo img { height: 80px; }
+    .footer-nav { gap: 40px 60px; }
+    .footer-nav a { font-size: 1.1rem; }
+}
+
+/* 大型筆記型電腦 (1440px) */
+@media (max-width: 1440px) {
+    .site-footer { padding: 80px 0 40px; }
+    .footer-logo img { height: 60px; }
+}
+
+/* 筆記型電腦 (1024px) */
+@media (max-width: 1024px) {
+    .footer-nav { gap: 15px 24px; }
+    .footer-logo { gap: 20px; }
+}
+
+/* 平板電腦 (768px) */
+@media (max-width: 767px) {
+    .site-footer { padding: 60px 0 30px; }
+    /* 調整間距以適應平板寬度 */
+    .footer-nav { gap: 12px 20px; }
+    .footer-nav a { font-size: 0.95rem; }
+}
+
+/* 大型手機 (425px) */
+@media (max-width: 425px) {
     .site-footer { padding: 50px 0 30px; }
-    .footer-nav { display: flex; flex-direction: column; gap: 15px; }
+
+    /* 保持橫向排列，僅微調文字大小與間距以優化換行後的視覺 */
+    .footer-nav {
+        gap: 10px 15px;
+        margin-bottom: 25px;
     }
+
+    .footer-nav a {
+        font-size: 0.9rem;
+        padding: 5px 0;
+    }
+
+    .footer-logo img { height: 50px; }
+}
+
+/* 中小型手機 (375px ~ 320px) */
+@media (max-width: 375px) {
+    .site-footer { padding: 40px 0 25px; }
+
+    .footer-nav {
+        gap: 8px 12px;
+    }
+
+    .footer-copy {
+        font-size: 0.75rem;
+        line-height: 1.5;
+    }
+
+    .footer-logo { margin-bottom: 20px; gap: 15px; }
+}
+
+/* ==========================================================================
+    6. Responsive Utility (全解析度補強)
+    說明：這裡處理特定解析度的細節微調
+    ========================================================================== */
+
+/* 4K 2560px：放大整體基底，讓內容不會看起來太小 */
+@media (min-width: 2560px) {
+    html { font-size: 20px; }
+}
+
+/* 大型筆電 1440px */
+@media (max-width: 1440px) {
+    :root { --gutter: 20px; }
+}
+
+/* 筆電 1024px */
+@media (max-width: 1024px) {
+    .container { width: 95%; }
+}
+
+/* 平板 768px */
+@media (max-width: 768px) {
+    body { line-height: 1.6; }
+}
+
+/* 手機 425px ~ 320px */
+@media (max-width: 425px) {
+    html { font-size: 15px; } /* 稍微縮小基底字體 */
+}
+
+
+/* ==========================================================================
+   全站共用橫幅基礎 (Common Base Banner)
+   用途：定義最基本的容器高度、文字置中與底圖填滿邏輯
+   ========================================================================== */
+
+/* 基礎容器：負責高度與置中 */
+.page-banner {
+    position: relative;
+    width: 100%;
+    height: 45vh;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #1a1a1a;
+}
+
+/* 圖片包裝層：確保圖片能撐滿並定位 */
+.banner-img-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* 共用遮罩：確保白色文字在任何圖片上都清晰 */
+.banner-img-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+    z-index: 1;
+}
+
+/* 橫幅圖片本體 */
+.banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* 文字區塊容器 */
+.c-banner-block {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #ffffff;
+    padding: 0 20px; /* 這裡原本用 var(--gutter)，新手建議先改回具體數值避免報錯 */
+}
+
+/* 副標題 (英文名稱) */
+.c-banner-subtitle {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+}
+
+/* 主標題 (中文名稱) */
+.c-banner-title {
+    font-size: var(--fs-h1);
+    color: #ffffff;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* -----------------------------------------
+   全斷點響應式調整 (Responsive Design)
+   ----------------------------------------- */
+
+/* 4K (2560px) */
+@media (min-width: 2560px) {
+    .page-banner { height: 35vh; min-height: 600px; }
+    .c-banner-title { font-size: 4.5rem; }
+}
+
+/* 大型筆記型電腦 (1440px) */
+@media (max-width: 1440px) {
+    .page-banner { height: 40vh; min-height: 450px; }
+}
+
+/* 筆記型電腦 (1024px) */
+@media (max-width: 1024px) {
+    .page-banner { height: 35vh; min-height: 380px; }
+    .c-banner-title { font-size: 2.8rem; }
+}
+
+/* 平板電腦 (768px) */
+@media (max-width: 768px) {
+    .page-banner { height: 30vh; min-height: 320px; }
+    .c-banner-title { font-size: 2.2rem; }
+}
+
+/* 大型手機 (425px) */
+@media (max-width: 425px) {
+    .page-banner { height: 280px; }
+    .c-banner-title { font-size: 1.8rem; }
+}
+
+/* 中型手機 (375px) */
+@media (max-width: 375px) {
+    .page-banner { height: 240px; }
+    .c-banner-title { font-size: 1.6rem; }
+}
+
+/* 小型手機 (320px) */
+@media (max-width: 320px) {
+    .c-banner-title { font-size: 1.4rem; }
+    .c-banner-subtitle { font-size: 0.75rem; letter-spacing: 0.2em; }
+}

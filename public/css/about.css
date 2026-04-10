@@ -21,14 +21,6 @@
     overflow: hidden;
 }
 
-/* 全域雜訊優化 */
-.global-noise {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
-    pointer-events: none; opacity: 0.04;
-    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJ4D30DAAAAB3RSTlMABDQzMzMzM75F8wAAAAlwSFlzAAAuIwAALiMBeKU/dgAAABV0RVh0Y3JlYXRpb24gdGltZQAyMDI1LTAxLTAx1D0fWAAAAAdvSURBVDjLY2AYBaNgFIyCUTAKRsEoGAWjYBSMglEwCkbBKBgFgwkAAMd/AAH3+M8dAAAAAElFTkSuQmCC");
-    transform: translateZ(0); /* GPU 加速 */
-}
-
 .section { padding: clamp(80px, 10vw, 140px) 0; }
 
 /* 針對每個區塊單獨調整間距，避免區塊之間過於擁擠 */
@@ -39,43 +31,142 @@
     .section { padding: 40px 10px; }
 }
 
-/* =========================================
-   2. Page Banner
-   ========================================= */
-.page-banner {
-    position: relative; width: 100%; height: 530px;
-    display: flex; align-items: center; overflow: hidden; margin-top: -3px; z-index: 10;
-}
-.page-banner__bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.page-banner__bg img { width: 100%; height: 125%; object-fit: cover; object-position: center; }
-.page-banner__overlay {
-    position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)); z-index: 1;
-}
-.page-banner__container { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; align-items: center;
- padding-top: 80px;  }
-.js-hero-text { visibility: hidden; opacity: 0; }
-.page-banner__content { color: #fff; max-width: 800px; padding-left: 80px; text-align: left; width: 100%; }
-.page-banner__meta {
-    font-size: 0.9rem; letter-spacing: 0.2em; font-weight: 600;
-    margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; display: inline-block;
-}
-.page-banner__title {
-    color: #fff; font-family: var(--font-title); font-size: clamp(2.5rem, 5vw, 4.5rem);
-    line-height: 1.1; margin-bottom: 25px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); font-weight: 600;
-}
-.page-banner__title .text-italic { font-style: italic; color: #d4a373; }
-.page-banner__desc { font-size: 1.1rem; line-height: 1.8; color: rgba(255,255,255,0.9); }
-.page-banner__deco {
-    position: absolute; bottom: 40px; right: 5%; width: 150px; height: 150px; z-index: 3; opacity: 0.8; pointer-events: none;
+/* ==========================================================================
+   關於我們獨立樣式 (About Page Unique Styles)
+   ========================================================================== */
+
+/* 獨立容器命名 */
+.about-banner {
+    position: relative;
+    width: 100%;
+    height: 530px; /* 這裡設定了固定高度 */
+    display: flex;
+    align-items: center; /* 預設垂直居中 */
+    overflow: hidden;
+    z-index: 10;
+    background-color: #000;
+
+    /* 核心修正：針對大螢幕預留頂部空間，避免被導覽列遮擋 */
+    padding-top: 100px;
 }
 
-/* --------------  RWD  -------------- */
-@media (max-width: 1024px) {
-    /* .page-banner__content { text-align: center; padding-left: 0; margin: 0 auto; max-width: 90%; } */
+/* 背景與圖片控制 */
+.about-banner__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
+
+.about-banner__bg img {
+    width: 100%;
+    height: 125%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* 文字容器 */
+.about-banner__content {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    max-width: 800px;
+    padding-left: 80px;
+    text-align: left;
+    width: 100%;
+}
+
+/* 副標題線條裝飾 */
+.about-banner__meta {
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    font-weight: 600;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+/* 大標題控制 */
+.about-banner__title {
+    color: #fff;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 25px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    font-weight: 600;
+}
+
+.about-banner__title .text-italic {
+    font-style: italic;
+    color: #d4a373;
+}
+
+/* 描述文字 */
+.about-banner__desc {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.9);
+}
+
+/* 右下角旋轉裝飾文字 */
+.about-banner__deco {
+    position: absolute;
+    bottom: 40px;
+    right: 5%;
+    width: 150px;
+    height: 150px;
+    z-index: 3;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+/* -----------------------------------------
+   響應式斷點管理
+   依據設備尺寸由大至小重新定義空間
+   ----------------------------------------- */
+
+/* 4K - 2560px：增加整體高度感，讓版面更大氣 */
+@media (min-width: 2560px) {
+    .about-banner { height: 700px; padding-top: 120px; }
+}
+
+/* 大型筆記型電腦 - 1440px / 1320px 以上：確保不被遮擋 */
+@media (max-width: 1440px) {
+    .about-banner { padding-top: 110px; }
+}
+
+/* 筆記型電腦 - 1024px：減少側邊內距，縮減高度避免過佔空間 */
+@media (max-width: 1024px) {
+    .about-banner { height: 500px; padding-top: 90px; }
+    .about-banner__content { padding-left: 40px; }
+}
+
+/* 平板電腦 - 768px：內容改為置中對齊 */
 @media (max-width: 768px) {
-    .page-banner { height: 480px; }
-    .page-banner__deco { bottom: 20px; right: 20px; width: 80px; height: 80px; opacity: 0.5; }
+    .about-banner { height: 480px; padding-top: 80px; }
+    .about-banner__content { padding-left: 0; text-align: center; margin: 0 auto; }
+    .about-banner__deco { bottom: 20px; right: 20px; width: 80px; height: 80px; opacity: 0.5; }
+}
+
+/* 大型手機 - 425px */
+@media (max-width: 425px) {
+    .about-banner { height: 450px; }
+    .about-banner__title { font-size: 2.2rem; }
+}
+
+/* 中型手機 - 375px */
+@media (max-width: 375px) {
+    .about-banner__content { margin-top: 40px; } /* 修正原本 margin-top 過大的問題 */
+    .about-banner__desc { font-size: 1rem; }
+}
+
+/* 小型手機 - 320px：極限縮小字體防止溢出 */
+@media (max-width: 320px) {
+    .about-banner { height: 420px; }
+    .about-banner__title { font-size: 1.8rem; }
 }
 
 /* =========================================
