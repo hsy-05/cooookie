@@ -252,4 +252,35 @@ class BaseAdminController extends Controller
 
         return $backUrl;
     }
+
+
+    /**
+     * 顯示提示訊息
+     ** @param int    $msgType      消息類型: 0=消息, 1=錯誤, 2=詢問
+     * @param string $msgContent   訊息內容
+     * @param array  $links        連結選項 [['text' => '...', 'href' => '...']]
+     * @param bool   $autoRedirect 是否自動跳轉
+     */
+    public static function showMsg(int $msgType = 0, string $msgContent = '', array $links = [], bool $autoRedirect = true)
+    {
+        // 如果沒有提供任何連結，預設給予「返回上一頁」
+        if (empty($links)) {
+            $links[] = [
+                'text' => '返回上一頁',
+                'href' => 'javascript:history.go(-1);'
+            ];
+        } else {
+            // 依照鍵名進行排序 (數值越負，代表排序順序越後面)
+            $links = array_values($links);
+        }
+
+        // 對應你的 admin.page-message 元件所需的格式
+        session()->flash('form_success', [
+            'msg_type'     => $msgType,
+            'title'        => $msgContent,
+            'links'        => $links,
+            'autoRedirect' => $autoRedirect,
+        ]);
+    }
+
 }

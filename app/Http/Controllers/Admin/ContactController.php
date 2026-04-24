@@ -108,7 +108,7 @@ class ContactController extends BaseAdminController
                 $backUrl = $request->input('back_url', route('admin.contact.index'));
 
                 // 呼叫統一的訊息顯示介面
-                ContentHelper::showMsg(0, $msgTitle, [
+                $this->showMsg(0, $msgTitle, [
                     ['text' => '返回列表', 'href' => $backUrl],
                     ['text' => '留在本頁', 'href' => route('admin.contact.edit', $contact->contact_id)],
                 ]);

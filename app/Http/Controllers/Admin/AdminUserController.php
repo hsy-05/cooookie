@@ -118,7 +118,7 @@ class AdminUserController extends BaseAdminController
                     $admin->writeLog('新增', "建立管理員：{$admin->name}");
                 }
 
-                ContentHelper::showMsg(0, '新增完成', [
+                $this->showMsg(0, '新增完成', [
                     ['text' => '返回列表', 'href' => route('admin.admins.index')],
                 ], true);
 
@@ -261,7 +261,7 @@ class AdminUserController extends BaseAdminController
                     $buttons[] = ['text' => '返回列表', 'href' => route('admin.admins.index')];
                 }
 
-                ContentHelper::showMsg(0, '資料更新完成', $buttons, true);
+                $this->showMsg(0, '資料更新完成', $buttons, true);
 
                 return redirect()->back();
             } catch (\Exception $e) {

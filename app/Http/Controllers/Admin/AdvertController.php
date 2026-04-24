@@ -91,7 +91,7 @@ class AdvertController extends BaseAdminController
 
                 $backUrl = $request->input('back_url', route('admin.advert.index'));
 
-                ContentHelper::showMsg(0, '新增完成', [
+                $this->showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.advert.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.advert.edit', $advert->adv_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
@@ -143,7 +143,7 @@ class AdvertController extends BaseAdminController
 
                 $backUrl = $request->input('back_url', route('admin.advert.index'));
 
-                ContentHelper::showMsg(0, '編輯操作完成', [
+                $this->showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.advert.edit', $advert->adv_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ], true);

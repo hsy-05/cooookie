@@ -184,7 +184,7 @@ class AdminRoleController extends BaseAdminController
                 $role->writeLog($action, $role->name);
 
                 // 6. 成功回應
-                ContentHelper::showMsg(0, "角色{$action}成功", [
+                $this->showMsg(0, "角色{$action}成功", [
                     ['text' => '返回列表', 'href' => route('admin.roles.index')],
                     ['text' => '繼續編輯', 'href' => route('admin.roles.edit', $role->id)],
                 ]);

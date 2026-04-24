@@ -66,7 +66,7 @@
     @yield('js')
 
     <script>
-        var toggleBooleanUrl = "{{ route('admin.toggle.boolean') }}";
+        var toggleBooleanUrl = "{{ route('admin.tools.toggle.boolean') }}";
         var csrfToken = "{{ csrf_token() }}";
     </script>
 

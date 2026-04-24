@@ -143,7 +143,7 @@ class AdvertCategoryController extends BaseAdminController
                 $backUrl = $request->input('back_url', route('admin.advert_category.index'));
 
                 // 5. 提示訊息與跳轉 (使用 ContentHelper 維持 UX 一致性)
-                ContentHelper::showMsg(0, "分類{$action}完成", [
+                $this->showMsg(0, "分類{$action}完成", [
                     ['text' => '繼續編輯', 'href' => route('admin.advert_category.edit', $category->cat_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ]);

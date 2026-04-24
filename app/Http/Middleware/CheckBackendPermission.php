@@ -30,7 +30,7 @@ class CheckBackendPermission
 
             // 1. 呼叫 Helper 把訊息存入 Session (Flash)
             // 這裡的 $links 我們帶入剛剛算出來的 $url
-            ContentHelper::showMsg(
+            $this->showMsg(
                 1,
                 '對不起，您沒有執行此項操作的權限！',
                 [['text' => '返回', 'href' => $url]],

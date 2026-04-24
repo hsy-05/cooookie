@@ -108,7 +108,7 @@ class NewsCategoryController extends BaseAdminController
 
                 $backUrl = $request->input('back_url', route('admin.news_category.index'));
 
-                ContentHelper::showMsg(0, '分類新增完成', [
+                $this->showMsg(0, '分類新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news_category.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
@@ -163,7 +163,7 @@ class NewsCategoryController extends BaseAdminController
 
                 $backUrl = $request->input('back_url', route('admin.news_category.index'));
 
-                ContentHelper::showMsg(0, '編輯操作完成', [
+                $this->showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news_category.edit', $category->cat_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ], true);
@@ -329,7 +329,7 @@ class NewsCategoryController extends BaseAdminController
 
         // 如果「父層深度 + 我自己這一層」超過限制
         if (($depth + 1) > $maxLimit) {
-            ContentHelper::showMsg(1, "層級過深：此單元最高僅允許 {$maxLimit} 層", [['text' => '返回', 'href' => url()->previous()]], true);
+            $this->showMsg(1, "層級過深：此單元最高僅允許 {$maxLimit} 層", [['text' => '返回', 'href' => url()->previous()]], true);
             return redirect()->back();
         }
 

@@ -82,7 +82,7 @@ class NewsController extends BaseAdminController
                 $backUrl = $request->input('back_url', route('admin.news.index'));
 
                 // 成功回傳
-                ContentHelper::showMsg(0, '新增完成', [
+                $this->showMsg(0, '新增完成', [
                     ['text' => '繼續新增', 'href' => route('admin.news.create')],
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
@@ -122,7 +122,7 @@ class NewsController extends BaseAdminController
 
                 $backUrl = $request->input('back_url', route('admin.news.index'));
 
-                ContentHelper::showMsg(0, '編輯操作完成', [
+                $this->showMsg(0, '編輯操作完成', [
                     ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ]);
@@ -172,7 +172,7 @@ class NewsController extends BaseAdminController
     private function renderForm(News $news)
     {
         $isEdit = (bool)$news->exists;
-        $categories = NewsCategory::with('descs')->where('is_visible', 1)->orderByDesc('display_order')->get();
+        $categories = NewsCategory::with('descs')->orderByDesc('display_order')->get();
 
         // 【防呆掃除】進入頁面時，把上次「沒存檔就關掉」的圖片清空
         SummernoteImageHelper::cleanAbandonedImages();

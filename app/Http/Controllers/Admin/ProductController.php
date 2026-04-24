@@ -113,7 +113,7 @@ class ProductController extends BaseAdminController
             }
         }
 
-        ContentHelper::showMsg(
+        $this->showMsg(
             0,
             '消息新增完成',
             [
@@ -201,7 +201,7 @@ class ProductController extends BaseAdminController
 
             DB::commit();
 
-            ContentHelper::showMsg(
+            $this->showMsg(
                 0,
                 '編輯操作完成',
                 [
@@ -214,7 +214,7 @@ class ProductController extends BaseAdminController
             return redirect()->back();
         } catch (\Throwable $e) {
             DB::rollBack();
-            ContentHelper::showMsg(
+            $this->showMsg(
                 1, // 1 = 錯誤訊息
                 '更新失敗：' . $e->getMessage(),
                 [
