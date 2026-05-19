@@ -396,3 +396,83 @@ Model $news->title -> 自動去抓 lang_id = 1 的描述
       |                                                  [ ImageHelper::delete ] --> [ 刪除實體檔案 ]
 
 </pre>
+
+
+
+<pre>
+==================================================================================================
+                               SUMMERNOTE 多語系圖片生命週期與防呆流程圖
+==================================================================================================
+
+[ 階段一：使用者操作與暫存 ]
+   │
+   ├─► 動作 1：使用者進入表單頁面 (新增或編輯)
+   │     │
+   │     ▼ 呼叫：NewsController@renderForm
+   │     ▼ 執行：SummernoteImageHelper::cleanAbandonedImages()
+   │            └─►【大掃除機制】
+   │                檢查 Session。只有「上傳超過 1 小時且沒存檔」的圖片會被硬碟刪除。
+   │                當前正在編輯或剛重整的圖片（小於 1 小時）會被保留，絕對不殺。
+   │
+   └─► 動作 2：使用者在編輯器中「拖放/上傳圖片」(新增圖片)
+         │
+         ▼ 觸發：前端發送非同步 AJAX 請求至後端上傳 API (例：upload API)
+         ▼ 執行：SummernoteImageHelper::trackTempImage($path, $editorId)
+                └─►【追蹤暫存】
+                    將圖片路徑與「當前時間戳記 (time())」包成陣列，
+                    推入 Session ('summernote_temp_uploads.{editorId}')。
+
+──────────────────────────────────────────────────────────────────────────────────────────
+
+[ 階段二：使用者按下「儲存」(送出表單) ]
+   │
+   ▼ 觸發：POST 請求至 NewsController@store (新增) 或 @update (修改)
+   │
+   ├─► 步驟 1：解除大掃除追蹤 (僅限 store 新增流程)
+   │     │
+   │     ▼ 執行：SummernoteImageHelper::commitTempImages($editorId)
+   │            └─►【轉正確認】
+   │                直接把該編輯器在 Session 裡的暫存追蹤紀錄刪除（免除未來被大掃除）。
+   │
+   ├─► 步驟 2：處理多語系資料儲存與圖片比對
+   │     │
+   │     ▼ 執行：NewsController@saveTranslations($item, $request->desc)
+   │            │
+   │            ├──► 狀況 A：多語系內容中的某個語系「標題留空」
+   │            │      │
+   │            │      ▼ 執行：ContentHelper::decodeSiteUrl($oldDesc->content) (還原網址)
+   │            │      ▼ 呼叫：SummernoteImageHelper::syncEditorImages($oldHtml, null)
+   │            │             └─► 判定舊內文有圖、新內文無圖，直接從硬碟刪除該語系圖片。
+   │            │
+   │            └──► 狀況 B：正常填寫標題，更新或建立內文
+   │                   │
+   │                   ▼ 執行：ContentHelper::decodeSiteUrl($oldDesc->content) (還原舊網址)
+   │                   ▼ 呼叫：SummernoteImageHelper::syncEditorImages($oldHtml, $newHtml)
+   │                          │
+   │                          ▼ 內部執行：self::extractPaths() 利用正規表示式各自抓出新舊內文圖片
+   │                          ▼ 內部執行：array_diff($oldImages, $newImages)
+   │                          │      │
+   │                          │      ├─►【判定：手動移除的圖】(舊的有，新的沒有)
+   │                          │      │     └─► 執行 Storage::disk('public')->delete() 刪除實體檔案。
+   │                          │      │
+   │                          │      └─►【判定：繼續保留的圖】(新舊都有，或是純新增的圖)
+   │                          │            └─► 陣列比對沒變化，硬碟實體檔案安全保留。
+   │                          │
+   │                          ▼ 最終寫入：ContentHelper::encodeSiteUrl($newContent)
+   │                                 └─► 將 HTML 中的網址轉換為縮減編碼 [[SITE_URL]] 寫入資料庫。
+
+──────────────────────────────────────────────────────────────────────────────────────────
+
+[ 階段三：使用者手動刪除整筆資料 ]
+   │
+   ▼ 觸發：DELETE 請求至 NewsController@destroy($id) 或 batchDestroy()
+   │
+   ▼ 執行：遍歷該文章所有語系描述 (descs)
+   ▼ 執行：ContentHelper::decodeSiteUrl($desc->content) (還原縮減網址)
+   ▼ 呼叫：SummernoteImageHelper::syncEditorImages($oldHtml, null)
+          └─► 傳入新內容為 null，判定所有舊圖片通通要刪除，將硬碟裡的實體內文圖全數清理乾淨。
+
+==================================================================================================
+                                    全流程安全閉環結束
+==================================================================================================
+</pre>

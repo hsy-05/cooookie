@@ -21,11 +21,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('news_category_desc', function (Blueprint $table) {
-            // 指定引擎為 InnoDB（支援 FK）
-            $table->engine = 'InnoDB';
-
             // 外鍵欄位（注意型態需與被參照欄位一致：unsignedBigInteger）
-            $table->unsignedBigInteger('cat_id')->index()->comment('參照 news_category.cat_id');
+            $table->unsignedBigInteger('cat_id')->index()->comment('分類ID');
             $table->unsignedBigInteger('lang_id')->index()->comment('language.lang_id');
 
             // 多語系欄位

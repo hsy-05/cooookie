@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-class NewsCategoryRequest extends BaseFormRequest
+class ProductCategoryRequest extends BaseFormRequest
 {
     public function authorize(): bool { return true; }
 

@@ -38,6 +38,22 @@ return [
             ],
         ]
     ],
+
+    'product_management' => [ // 群組標籤
+        'label' => '產品管理',
+        'subs' => [
+            'product' => [
+                'label' => '產品介紹',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+            'product_category' => [
+                'label' => '產品分類',
+                'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
+                'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
+            ],
+        ]
+    ],
     'permission_setting' => [
         'label' => '權限設定',
         'subs' => [

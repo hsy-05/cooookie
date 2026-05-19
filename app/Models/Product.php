@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Traits\Loggable;       // 引入日誌 Trait
 use App\Traits\HasImageFields; // 引入圖片處理 Trait
 
-class News extends Model
+class Product extends Model
 {
     use Loggable, HasImageFields; // 同時使用多個 Trait
 
@@ -21,16 +21,16 @@ class News extends Model
     public $enableAutoLog = false;
 
     // 定義 Log 顯示的模組名稱
-    public $logName = '消息';
+    public $logName = '產品';
 
     // 告訴 Trait 標題要抓 'log_title' 這個屬性
     public $logTitle = 'log_title';
 
     // 指定操作的資料表名稱
-    protected $table = 'news';
+    protected $table = 'product';
 
     // 指定主鍵欄位
-    protected $primaryKey = 'news_id';
+    protected $primaryKey = 'product_id';
 
     // 主鍵是 int 並且是 auto-increment
     public $incrementing = true;
@@ -59,7 +59,7 @@ class News extends Model
         // 監聽刪除事件
         static::deleting(function ($item) {
             // 自動刪除關聯的語系描述
-            // 使用 delete() 而非 truncate() 確保觸發 NewsDesc 可能有的事件
+            // 使用 delete() 而非 truncate() 確保觸發 ProductDesc 可能有的事件
             $item->descs()->delete();
 
             // 註：圖片刪除已由 HasImageFields Trait 處理，此處不需重複寫
@@ -71,7 +71,7 @@ class News extends Model
      */
     public function descs()
     {
-        return $this->hasMany(NewsDesc::class, 'news_id', 'news_id');
+        return $this->hasMany(ProductDesc::class, 'product_id', 'product_id');
     }
 
     /**
@@ -82,7 +82,7 @@ class News extends Model
         // 優先從 Session 抓取，若無則預設為 1
         $langId = session('lang_id') ?? 1;
 
-        return $this->hasOne(NewsDesc::class, 'news_id', 'news_id')
+        return $this->hasOne(ProductDesc::class, 'product_id', 'product_id')
             ->where('lang_id', $langId);
     }
 
@@ -91,12 +91,12 @@ class News extends Model
      */
     public function category()
     {
-        return $this->belongsTo(NewsCategory::class, 'cat_id', 'cat_id');
+        return $this->belongsTo(ProductCategory::class, 'cat_id', 'cat_id');
     }
 
     /**
      * 存取器：自動取得目前語系的標題 (Accessor)
-     * 用法：$news->title
+     * 用法：$product->title
      */
     public function getTitleAttribute()
     {
@@ -124,7 +124,7 @@ class News extends Model
     public function getLogTitleAttribute()
     {
         // 優先抓取目前關聯到的 desc 標題，若無則抓第一個語系
-        return $this->currentDesc->title ?? ($this->descs->first()->title ?? '未命名消息');
+        return $this->currentDesc->title ?? ($this->descs->first()->title ?? '未命名產品');
     }
 
 }

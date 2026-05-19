@@ -17,7 +17,7 @@ class HomeController extends Controller
         $category = AdvertCategory::where('cat_code', $code)
             ->with(['adverts' => function ($q) {
                 $q->where('is_visible', 1)
-                    ->with('desc') // 確保抓到標題與副標題
+                    ->with('currentDesc') // 確保抓到標題與副標題
                     ->orderBy('display_order', 'desc');
             }])
             ->first();
@@ -37,7 +37,7 @@ class HomeController extends Controller
         // 獲取最新消息
         $homeNews = News::where('is_visible', 1)
             ->where('is_visible_home', 1)
-            ->with('desc')
+            ->with('currentDesc')
             ->orderBy('display_order', 'desc')
             ->latest()
             ->get();

@@ -36,13 +36,13 @@
 
                 {{-- 消息網格 --}}
                 <div class="news-grid">
-                    @forelse ($newsList as $item)
+                    @forelse ($items as $item)
                         <article class="news-card js-fade-up" data-delay="0.2">
-                            <a href="{{ route('news.show', ['news' => $item->news_id]) }}" title="{{ $item->desc->title ?? '' }}">
+                            <a href="{{ route('news.show', ['news' => $item->news_id]) }}" title="{{ $item->currentDesc->title ?? '' }}">
                                 {{-- 圖片區 500*360 --}}
                                 <div class="n-img-box">
                                     <img src="{{ $item->image_url ? asset('storage/' . $item->image_url) : asset('images/default-news.jpg') }}"
-                                         alt="{{ $item->desc->title ?? '' }}"
+                                         alt="{{ $item->currentDesc->title ?? '' }}"
                                          class="n-img"
                                          loading="lazy">
                                 </div>
@@ -51,14 +51,14 @@
                                 <div class="n-info">
                                     <div class="n-meta">
                                         @if ($item->category)
-                                            <span class="n-cat-label">{{ $item->category->desc->name }}</span>
+                                            <span class="n-cat-label">{{ $item->category->currentDesc->name }}</span>
                                         @endif
                                         <time class="n-date" datetime="{{ $item->created_at->format('Y-m-d') }}">
                                             {{ $item->created_at->format('Y.m.d') }}
                                         </time>
                                     </div>
-                                    <h2 class="n-title">{{ $item->desc->title ?? 'Untitled' }}</h2>
-                                    <p class="n-desc">{{ Str::limit(strip_tags($item->desc->content ?? ''), 80) }}</p>
+                                    <h2 class="n-title">{{ $item->currentDesc->title ?? 'Untitled' }}</h2>
+                                    <p class="n-desc">{{ Str::limit(strip_tags($item->currentDesc->content ?? ''), 80) }}</p>
                                 </div>
                             </a>
                         </article>
@@ -71,18 +71,18 @@
                 </div>
 
                 {{-- 分頁器 --}}
-                @if ($newsList->hasPages())
+                @if ($items->hasPages())
                     <nav class="pagination-wrap js-fade-up">
-                        @if (!$newsList->onFirstPage())
-                            <a href="{{ $newsList->previousPageUrl() }}" class="page-btn" rel="prev">&larr;</a>
+                        @if (!$items->onFirstPage())
+                            <a href="{{ $items->previousPageUrl() }}" class="page-btn" rel="prev">&larr;</a>
                         @endif
 
-                        @foreach ($newsList->getUrlRange(max(1, $newsList->currentPage() - 2), min($newsList->lastPage(), $newsList->currentPage() + 2)) as $page => $url)
-                            <a href="{{ $url }}" class="page-btn {{ $page == $newsList->currentPage() ? 'active' : '' }}">{{ $page }}</a>
+                        @foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) as $page => $url)
+                            <a href="{{ $url }}" class="page-btn {{ $page == $items->currentPage() ? 'active' : '' }}">{{ $page }}</a>
                         @endforeach
 
-                        @if ($newsList->hasMorePages())
-                            <a href="{{ $newsList->nextPageUrl() }}" class="page-btn" rel="next">&rarr;</a>
+                        @if ($items->hasMorePages())
+                            <a href="{{ $items->nextPageUrl() }}" class="page-btn" rel="next">&rarr;</a>
                         @endif
                     </nav>
                 @endif

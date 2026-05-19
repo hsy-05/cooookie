@@ -19,9 +19,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('news_category', function (Blueprint $table) {
-            // 指定引擎為 InnoDB（支援 FK）
-            $table->engine = 'InnoDB';
-
             // 主鍵 cat_id（unsignedBigInteger auto-increment）
             $table->id('cat_id');
 

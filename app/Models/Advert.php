@@ -49,7 +49,7 @@ class Advert extends Model
     /**
      * 關聯：取得「目前語系」的描述資料 (根據 Session 語系)
      */
-    public function desc()
+    public function currentDesc()
     {
         $langId = session('lang_id') ?? 1;
         return $this->hasOne(AdvertDesc::class, 'adv_id', 'adv_id')
@@ -70,6 +70,6 @@ class Advert extends Model
     public function getLogTitleAttribute()
     {
         // 優先抓取目前語系名稱，若無則抓該廣告第一個語系名稱
-        return $this->desc->adv_name ?? ($this->descs->first()->adv_name ?? '未命名廣告');
+        return $this->currentDesc->adv_name ?? ($this->descs->first()->adv_name ?? '未命名廣告');
     }
 }

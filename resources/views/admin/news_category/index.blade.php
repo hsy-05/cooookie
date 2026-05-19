@@ -26,7 +26,7 @@
                     </thead>
                     <tbody>
                         {{-- 開始遞迴渲染，傳入初始層級 level = 0 --}}
-                        @forelse ($categories as $cat)
+                        @forelse ($catItems as $cat)
                             @include('admin.news_category.item_row', ['cat' => $cat, 'level' => 1])
                         @empty
                             <tr>

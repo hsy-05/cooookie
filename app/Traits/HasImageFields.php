@@ -3,20 +3,43 @@
 namespace App\Traits;
 
 use App\Helpers\ImageHelper;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 
+/**
+ * 圖片欄位處理 Trait
+ *
+ * 提供：
+ * - 刪除資料時自動刪除圖片
+ * - 手動刪除指定圖片欄位
+ * - AJAX 刪除圖片功能
+ *
+ * 注意：
+ * 此 Trait 必須搭配 Eloquent Model 使用。
+ *
+ * @mixin Model
+ */
 trait HasImageFields
 {
     /**
-     * 自動初始化 HasImageFields Trait 的事件監聽。
+     * 初始化 Trait 的 Model 事件
+     *
+     * 當 Model 被刪除時，
+     * 自動清除對應的圖片檔案。
+     *
+     * @return void
      */
-    protected static function bootHasImageFields()
+    protected static function bootHasImageFields(): void
     {
-        // 當整筆資料被刪除時，自動把對應的實體圖檔也刪掉
         static::deleted(function ($model) {
+
+            // 取得所有圖片欄位
             foreach ($model->getImageFields() as $field) {
+
+                // 防呆：避免空值
                 if (!empty($model->$field)) {
+
+                    // 刪除實體圖片
                     ImageHelper::deleteImage($model->$field);
                 }
             }
@@ -24,50 +47,89 @@ trait HasImageFields
     }
 
     /**
-     * 定義哪些欄位是圖片欄位。
-     * 使用此 Trait 的 Model 可以覆寫這個屬性。
-     * 例如：protected array $imageFields = ['avatar_url', 'cover_image'];
+     * 取得 Model 定義的圖片欄位
+     *
+     * Model 可自行定義：
+     *
+     * protected array $imageFields = [
+     *     'image',
+     *     'banner_image'
+     * ];
+     *
+     * @return array 圖片欄位名稱陣列
      */
     public function getImageFields(): array
     {
-        return property_exists($this, 'imageFields') ? $this->imageFields : [];
+        return property_exists($this, 'imageFields')
+            ? $this->imageFields
+            : [];
     }
 
     /**
-     * 刪除 Model 上指定的圖片欄位 (不綁定 HTTP Request，更通用)
+     * 刪除指定欄位的圖片
      *
-     * @param string $field 欄位名稱
-     * @return bool 是否成功刪除
+     * 功能：
+     * - 刪除 storage 圖片
+     * - 將資料庫欄位設為 null
+     *
+     * @param string $field 欲刪除的圖片欄位名稱
+     * @return bool 是否刪除成功
      */
     public function removeImageFromField(string $field): bool
     {
-        // 防呆：確保欄位存在且有值
+        // 防呆：欄位不存在
+        if (!isset($this->$field)) {
+            return false;
+        }
+
+        // 防呆：欄位為空
         if (empty($this->$field)) {
             return false;
         }
 
-        // 刪除實體檔案
+        // 刪除圖片檔案
         ImageHelper::deleteImage($this->$field);
 
-        // 將資料庫該欄位設為 null
-        return $this->update([$field => null]);
+        // 更新資料庫欄位
+        return $this->update([
+            $field => null
+        ]);
     }
 
     /**
-     * [保留原功能供 AJAX 呼叫] 泛用型刪除圖片處理邏輯
+     * 提供 AJAX 呼叫的泛用圖片刪除功能
+     *
+     * 前端可傳入：
+     * field=image
+     *
+     * 即可刪除對應欄位圖片。
+     *
+     * @param Request $request HTTP 請求資料
+     * @return \Illuminate\Http\JsonResponse
      */
     public function deleteImageFieldGeneric(Request $request)
     {
         $field = $request->input('field');
 
+        // 防呆：未傳欄位名稱
         if (!$field) {
-            return response()->json(['success' => false, 'message' => '未指定欄位名稱'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => '未指定欄位名稱'
+            ], 400);
         }
 
+        // 執行圖片刪除
         if ($this->removeImageFromField($field)) {
-            return response()->json(['success' => true]);
+
+            return response()->json([
+                'success' => true
+            ]);
         }
 
-        return response()->json(['success' => false, 'message' => '圖片刪除失敗，欄位不存在或檔案已遺失'], 404);
+        return response()->json([
+            'success' => false,
+            'message' => '圖片刪除失敗'
+        ], 404);
     }
 }

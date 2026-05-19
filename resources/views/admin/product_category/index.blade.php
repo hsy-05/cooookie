@@ -1,55 +1,41 @@
 @extends('adminlte::page')
+@section('title', $pageTitle)
 
-@section('title', '產品分類管理')
-
-@section('content_header')
-    <h1>產品分類管理</h1>
-@stop
+{{-- 麵包屑與標題組件 --}}
+@include('components.admin.page_content_header')
 
 @section('content')
-    <div class="text-right">
-        <a href="{{ route('admin.product_category.create') }}" class="btn btn-primary mb-3">新增分類</a>
-    </div>
+    <x-admin.page-message>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <a href="{{ route('admin.product_category.create') }}" class="btn btn-primary ml-auto">
+                        <i class="fas fa-plus-square"></i> 新增分類
+                    </a>
+                </div>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>cat_id</th>
-                <th>名稱 (各語系)</th>
-                <th>是否顯示</th>
-                <th>排序</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($category as $cat)
-                <tr>
-                    <td>{{ $cat->cat_id }}</td>
-                    <td>
-                        @foreach ($cat->descs as $d)
-                            <div><strong>[{{ $d->lang_id }}]</strong> {{ $d->name }}</div>
-                        @endforeach
-                    </td>
-                    <td>{{ $cat->is_visible ? '是' : '否' }}</td>
-                    <td>{{ $cat->display_order }}</td>
-                    <td>
-                        <a href="{{ route('admin.product_category.show', $cat->cat_id) }}" class="btn btn-sm btn-info">查看</a>
-                        <a href="{{ route('admin.product_category.edit', $cat->cat_id) }}" class="btn btn-sm btn-warning">編輯</a>
-                        <form action="{{ route('admin.product_category.destroy', $cat->cat_id) }}" method="POST"
-                            style="display:inline" onsubmit="return confirm('確定刪除？')">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger">刪除</button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="text-left">名稱</th> {{-- 樹狀結構名稱必須靠左 --}}
+                            <th class="text-center px-width-150">是否顯示</th>
+                            <th class="text-center px-width-100">排序</th>
+                            <th class="text-center px-width-150">更新時間</th>
+                            <th class="text-center px-width-200">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- 開始遞迴渲染，傳入初始層級 level = 0 --}}
+                        @forelse ($catItems as $cat)
+                            @include('admin.product_category.item_row', ['cat' => $cat, 'level' => 1])
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">目前沒有任何記錄。</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </x-admin.page-message>
 @stop

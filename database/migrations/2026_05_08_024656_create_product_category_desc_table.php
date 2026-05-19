@@ -4,28 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/*
- * 建立 product_category_desc 多語系翻譯表
- * - 使用複合主鍵 (cat_id, lang_id)，不另外建立自增 id
- * - name/description/content 存放不同 lang 的文字內容
- * - 設定外鍵：
- *     cat_id -> product_category.cat_id (cascade on delete)
- *     lang_id -> language.lang_id (cascade on delete)  (請確保 language 表與該欄位存在)
- *
- * 注意：
- * - 此檔要在 product_category 與 language 表存在後才能成功建立。
- * - 若你的 language migration 會在之後建立，請先建立 language。
- */
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('product_category_desc', function (Blueprint $table) {
-            // 指定引擎為 InnoDB（支援 FK）
-            $table->engine = 'InnoDB';
-
-            // 外鍵欄位（注意型態需與被參照欄位一致：unsignedBigInteger）
-            $table->unsignedBigInteger('cat_id')->index()->comment('參照 product_category.cat_id');
+             // 外鍵欄位（注意型態需與被參照欄位一致：unsignedBigInteger）
+            $table->unsignedBigInteger('cat_id')->index()->comment('分類ID');
             $table->unsignedBigInteger('lang_id')->index()->comment('language.lang_id');
 
             // 多語系欄位
@@ -50,6 +38,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('product_category_desc');

@@ -79,7 +79,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($newsList as $item)
+                            @forelse ($items as $item)
                                 <tr>
                                     {{-- 勾選框 --}}
                                     <td class="text-center">
@@ -91,7 +91,7 @@
                                     <td>{{ $item->title ?? '--' }}</td>
 
                                     {{-- 分類 --}}
-                                    <td class="text-center hidden-xs">{{ $item->category->desc->name ?? '未分類' }}
+                                    <td class="text-center hidden-xs">{{ $item->category->currentDesc->name ?? '未分類' }}
                                     </td>
 
                                     {{-- 是否顯示 --}}
@@ -99,7 +99,7 @@
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input toggle-boolean-switch"
                                                 id="is_visible{{ $item->news_id }}" data-id="{{ $item->news_id }}"
-                                                data-model="News" data-field="is_visible"
+                                                data-model="{{ $modelName }}" data-field="is_visible"
                                                 {{ $item->is_visible ? 'checked' : '' }}>
                                             <label class="custom-control-label"
                                                 for="is_visible{{ $item->news_id }}"></label>
@@ -111,7 +111,7 @@
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input toggle-boolean-switch"
                                                 id="is_visible_home{{ $item->news_id }}" data-id="{{ $item->news_id }}"
-                                                data-model="News" data-field="is_visible_home"
+                                                data-model="{{ $modelName }}" data-field="is_visible_home"
                                                 {{ $item->is_visible_home ? 'checked' : '' }}>
                                             <label class="custom-control-label"
                                                 for="is_visible_home{{ $item->news_id }}"></label>
@@ -158,7 +158,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">
+                                    <td colspan="8" class="text-center text-muted">
                                         目前沒有任何記錄
                                     </td>
                                 </tr>
@@ -187,7 +187,7 @@
                 </form>
 
                 {{-- ===== 分頁與工具區塊 ===== --}}
-                @include('components.admin.pagination_tools', ['items' => $newsList])
+                @include('components.admin.pagination_tools', ['items' => $items])
             </div>
         </div>
     </x-admin.page-message>

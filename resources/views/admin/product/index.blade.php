@@ -1,123 +1,194 @@
 @extends('adminlte::page')
 
-@section('title', '產品管理')
+{{-- 瀏覽器分頁標題：依然使用完整標題，方便搜尋與辨識 --}}
+@section('title', $pageTitle)
 
-@section('content_header')
-    <h1>產品管理</h1>
-@stop
+{{-- 頁面內容區標題：使用組件並傳入預先處理好的標題物件 --}}
+@component('components.admin.page_content_header', [
+    'pageTitle' => $pageTitle, // 傳入字串（供組件內的備援邏輯使用）
+    'titleConfig' => $titleConfig, // [關鍵] 傳入物件，讓組件直接抓 $titleConfig['main']
+])
+    @slot('actions')
+        {{-- 權限判斷：確保有權限的人才看得到按鈕 --}}
+        @if (auth()->user()->canDo($permissionName . '.create'))
+            <a href="{{ route('admin.' . $permissionName . '.create') }}" class="btn btn-primary shadow-sm px-4">
+                <i class="fas fa-plus mr-1"></i>
+                新增
+            </a>
+        @endif
+    @endslot
+@endcomponent
 
 @section('content')
-    {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
+    {{-- 系統訊息顯示（成功 / 錯誤） --}}
     <x-admin.page-message>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            {{-- 搜尋表單 --}}
-            <form action="{{ route('admin.product.index') }}" method="GET" class="form-inline">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="搜尋標題..." value="{{ $search ?? '' }}">
-                    <div class="input-group-append">
-                        <button class="btn btn-success" type="submit">搜尋</button>
-                        {{-- 如果有搜尋關鍵字，顯示清除按鈕 --}}
-                        @if ($search)
-                            <a href="{{ route('admin.product.index', request()->except('search', 'page')) }}"
-                                class="btn btn-light">清除</a>
-                        @endif
-                    </div>
-                </div>
-                {{-- 保留其他查詢參數，例如 per_page --}}
-                @foreach (request()->except('search', 'page') as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endforeach
-            </form>
 
-            {{-- 新增產品按鈕 --}}
-            <a href="{{ route('admin.product.create') }}" class="btn btn-primary">新增產品</a>
-        </div>
+        <div class="card">
+            <div class="card-body">
 
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th class="text-center">標題</th>
-                    <th class="text-center px-width-150 hidden-xs">圖片</th>
-                    <th class="text-center px-width-150 hidden-xs">是否顯示</th>
-                    <th class="text-center px-width-150 hidden-xs">顯示排序</th>
-                    <th class="text-center px-width-150 hidden-xs">建立時間</th>
-                    <th class="text-center px-width-150 hidden-xs">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($productList as $item)
-                    {{-- 使用 @forelse 處理無資料情況 --}}
-                    <tr>
-                        {{-- 確保顯示多語系標題，如果沒有則顯示 '--' --}}
-                        <td>{{ $item->descs->first()->title ?? '--' }}</td>
-                        <td>
-                            @if ($item->image)
-                                {{-- 使用 asset() 輔助函數來生成正確的公共路徑 --}}
-                                <img src="{{ asset('storage/' . $item->image) }}" alt="" width="100">
-                            @else
-                                無圖片
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            {{-- AdminLTE Custom Switch Element --}}
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input toggle-boolean-switch"
-                                    id="productSwitch{{ $item->product_id }}" data-id="{{ $item->product_id }}" data-model="product"
-                                    {{-- 指定模型名稱 --}} data-field="is_visible" {{-- 指定要更新的欄位 --}}
-                                    {{ $item->is_visible ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="productSwitch{{ $item->product_id }}"></label>
+                {{-- ===== 搜尋 + 新增 ===== --}}
+                <div class="d-flex justify-content-between align-items-center mb-3 px-width-600">
+                    {{-- 搜尋表單 --}}
+                    <form action="{{ route('admin.product.index') }}" method="GET" class="form-inline">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="搜尋標題..."
+                                value="{{ $search ?? '' }}">
+
+                            <div class="input-group-append">
+                                <button class="btn btn-success" type="submit">搜尋</button>
+
+                                {{-- 有搜尋條件才顯示清除 --}}
+                                @if ($search)
+                                    <a href="{{ route('admin.product.index', request()->except('search', 'page')) }}"
+                                        class="btn btn-light">
+                                        清除
+                                    </a>
+                                @endif
                             </div>
-                        </td>
-                        <td>{{ $item->display_order }}</td>
-                        <td>{{ $item->created_at->format('Y-m-d H:i') }}</td>
-                        <td>
-                            <a href="{{ route('admin.product.edit', $item->product_id) }}" class="btn btn-sm btn-warning">編輯</a>
-                            <form action="{{ route('admin.product.destroy', $item->product_id) }}" method="POST"
-                                style="display:inline-block;" onsubmit="return confirm('確定要刪除嗎？')"> {{-- 傳統的 JS confirm 提示 --}}
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">刪除</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">目前沒有任何記錄。</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </div>
 
-        {{-- 分頁區域 --}}
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            {{-- 每頁筆數選擇 --}}
-            <form id="perPageForm" method="GET" class="form-inline">
-                <label for="per_page" class="mr-2">每頁筆數：</label>
-                <select name="per_page" id="per_page" class="form-control"
-                    onchange="document.getElementById('perPageForm').submit()">
-                    @foreach ([2, 5, 8, 15, 30] as $size)
-                        <option value="{{ $size }}" {{ request('per_page', 8) == $size ? 'selected' : '' }}>
-                            {{ $size }}
-                        </option>
-                    @endforeach
-                </select>
+                        {{-- 保留其他 GET 參數 --}}
+                        @foreach (request()->except('search', 'page') as $key => $value)
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endforeach
+                    </form>
 
-                {{-- 保留其他查詢參數，包括搜尋關鍵字 --}}
-                @foreach (request()->except('per_page', 'page') as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endforeach
-            </form>
+                </div>
 
-            {{-- 總頁數等資訊 --}}
-            <div>
-                總計 {{ $productList->total() }} 筆記錄，分 {{ $productList->lastPage() }} 頁，目前第 {{ $productList->currentPage() }} 頁
+                {{-- ===== 批次刪除表單 ===== --}}
+                <form action="{{ route('admin.product.batch_destroy') }}" method="POST" id="batchDeleteForm">
+                    @csrf
+                    @method('DELETE')
+
+                    {{-- ===== 資料列表 ===== --}}
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                {{-- 全選 --}}
+                                <th class="text-center px-width-50">
+                                    <input type="checkbox" id="checkAll">
+                                </th>
+                                <th class="text-center">標題</th>
+                                <th class="text-center px-width-140">分類</th>
+                                <th class="text-center px-width-100 hidden-xs">是否顯示</th>
+                                <th class="text-center px-width-100 hidden-xs">首頁顯示</th>
+                                <th class="text-center px-width-100 hidden-md">排序</th>
+                                <th class="text-center px-width-150 hidden-sm">更新時間</th>
+                                <th class="text-center px-width-120">操作</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @forelse ($items as $item)
+                                <tr>
+                                    {{-- 勾選框 --}}
+                                    <td class="text-center">
+                                        <input type="checkbox" name="ids[]" value="{{ $item->product_id }}"
+                                            class="row-checkbox">
+                                    </td>
+
+                                    {{-- 標題（多語系取第一筆） --}}
+                                    <td>{{ $item->title ?? '--' }}</td>
+
+                                    {{-- 分類 --}}
+                                    <td class="text-center hidden-xs">{{ $item->category->currentDesc->name ?? '未分類' }}
+                                    </td>
+
+                                    {{-- 是否顯示 --}}
+                                    <td class="text-center hidden-xs">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input toggle-boolean-switch"
+                                                id="is_visible{{ $item->product_id }}" data-id="{{ $item->product_id }}"
+                                                data-model="{{ $modelName }}" data-field="is_visible"
+                                                {{ $item->is_visible ? 'checked' : '' }}>
+                                            <label class="custom-control-label"
+                                                for="is_visible{{ $item->product_id }}"></label>
+                                        </div>
+                                    </td>
+
+                                    {{-- 首頁顯示 --}}
+                                    <td class="text-center hidden-xs">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input toggle-boolean-switch"
+                                                id="is_visible_home{{ $item->product_id }}" data-id="{{ $item->product_id }}"
+                                                data-model="{{ $modelName }}" data-field="is_visible_home"
+                                                {{ $item->is_visible_home ? 'checked' : '' }}>
+                                            <label class="custom-control-label"
+                                                for="is_visible_home{{ $item->product_id }}"></label>
+                                        </div>
+                                    </td>
+
+                                    {{-- 排序 --}}
+                                    <td class="hidden-md text-center">
+                                        {{ $item->display_order }}
+                                    </td>
+
+                                    {{-- 更新時間 --}}
+                                    <td class="hidden-sm">
+                                        {{ $item->updated_at->format('Y-m-d H:i') }}
+                                    </td>
+
+                                    {{-- 操作 --}}
+                                    <td>
+                                        <div class="table-actions-container">
+
+                                            {{-- 編輯 --}}
+                                            @can('product.edit')
+                                                <a href="{{ route('admin.product.edit', $item->product_id) }}"
+                                                    class="btn btn-sm btn-warning" title="編輯">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+
+                                            {{-- 單筆刪除 --}}
+                                            @can('product.delete')
+                                                <form action="{{ route('admin.product.destroy', $item->product_id) }}" method="POST"
+                                                    id="deleteForm{{ $item->product_id }}">
+                                                    @csrf
+                                                    @method('DELETE')
+
+                                                    <button type="button" class="btn btn-sm btn-danger js-delete-btn"
+                                                        data-id="{{ $item->product_id }}" title="刪除">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        目前沒有任何記錄
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+
+                    {{-- 批次刪除工具列 --}}
+                    <div class="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded">
+                        <div class="form-inline">
+                            <label class="mr-2 text-danger">
+                                <i class="fas fa-trash-alt"></i> 批次刪除
+                            </label>
+
+                            <button type="button" class="btn btn-danger" id="batchDeleteBtn" disabled>
+                                執行刪除
+                            </button>
+                        </div>
+
+                        <div class="text-muted small">
+                            * 請勾選要刪除的消息
+                        </div>
+                    </div>
+
+                </form>
+
+                {{-- ===== 分頁與工具區塊 ===== --}}
+                @include('components.admin.pagination_tools', ['items' => $items])
             </div>
-        </div>
-
-        {{-- 分頁按鈕獨立一行 --}}
-        <div class="d-flex justify-content-center mt-3">
-            {{-- appends() 方法用於將當前請求的所有查詢參數（包括搜尋關鍵字和 per_page）添加到分頁連結中 --}}
-            {{ $productList->appends(request()->except('page'))->links('pagination::bootstrap-4') }}
         </div>
     </x-admin.page-message>
 @stop

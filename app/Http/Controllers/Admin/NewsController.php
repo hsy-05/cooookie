@@ -8,128 +8,194 @@ use App\Models\{News, NewsDesc, NewsCategory};
 use Illuminate\Support\Facades\{DB, Log};
 use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper, TagHelper};
 
+/**
+ * 管理控制器
+ * 採用參數化配置，方便未來快速複製為其他文章模組（如：案例實績、活動花絮）
+ */
 class NewsController extends BaseAdminController
 {
-    // 定義權限與標題
-    protected $permissionName = 'news';
+    /**
+     * 核心配置
+     */
+    protected $permissionName = 'news';             // 權限代碼
+    protected $modelClass     = News::class;         // 主模型類別
+    protected $descClass      = NewsDesc::class;     // 語系模型類別
+    protected $catClass       = NewsCategory::class; // 分類模型類別
+    protected $routePrefix    = 'admin.news';       // 路由前綴
+    protected $primaryKey     = 'news_id';           // 資料表主鍵名稱
+    protected $logModuleName  = '消息管理';           // 日誌顯示名稱
 
     /**
      * 頁面相關配置
+     * 集中管理圖片路徑與規格，調整時只需修改此處
      */
     protected $pageCfg = [
         'files' => [
             'image_url' => [
-                'path'   => 'news',            // 儲存路徑
-                'width'  => 600,               // 寬度 (若不縮圖可設為 null)
-                'height' => 400,               // 高度
-                'mode'   => 'center_crop',     // 處理模式：center_crop, scale_fit
-                'useOriginalName' => false,    // 是否使用原檔名 (false 代表自動生成唯一名稱)
+                'path'   => 'news',            // 圖片存放的資料夾名稱
+                'width'  => 600,               // 縮圖後的寬度
+                'height' => 400,               // 縮圖後的高度
+                'mode'   => 'center_crop',     // 裁切模式：從中心裁切
+                'useOriginalName' => false,    // 檔案名稱：自動生成隨機字串，避免中文檔名亂碼
             ],
-            // 未來若有 PDF 或 縮圖，直接在這裡增加一組設定即可
         ],
     ];
 
+    /**
+     * 顯示管理列表
+     *
+     * @param Request $request 包含搜尋關鍵字 search
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
+        // 抓取搜尋關鍵字
         $search = $request->input('search');
 
-        // 取得統一的分頁數
+        // 取得統一的分頁數量（由父類別 BaseAdminController 定義）
         $perPage = $this->getPerPage($request);
 
-        $newsList = News::with(['descs', 'category'])
+        /**
+         * 【效能優化重點：解決 N+1 問題】
+         * 使用 with() 預先載入關聯資料。
+         * 1. 'descs'：載入消息的各語系標題。
+         * 2. 'category.descs'：這是最關鍵的調整！
+         *    不只載入分類(category)，連分類裡面的語系描述(descs)也一併載入。
+         *    這樣在列表顯示「分類：春季餅乾」時，就不會重複觸發資料庫查詢。
+         */
+        $list = $this->modelClass::with(['descs', 'category.descs'])
             ->when($search, function ($query) use ($search) {
+                // 搜尋各語系標題中包含關鍵字的資料
                 $query->whereHas('descs', fn($q) => $q->where('title', 'like', "%{$search}%"));
             })
-            ->orderByDesc('display_order')
-            ->orderByDesc('news_id')
+            ->orderByDesc('display_order') // 優先依照手動排序值
+            ->orderByDesc($this->primaryKey) // 排序相同時，以編號由大到小排序
             ->paginate($perPage);
 
-        return $this->view('admin.news.index', compact('newsList', 'search'));
+        // 取得類別名稱（不含命名空間），例如：News
+        // class_basename 是 Laravel 內建函式，可以把 "App\Models\News" 轉成 "News"
+        $modelName = class_basename($this->modelClass);
+
+        // 回傳視圖
+        return $this->view("{$this->routePrefix}.index", [
+            'items'     => $list,
+            'search'    => $search,
+            'modelName' => $modelName // 將 Model 名稱傳給 Blade
+        ]);
     }
 
+    /**
+     * 進入「新增」頁面
+     *
+     * @return \Illuminate\View\View
+     */
     public function create()
     {
-        // 移除不必要的清空暫存呼叫，保持邏輯單純
-        return $this->renderForm(new News());
+        // 傳入空模型，維持 View 變數一致性
+        return $this->renderForm(new $this->modelClass);
     }
 
+    /**
+     * 儲存新增資料
+     *
+     * @param NewsRequest $request 驗證請求物件
+     */
     public function store(NewsRequest $request)
     {
+        // 使用資料庫交易機制，確保主表、圖片、語系三個步驟要麼全過，要麼全失敗回滾
         return DB::transaction(function () use ($request) {
             try {
-                $news = new News();
+                $item = new $this->modelClass;
 
-                // 填充資料
-                $news->fill($request->safe()->except(['image_url']));
+                // 填充基本欄位，自動排除 image_url 檔案欄位以便手動處理
+                $item->fill($request->safe()->except(['image_url']));
 
-                // 處理檔案上傳 (ImageHelper 已優化安全性)
-                $this->handleFileUploads($request, $news);
+                // 處理主圖上傳，並根據 $pageCfg 的設定自動裁切與縮圖
+                $this->handleFileUploads($request, $item);
 
-                $news->is_visible = $request->has('is_visible');
-                $news->is_visible_home = $request->has('is_visible_home');
-                $news->save();
+                // 處理開關欄位：如果有勾選才存為 true
+                $item->is_visible = $request->has('is_visible');
+                $item->is_visible_home = $request->has('is_visible_home');
+                $item->save();
 
-                // 【關鍵補強】存檔成功，告知 Helper 這個編輯器 ID 的圖片不用再被掃除
+                // 呼叫編輯器助手，將上傳到暫存區的內文圖片移動到正式目錄
                 $editorId = $request->input('editor_id', 'default');
                 SummernoteImageHelper::commitTempImages($editorId);
 
-                // 儲存多語系
-                $this->saveTranslations($news, $request->desc);
+                // 儲存各語系的標題、SEO與內容
+                $this->saveTranslations($item, $request->desc);
 
-                // 紀錄紀錄
-                $news->writeLog('新增', $news->desc->title ?? '未知名消息');
+                // 紀錄操作紀錄
+                $item->writeLog('新增', $item->currentDesc->title ?? "未知名{$this->logModuleName}");
 
-                $backUrl = $request->input('back_url', route('admin.news.index'));
+                // 計算跳轉網址，優先回到列表頁
+                $backUrl = $request->input('back_url', route("{$this->routePrefix}.index"));
 
-                // 成功回傳
+                // 顯示成功提示視窗
                 $this->showMsg(0, '新增完成', [
-                    ['text' => '繼續新增', 'href' => route('admin.news.create')],
-                    ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
+                    ['text' => '繼續新增', 'href' => route("{$this->routePrefix}.create")],
+                    ['text' => '繼續編輯', 'href' => route("{$this->routePrefix}.edit", $item->{$this->primaryKey})],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ]);
 
                 return redirect()->back();
             } catch (\Exception $e) {
-                Log::error("News Store Error: " . $e->getMessage());
+                // 若失敗則紀錄錯誤日誌，並把輸入資料塞回 Session
+                Log::error("{$this->logModuleName} Store Error: " . $e->getMessage());
                 return redirect()->back()->withInput()->with('error', '新增失敗：' . $e->getMessage());
             }
         });
     }
 
-    public function edit(News $news)
+    /**
+     * 進入「編輯」頁面
+     *
+     * @return \Illuminate\View\View
+     */
+    public function edit($id)
     {
-        return $this->renderForm($news);
+        $item = $this->modelClass::findOrFail($id);
+        return $this->renderForm($item);
     }
 
-    public function update(NewsRequest $request, News $news)
+    /**
+     * 儲存修改後的資料
+     *
+     * @param NewsRequest $request
+     * @param mixed $id 路由傳入的主鍵 ID
+     */
+    public function update(NewsRequest $request, $id)
     {
-        return DB::transaction(function () use ($request, $news) {
+        $item = $this->modelClass::findOrFail($id);
+
+        return DB::transaction(function () use ($request, $item) {
             try {
-                $news->fill($request->safe()->except(['image_url']));
+                // 更新主表，排除檔案欄位
+                $item->fill($request->safe()->except(['image_url']));
 
-                // 處理更新 (會自動清理舊圖)
-                $this->handleFileUploads($request, $news);
+                // 更新圖片，若有新圖會自動覆蓋並刪除舊圖
+                $this->handleFileUploads($request, $item);
 
-                // 更新主表
-                $news->is_visible = $request->has('is_visible');
-                $news->is_visible_home = $request->has('is_visible_home');
-                $news->save();
+                $item->is_visible = $request->has('is_visible');
+                $item->is_visible_home = $request->has('is_visible_home');
+                $item->save();
 
-                // 更新多語系並自動比對清理圖片
-                $this->saveTranslations($news, $request->desc);
+                // 更新語系資料，並自動清理內容中被刪除的圖片檔案
+                $this->saveTranslations($item, $request->desc);
 
-                $news->writeLog('編輯', $news->desc->title ?? '未知名消息');
+                // 紀錄操作日誌
+                $item->writeLog('編輯', $item->currentDesc->title ?? "未知名{$this->logModuleName}");
 
-                $backUrl = $request->input('back_url', route('admin.news.index'));
+                $backUrl = $request->input('back_url', route("{$this->routePrefix}.index"));
 
                 $this->showMsg(0, '編輯操作完成', [
-                    ['text' => '繼續編輯', 'href' => route('admin.news.edit', $news->news_id)],
+                    ['text' => '繼續編輯', 'href' => route("{$this->routePrefix}.edit", $item->{$this->primaryKey})],
                     ['text' => '返回列表', 'href' => $backUrl],
                 ]);
 
                 return redirect()->back();
             } catch (\Exception $e) {
-                Log::error("News Update Error: " . $e->getMessage());
+                Log::error("{$this->logModuleName} Update Error: " . $e->getMessage());
                 return redirect()->back()->withInput()->with('error', '更新失敗');
             }
         });
@@ -137,157 +203,175 @@ class NewsController extends BaseAdminController
 
     /**
      * 刪除單筆資料
+     *
+     * @param mixed $id 路由傳入的主鍵 ID
      */
-    public function destroy(News $news)
+    public function destroy($id)
     {
-        $news->load('desc');
-        $title = $news->desc->title ?? '未知名消息';
+        $item = $this->modelClass::findOrFail($id);
+        $item->load('descs');
+        $title = $item->currentDesc->title ?? "未知名{$this->logModuleName}";
 
-        // 刪除整筆資料時，也要清空所有語系編輯器內的圖片
-        foreach ($news->descs as $desc) {
+        // 刪除前清理編輯器中的實體圖片檔案
+        foreach ($item->descs as $desc) {
             SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($desc->content), null);
         }
 
-        // 注意：這裡不再需要手動用 ImageHelper::deleteImage 了！
-        // 因為 News Model 掛載了 HasImageFields Trait，
-        // 只要執行 delete()，Trait 會自動根據 $imageFields 屬性清理檔案。
-        $news->delete();
+        // 執行刪除，並觸發 Model 的刪除事件處理封面圖
+        $item->delete();
 
-        $news->writeLog('刪除', $title);
+        $item->writeLog('刪除', $title);
 
-        return redirect()->route('admin.news.index')->with('form_success_swal', '消息已刪除');
+        return redirect()->route("{$this->routePrefix}.index")->with('form_success_swal', '資料已刪除');
     }
 
     /**
-     * 單獨刪除圖片欄位 (AJAX)
+     * AJAX 刪除指定圖片欄位檔案
+     *
+     * @param Request $request
+     * @param mixed $id 路由傳入的主鍵 ID
      */
-    public function deleteImageField(Request $request, News $news)
+    public function deleteImageField(Request $request, $id)
     {
-        // 直接調用優化後的 Trait 方法
-        return $news->deleteImageFieldGeneric($request);
+        $item = $this->modelClass::findOrFail($id);
+        return $item->deleteImageFieldGeneric($request);
     }
 
-    /* --- 內部輔助方法 --- */
-
-    private function renderForm(News $news)
+    /**
+     * 內部共用：準備表單所需的資料並渲染 View
+     *
+     * @param mixed $item 模型物件
+     */
+    private function renderForm($item)
     {
-        $isEdit = (bool)$news->exists;
-        $categories = NewsCategory::with('descs')->orderByDesc('display_order')->get();
+        $isEdit = (bool)$item->exists;
 
-        // 【防呆掃除】進入頁面時，把上次「沒存檔就關掉」的圖片清空
+        // 取得分類下拉選單需要的資料
+        $categories = $this->catClass::with('descs')->orderByDesc('display_order')->get();
+
+        // 防呆：進入表單時清理超過 24 小時的孤立暫存圖
         SummernoteImageHelper::cleanAbandonedImages();
 
-        // 獲取目前啟用的語系設定
         $langs = $this->getActiveLanguages();
-        // 將配置傳給前端，以便顯示建議尺寸提示
         $fileConfigs = $this->pageCfg['files'];
 
         $descMap = [];
         if ($isEdit) {
-            $news->load('descs');
-            foreach ($news->descs as $desc) {
-                // 還原內容中的動態網址
+            // 編輯時載入語系，將存於資料庫的縮減路徑還原成編輯器可顯示的完整路徑
+            $item->load('descs');
+            foreach ($item->descs as $desc) {
+                // 將內容中的縮減網址路徑還原成完整網址，方便編輯器顯示
                 $desc->content = ContentHelper::decodeSiteUrl($desc->content);
                 $descMap[$desc->lang_id] = $desc;
             }
         }
 
-        // 預設返回按鈕路由
-        $backUrl = $this->getBackUrl('admin.news.index');
+        $backUrl = $this->getBackUrl("{$this->routePrefix}.index");
 
-        return $this->view('admin.news.form', compact('news', 'isEdit', 'categories', 'langs', 'descMap', 'fileConfigs', 'backUrl'));
+        return $this->view("{$this->routePrefix}.form", [
+            'item'        => $item,
+            'isEdit'      => $isEdit,
+            'categories'  => $categories,
+            'langs'       => $langs,
+            'descMap'     => $descMap,
+            'fileConfigs' => $fileConfigs,
+            'backUrl'     => $backUrl
+        ]);
     }
 
     /**
-     * 萬用檔案上傳處理邏輯
-     * 自動根據 $pageCfg 的設定，處理所有需要上傳的欄位
+     * 萬用檔案上傳處理：遍歷設定檔自動存檔
+     *
+     * @param Request $request
+     * @param mixed $item
      */
-    private function handleFileUploads(Request $request, News $news)
+    private function handleFileUploads(Request $request, $item)
     {
         foreach ($this->pageCfg['files'] as $field => $config) {
-            // 如果 Request 裡有這個檔案，才進行處理
             if ($request->hasFile($field)) {
-                $news->$field = ImageHelper::handleUpload(
+                $item->$field = ImageHelper::handleUpload(
                     $request->file($field),
                     $config['path'],
-                    $news->$field, // 傳入舊路徑以供刪除
+                    $item->$field,
                     $config
                 );
             }
         }
     }
+/**
+ * 儲存多語系描述資料
+ *
+ * @param mixed $item 主表模型
+ * @param array|null $descData 語系資料陣列
+ */
+private function saveTranslations($item, ?array $descData)
+{
+    if (!$descData) return;
 
-    /**
-     * 儲存多語系資料並同步清理編輯器中的圖片
-     * * @param News $news 消息主體物件
-     * @param array|null $descData 來自 Request 的語系資料陣列
-     */
-    private function saveTranslations(News $news, ?array $descData)
-    {
-        if (!$descData) return;
+    foreach ($descData as $langId => $data) {
+        // 修正：確保變數名稱為 $langId
+        $oldDesc = $this->descClass::where($this->primaryKey, $item->{$this->primaryKey})
+            ->where('lang_id', $langId)
+            ->first();
 
-        foreach ($descData as $langId => $data) {
-            // 先抓出舊資料（後續刪除或同步圖片都需要它）
-            $oldDesc = NewsDesc::where('news_id', $news->news_id)
-                ->where('lang_id', $langId)
-                ->first();
-
-            // 處理刪除邏輯
-            if (empty($data['title'])) {
-                if ($oldDesc) {
-                    SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($oldDesc->content), null);
-                    $oldDesc->delete();
-                }
-                continue;
+        // 若標題空白，執行刪除
+        if (empty($data['title'])) {
+            if ($oldDesc) {
+                SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($oldDesc->content), null);
+                $oldDesc->delete();
             }
-
-            // 處理更新/新增邏輯
-            $newContent = $data['content'] ?? '';
-
-            // 同步編輯器圖片 (傳入舊內容 vs 新內容)
-            SummernoteImageHelper::syncEditorImages(
-                $oldDesc ? ContentHelper::decodeSiteUrl($oldDesc->content) : null,
-                $newContent
-            );
-
-            // 使用 TagHelper 手動處理。即便未來有 10 個標籤欄位，也只是多寫幾行而已
-            $metaKeyword = TagHelper::toString($data['meta_keyword'] ?? null);
-            // $otherTags   = TagHelper::toString($data['other_tags'] ?? null); // 假設有的話
-
-
-            // 更新資料庫
-            NewsDesc::updateOrInsert(
-                ['news_id' => $news->news_id, 'lang_id' => $langId],
-                [
-                    'title'            => $data['title'],
-                    'description'      => $data['description'] ?? null,
-                    'content'          => ContentHelper::encodeSiteUrl($newContent),
-                    'meta_title'       => $data['meta_title'] ?? null,
-                    'meta_description' => $data['meta_description'] ?? null,
-                    'meta_keyword'     => $metaKeyword,
-                    'seo_h1'           => $data['seo_h1'] ?? null,
-                ]
-            );
+            continue;
         }
+
+        $newContent = $data['content'] ?? '';
+
+        // 比對圖片變化
+        SummernoteImageHelper::syncEditorImages(
+            $oldDesc ? ContentHelper::decodeSiteUrl($oldDesc->content) : null,
+            $newContent
+        );
+
+        // 處理 SEO
+        // 修正：原程式碼此處有定義 $metaKeyword 但下面沒用到
+        $metaKeyword = TagHelper::toString($data['meta_keyword'] ?? null);
+
+        // 執行資料更新或建立
+        $this->descClass::updateOrCreate(
+            [
+                $this->primaryKey => $item->{$this->primaryKey},
+                'lang_id' => $langId
+            ],
+            [
+                'title'            => $data['title'],
+                'description'      => $data['description'] ?? null,
+                'content'          => ContentHelper::encodeSiteUrl($newContent),
+                'meta_title'       => $data['meta_title'] ?? null,
+                'meta_description' => $data['meta_description'] ?? null,
+                'meta_keyword'     => $metaKeyword, // 修正：應使用處理過的字串
+                'seo_h1'           => $data['seo_h1'] ?? null,
+            ]
+        );
     }
+}
 
     /**
-     * 列表批次刪除
+     * 列表批次刪除功能
+     *
+     * @param Request $request
      */
     public function batchDestroy(Request $request)
     {
         $ids = $request->input('ids', []);
-        if (empty($ids)) return back()->with('error', '請選擇要刪除的消息');
+        if (empty($ids)) return back()->with('error', "請選擇要刪除的{$this->logModuleName}");
 
-        $newsList = News::whereIn('news_id', $ids)->get();
+        $itemList = $this->modelClass::whereIn($this->primaryKey, $ids)->get();
 
-        foreach ($newsList as $news) {
-            // 同理，這也會觸發 Trait 的自動刪除檔案邏輯
-            $news->delete();
+        foreach ($itemList as $item) {
+            $this->destroy($item->{$this->primaryKey});
         }
 
-        $this->writeBatchDeleteLog('消息管理', $newsList->count(), $ids);
+        $this->writeBatchDeleteLog($this->logModuleName, $itemList->count(), $ids);
 
-        return back()->with('form_success_swal', "已刪除 {$newsList->count()} 筆消息");
+        return back()->with('form_success_swal', "已刪除 {$itemList->count()} 筆資料");
     }
 }

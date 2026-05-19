@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 // 前台控制器
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\NewsController as FrontendNewsController;
+use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
 use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 
@@ -21,8 +22,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ActionLogController;
 use App\Http\Controllers\Admin\NewsCategoryController;
-use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\NewsController;
+use App\Http\Controllers\Admin\ProductCategoryController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\AdvertController;
 use App\Http\Controllers\Admin\AdvertCategoryController;
 use App\Http\Controllers\Admin\AdminRoleController;
@@ -53,6 +55,16 @@ Route::group(['prefix' => 'news', 'as' => 'news.'], function () {
     Route::get('/category/{category}', [FrontendNewsController::class, 'index'])->name('category');
     // 消息內頁
     Route::get('/{news}', [FrontendNewsController::class, 'show'])->name('show');
+});
+
+// 產品模組：延續最新消息的優良結構
+Route::group(['prefix' => 'product', 'as' => 'product.'], function () {
+    // 產品列表頁 (支援分類過濾)
+    Route::get('/', [FrontendProductController::class, 'index'])->name('index');
+    Route::get('/category/{category}', [FrontendProductController::class, 'index'])->name('category');
+
+    // 產品內頁
+    Route::get('/{product}', [FrontendProductController::class, 'show'])->name('show');
 });
 
 // 關於我們
@@ -128,16 +140,23 @@ Route::middleware(['auth', 'verified', 'admin.theme'])
         Route::delete('contact/batch', [AdminContactController::class, 'batchDestroy'])->name('contact.batch_destroy');
         Route::resource('contact', AdminContactController::class);
 
-        // 最新消息與分類
-        Route::post('news_category/delete-image/{category}', [NewsCategoryController::class, 'deleteImageField'])->name('news_category.delete-image');
-        Route::resource('news_category', NewsCategoryController::class)->parameters(['news_category' => 'category']);
+        // 最新消息分類
+        Route::post('news_category/delete-image/{item}', [NewsCategoryController::class, 'deleteImageField'])->name('news_category.delete-image');
+        Route::resource('news_category', NewsCategoryController::class)->parameters(['news_category' => 'item']);
 
+        // 最新消息
         Route::delete('news/batch', [NewsController::class, 'batchDestroy'])->name('news.batch_destroy');
-        Route::post('news/delete-image/{news}', [NewsController::class, 'deleteImageField'])->name('news.delete-image');
-        Route::resource('news', NewsController::class);
+        Route::post('news/delete-image/{item}', [NewsController::class, 'deleteImageField'])->name('news.delete-image');
+        Route::resource('news', NewsController::class)->parameters(['news' => 'item']);
 
-        // 產品分類 (餅乾型錄核心)
-        Route::resource('product_category', ProductCategoryController::class);
+        // 產品分類
+        Route::post('product_category/delete-image/{category}', [ProductCategoryController::class, 'deleteImageField'])->name('product_category.delete-image');
+        Route::resource('product_category', ProductCategoryController::class)->parameters(['product_category' => 'category']);
+
+        // 產品
+        Route::delete('product/batch', [ProductController::class, 'batchDestroy'])->name('product.batch_destroy');
+        Route::post('product/delete-image/{item}', [ProductController::class, 'deleteImageField'])->name('product.delete-image');
+        Route::resource('product', ProductController::class)->parameters(['product' => 'item']);
 
         // 廣告管理
         Route::post('advert/delete-image/{advert}', [AdvertController::class, 'deleteImageField'])->name('advert.delete-image');

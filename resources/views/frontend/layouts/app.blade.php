@@ -51,8 +51,8 @@
                 <ul class="nav-list">
                     <li><a href="{{ url('/about') }}"
                             class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}">關於我們</a></li>
-                    <li><a href="{{ url('/products') }}"
-                            class="nav-link {{ request()->routeIs('products') ? 'active' : '' }}">美味餅乾</a></li>
+                    <li><a href="{{ url('/product') }}"
+                            class="nav-link {{ request()->routeIs('product.index') ? 'active' : '' }}">美味餅乾</a></li>
                     <li><a href="{{ url('/news') }}"
                             class="nav-link {{ request()->routeIs('news.index') ? 'active' : '' }}">最新消息</a></li>
                     <li><a href="{{ url('/contact') }}"
@@ -80,7 +80,7 @@
 
             <div class="footer-nav mb-4">
                 <a href="{{ url('/about') }}">關於我們</a>
-                <a href="{{ url('/products') }}">產品一覽</a>
+                <a href="{{ url('/product') }}">產品一覽</a>
                 <a href="{{ url('/news') }}">最新消息</a>
                 <a href="{{ url('/faq') }}">常見問題</a>
                 <a href="{{ url('/contact') }}">聯絡我們</a>

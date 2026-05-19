@@ -17,7 +17,7 @@
      * 格式：使用 stdClass 模擬資料庫 Eloquent Model 物件
      */
 
-    $categories = [
+    $items = [
         [
             'title' => '經典原味',
             'subtitle' => 'Classic Series',
@@ -58,8 +58,8 @@
 
                     <div class="banner-content-overlay">
                         <div class="banner-text-container">
-                            <h2 class="banner-main-title">{{ $banner->desc->adv_name ?? '' }}</h2>
-                            <p class="banner-sub-title">{{ $banner->desc->adv_subname ?? '' }}</p>
+                            <h2 class="banner-main-title">{{ $banner->currentDesc->adv_name ?? '' }}</h2>
+                            <p class="banner-sub-title">{{ $banner->currentDesc->adv_subname ?? '' }}</p>
                         </div>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
     </div>
 </section>
 {{-- 產品系列 --}}
-@if (isset($categories) && count($categories) > 0)
+@if (isset($items) && count($items) > 0)
     <section class="section-product-cat">
         <div class="container-1280">
             <header class="section-header js-fade-up">
@@ -188,9 +188,9 @@
             <div class="swiper-wrap js-fade-up">
                 <div class="swiper js-product-cat-swiper">
                     <div class="swiper-wrapper">
-                        @forelse ($categories as $cat)
+                        @forelse ($items as $cat)
                             <div class="swiper-slide">
-                                <a href="{{ url('/products') }}" class="product-cat-card" title="查看 {{ $cat['title'] }}">
+                                <a href="{{ url('/product') }}" class="product-cat-card" title="查看 {{ $cat['title'] }}">
                                     <article class="product-cat-img-box">
                                         <img src="{{ $cat['img'] }}" alt="{{ $cat['title'] }}" class="product-cat-img" loading="lazy" onload="this.classList.add('is-loaded')">
                                         <div class="product-cat-overlay">
@@ -238,7 +238,7 @@
                                     <a href="{{ route('news.show', $news->news_id) }}" class="news-card">
                                         <div class="news-img-box">
                                             <img src="{{ $news->image_url ? asset('storage/' . $news->image_url) : asset('images/default-news.jpg') }}"
-                                                alt="{{ $news->desc->title ?? 'News' }}" class="news-img" loading="lazy" onload="this.classList.add('is-loaded')">
+                                                alt="{{ $news->currentDesc->title ?? 'News' }}" class="news-img" loading="lazy" onload="this.classList.add('is-loaded')">
                                             <div class="news-date-badge">
                                                 <time datetime="{{ $news->created_at->format('Y-m-d') }}">
                                                     <span class="day">{{ $news->created_at->format('d') }}</span>
@@ -247,8 +247,8 @@
                                             </div>
                                         </div>
                                         <div class="news-content">
-                                            <span class="news-category">{{ $news->category->desc->name ?? 'News' }}</span>
-                                            <h3 class="news-title">{{ $news->desc->title ?? '' }}</h3>
+                                            <span class="news-category">{{ $news->category->currentDesc->name ?? 'News' }}</span>
+                                            <h3 class="news-title">{{ $news->currentDesc->title ?? '' }}</h3>
                                             <div class="news-footer">
                                                 <span class="news-btn-text">READ MORE</span>
                                                 <span class="news-arrow-icon"></span>

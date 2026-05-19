@@ -39,15 +39,22 @@ class SummernoteImageHelper
     }
 
     /**
-     * 追蹤新上傳的暫存圖片 (還沒存檔前的觀察名單)
+     * 追蹤新上傳的暫存圖片 (加入時間戳記，防範重整誤殺)
      * 用於：處理「上傳了但最後沒按儲存」的垃圾檔案。
-     * * @param string $path 圖片相對路徑
-     * @param string $editorId 編輯器唯一編號 (防止多分頁衝突)
+     *
+     * @param string $path 圖片相對路徑
+     * @param string $editorId 編輯器唯一編號
      */
     public static function trackTempImage(string $path, string $editorId = 'default'): void
     {
-        // 將路徑推入 Session 陣列中，以 editorId 作為區隔
-        Session::push(self::SESSION_KEY . ".{$editorId}", $path);
+        // 專業防呆：不只存路徑，改存包含時間戳記的結構
+        $tempData = [
+            'path' => $path,
+            'uploaded_at' => time() // 記錄目前時間（秒）
+        ];
+
+        // 將資料推入 Session 陣列中
+        Session::push(self::SESSION_KEY . ".{$editorId}", $tempData);
     }
 
     /**
@@ -61,30 +68,52 @@ class SummernoteImageHelper
     }
 
     /**
-     * 清理所有「已失效」的暫存圖片
-     * 用於：當使用者進入新增/編輯頁面時，順手清理掉上一次「沒存檔就關掉」的廢棄圖。
-     */
-    public static function cleanAbandonedImages(): void
-    {
-        // 抓出所有記錄在 Session 裡的暫存名單
-        $allTemp = Session::get(self::SESSION_KEY, []);
+ * 清理真正「已過期且失效」的暫存圖片
+ * 用途：只清理超過指定時間（例如 1 小時）以上、無人認領的廢棄圖片，確保當前操作與剛重整的頁面絕對安全。
+ */
+public static function cleanAbandonedImages(): void
+{
+    // 抓出所有記錄在 Session 裡的暫存名單
+    $allTemp = Session::get(self::SESSION_KEY, []);
 
-        foreach ($allTemp as $editorId => $paths) {
-            // 如果這個 editorId 不是當前頁面正在用的，就視為廢棄
-            // 實務上我們會直接清理掉「上一個 Session 週期」留下的所有東西
-            if (!empty($paths)) {
-                foreach ($paths as $path) {
-                    if (Storage::disk('public')->exists($path)) {
-                        Storage::disk('public')->delete($path);
-                    }
-                }
-                Log::info("系統大掃除：已刪除未儲存的廢棄圖片，來自編輯器 ID: {$editorId}");
-            }
+    // 設定過期時間：1 小時前 (60分鐘 * 60秒)。你可以根據需求改成 24 小時 (24 * 3600)
+    $expiryTime = time() - 3600;
+
+    // 用來儲存「還沒過期、需要保留」的暫存名單，等一下要寫回 Session
+    $keptTemp = [];
+
+    foreach ($allTemp as $editorId => $items) {
+        if (empty($items)) {
+            continue;
         }
 
-        // 掃完之後清空 Session 記錄
+        foreach ($items as $item) {
+            // 防呆防錯：確保資料結構正確（相容舊格式）
+            $path = is_array($item) ? ($item['path'] ?? '') : $item;
+            $uploadedAt = is_array($item) ? ($item['uploaded_at'] ?? 0) : 0;
+
+            // 核心邏輯：如果沒有時間戳記（舊資料），或是上傳時間小於過期時間（代表它是很久以前留下的垃圾）
+            if ($uploadedAt === 0 || $uploadedAt < $expiryTime) {
+                if (!empty($path) && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+                Log::info("系統大掃除：已自動清理超過 1 小時未儲存的廢棄圖片，來自編輯器 ID: {$editorId}, 路徑: {$path}");
+            } else {
+                // 時間還很新，代表可能是當前使用者正在編輯、或是剛重整頁面的圖，放回保留名單
+                $keptTemp[$editorId][] = $item;
+            }
+        }
+    }
+
+    // 防呆關鍵：不再粗暴地用 Session::forget() 清空全站記錄
+    if (!empty($keptTemp)) {
+        // 如果還有需要保留的，把剩餘的乾淨資料寫回 Session
+        Session::put(self::SESSION_KEY, $keptTemp);
+    } else {
+        // 全都過期清空了，才徹底移除 Key
         Session::forget(self::SESSION_KEY);
     }
+}
 
     /**
      * 從 HTML 中提取圖片路徑

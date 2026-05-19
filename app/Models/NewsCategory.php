@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\Loggable;       // 引入日誌 Trait
-use App\Traits\HasImageFields; // 引入圖片處理 Trait
+use App\Traits\Loggable;       // 日誌紀錄
+use App\Traits\HasImageFields; // 圖片處理
 
 class NewsCategory extends Model
 {
-    use Loggable, HasImageFields; // 同時使用多個 Trait
+    use Loggable, HasImageFields;
 
     /**
      * 【關鍵優化】定義圖片欄位
@@ -38,7 +38,9 @@ class NewsCategory extends Model
     // 主鍵的資料型態
     protected $keyType = 'int';
 
-    // 👉 控制可批量填入的欄位（對 create / update 才能用）
+    /**
+     * 可批量填入的欄位
+     */
     protected $fillable = [
         'parent_id',
         'parent_ids',
@@ -49,64 +51,97 @@ class NewsCategory extends Model
     ];
 
     /**
-     * 與描述表一對多（多語系）
+     * Model 初始化
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // 監聽刪除事件
+        static::deleting(function ($item) {
+            // 自動刪除關聯的語系描述
+            // 使用 delete() 而非 truncate() 確保觸發 NewsDesc 可能有的事件
+            $item->descs()->delete();
+        });
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                  關聯設定                                   */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * 多語系：取得所有語言的描述資料
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function descs()
     {
+        // 這裡的 NewsCategoryDesc::class 在複製時改為對應的 Desc Model
         return $this->hasMany(NewsCategoryDesc::class, 'cat_id', 'cat_id');
     }
 
     /**
-     * 取得目前語系的一筆描述資料
-     * $langId 可傳入特定 lang_id，若為 null 則從 session 或系統預設取
-     * 當你要抓語系內容時可以直接使用： $news->desc->title
+     * 多語系：取得目前選定語系的描述資料
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function desc()
+    public function currentDesc()
     {
-        // 如果 Session 沒設定，預設語系為 1
+        // 預設語系防呆：若 Session 無值則採預設值 1
         $langId = session('lang_id') ?? 1;
 
-        // hasOne 並加上 where 語言過濾
         return $this->hasOne(NewsCategoryDesc::class, 'cat_id', 'cat_id')
-            ->where('lang_id', $langId);
+                    ->where('lang_id', $langId);
     }
 
-    // 在 NewsCategory 模型中添加以下方法
-    public function news()
+    /**
+     * 取得該分類下的所有項目
+     * 用 items 取代 news，複製到 Product 時就不用改名
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function items()
     {
-        // 假設 News 模型中有一個 cat_id 外鍵，指向 NewsCategory
+        // 複製時僅需更換 News::class
         return $this->hasMany(News::class, 'cat_id', 'cat_id');
     }
 
-    // 在 News 模型中添加以下方法
-    public function category()
-    {
-        // 假設 News 模型中的外鍵是 cat_id
-        return $this->belongsTo(NewsCategory::class, 'cat_id', 'cat_id');
-    }
-
     /**
-     * 自我關聯：取得子分類 (一對多)
+     * 樹狀結構：取得子分類
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function children()
     {
-        // 外部鍵是 parent_id，本地鍵是 cat_id
-        return $this->hasMany(NewsCategory::class, 'parent_id', 'cat_id')
-            ->orderBy('display_order', 'asc');
+        return $this->hasMany(static::class, 'parent_id', 'cat_id')
+                    ->orderBy('display_order', 'asc');
     }
 
     /**
-     * 自我關聯：取得父分類 (反向一對多)
+     * 樹狀結構：取得父分類
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function parent()
     {
-        return $this->belongsTo(NewsCategory::class, 'parent_id', 'cat_id');
+        return $this->belongsTo(static::class, 'parent_id', 'cat_id');
     }
 
-    public function getLogTitleAttribute()
+    /* -------------------------------------------------------------------------- */
+    /*                                  資料存取器                                 */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * 取得用於 Log 或顯示的名稱
+     * 這裡使用了 Laravel 的 Accessor 寫法
+     *
+     * @return string
+     */
+    public function getLogTitleAttribute(): string
     {
-        // 嘗試抓取第一筆關聯的標題，抓不到就回傳 '未命名'
-        // 注意：如果你是用語系，可以寫 ->where('lang', 'zh-TW')->first()
-        return $this->descs->first()->name ?? '未命名消息分類';
+        // 防呆：先抓當前語系名稱，抓不到抓第一筆描述，再抓不到就回傳'未命名'
+        return $this->currentDesc->name
+               ?? $this->descriptions->first()->name
+               ?? '未命名' . $this->logName;
     }
 }

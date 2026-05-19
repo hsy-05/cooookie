@@ -1,202 +1,303 @@
 @extends('adminlte::page')
-
 @section('title', $pageTitle)
 
+{{-- 麵包屑與標題組件 --}}
 @include('components.admin.page_content_header')
 
 @section('content')
-    {{-- 引入 x-admin.page-message 組件，用於顯示 session 訊息 --}}
     <x-admin.page-message>
-        <!-- 📄 Summernote 範本插入 Modal -->
         @include('components.admin.summernote.template-modal')
-        <form action="{{ isset($isEdit) ? route('admin.product.update', $product->product_id) : route('admin.product.store') }}"
+
+        <form name="the-form" action="{{ $isEdit ? route('admin.product.update', $item->product_id) : route('admin.product.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
-            @if (isset($isEdit))
+            @if ($isEdit)
                 @method('PUT')
             @endif
+            {{-- 返回網址 --}}
+            <input type="hidden" name="back_url" value="{{ $backUrl ?? route('admin.product.index') }}">
+            {{-- Summernote 圖片用 --}}
+            <input type="hidden" name="editor_id" value="{{ time() }}">
 
-            <!-- 表單頁籤 -->
-            <div class="nav-tabs-custom">
-                <ul class="nav nav-tabs" id="form-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab"
-                            aria-controls="general" aria-selected="true">一般資料</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="content-tab" data-toggle="tab" href="#content" role="tab"
-                            aria-controls="content" aria-selected="false">產品內容</a>
-                    </li>
-                </ul>
+            <div class="col-md-12">
+                <x-admin.card-tabs>
+                    {{-- 頁籤標題區 --}}
+                    <x-slot:tabs>
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="pill" href="#tab-general" role="tab">一般資料</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="pill" href="#tab-content" role="tab">內容設定</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="pill" href="#tab-seo" role="tab">SEO設定</a>
+                        </li>
+                    </x-slot:tabs>
 
-                <div class="tab-content" id="form-tabs-content">
-                    <!-- 一般資料頁籤 -->
-                    <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                        <!-- 語系頁籤 -->
-                        <div class="nav-tabs-custom mt-3">
-                            <ul class="nav nav-tabs  mb-3" id="language-tabs" role="tablist">
-                                @foreach ($langs as $lang)
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ $loop->first ? 'active' : '' }}"
-                                            id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
-                                            href="#lang-{{ $lang->lang_id }}" role="tab"
-                                            aria-controls="lang-{{ $lang->lang_id }}"
-                                            aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $lang->name }}
-                                            ({{ $lang->code }})
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                    {{-- 頁籤內容區 --}}
+                    <x-slot:content>
+                        {{-- 一般資料頁籤 --}}
+                        <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                            {{-- 語言切換內容 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                                id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                                href="#lang-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
 
-                            <div class="tab-content" id="language-tabs-content">
-                                @foreach ($langs as $lang)
-                                    @php $d = $descMap[$lang->lang_id] ?? null; @endphp
-                                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                        id="lang-{{ $lang->lang_id }}" role="tabpanel"
-                                        aria-labelledby="lang-{{ $lang->lang_id }}-tab">
-                                        <div class="form-group">
-                                            <label for="title_{{ $lang->lang_id }}">標題</label>
-                                            <input type="text" id="title_{{ $lang->lang_id }}"
-                                                name="desc[{{ $lang->lang_id }}][title]" class="form-control"
-                                                value="{{ $d->title ?? '' }}" required>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
+                                <div class="tab-content mt-3">
+                                    @foreach ($langs as $lang)
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-{{ $lang->lang_id }}" role="tabpanel">
+                                            <div class="form-group">
+                                                <label for="title_{{ $lang->lang_id }}">標題</label>
+                                                <input type="text" id="title_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][title]"
+                                                    class="form-control required-field"
+                                                    @if($langs->count() > 1) data-label="標題 ({{ $lang->name }})" @endif
+                                                    value="{{ $descMap[$lang->lang_id]->title ?? '' }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="description_{{ $lang->lang_id }}">簡述</label>
+                                                <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
+                                                    maxlength="250" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
+                                            </div>
 
-                        <!-- 共同設定區 -->
-                        <div class="card mt-3">
-                            <div class="card-header">
-                                <h5>共同設定</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="image">封面圖片</label>
-                                        <div class="input-group">
-                                            <input type="file" id="image" name="image" class="form-control"
-                                                aria-label="Upload image">
-                                            @if (isset($isEdit) && $product->image)
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-info" data-toggle="modal"
-                                                        data-target="#imageModal">瀏覽</button>
+                                            {{-- 🛡️ 開發者專用：僅 L1 Developer 可見，用於記錄系統 Debug 資訊 --}}
+                                            @if (auth()->user()->isDeveloper())
+                                                <div class="form-group p-3 mb-3 border border-danger rounded">
+                                                    <label class="text-danger"><i class="fas fa-code"></i>
+                                                        開發者專用：偵錯備註</label>
+                                                    <input type="text" name="dev_notes" class="form-control"
+                                                        value="{{ $item->dev_notes ?? '' }}">
+                                                </div>
+                                            @endif
+
+                                            {{-- 🛡️ 內部管理專用：L1 & L2 可見，調整排序權重 --}}
+                                            @if (auth()->user()->isDeveloper() || auth()->user()->isInternalAdmin())
+                                                <div class="form-group border-info border p-3">
+                                                    <label class="text-info"><i class="fas fa-user-shield"></i>
+                                                        內部管理專用：權重排序</label>
+                                                    <select name="internal_priority" class="form-control">
+                                                        <option value="0"
+                                                            {{ $item->internal_priority == 0 ? 'selected' : '' }}>一般
+                                                        </option>
+                                                        <option value="1"
+                                                            {{ $item->internal_priority == 1 ? 'selected' : '' }}>優先
+                                                        </option>
+                                                        <option value="2"
+                                                            {{ ($item->internal_priority ?? 0) == 2 ? 'selected' : '' }}>最優先 (置頂)
+                                                        </option>
+                                                    </select>
                                                 </div>
                                             @endif
                                         </div>
-                                        <small class="form-text text-muted">點擊「瀏覽」查看已上傳的封面圖片</small>
-                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
 
-                                    <div class="col-md-6 form-group">
-                                        <label for="cat_id">分類</label>
-                                        <select id="cat_id" name="cat_id" class="form-control">
-                                            <option value="">-- 無 --</option>
-                                            @foreach ($cats as $cat)
-                                                <option value="{{ $cat->cat_id }}"
-                                                    {{ isset($isEdit) && $cat->cat_id == $product->cat_id ? 'selected' : '' }}>
-                                                    {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                            <div class="card m-3 mt-0">
+                                <div class="card-header">
+                                    <h5>共同設定</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-row">
+                                        {{-- 圖片上傳區塊 --}}
+                                        <div class="col-md-6 form-group">
+                                            <label for="image_url">
+                                                封面圖片
+                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
+                                                @if (isset($fileConfigs['image_url']))
+                                                    <i class="fas fa-question-circle text-muted" data-toggle="tooltip"
+                                                        title="建議尺寸：{{ $fileConfigs['image_url']['width'] }} x {{ $fileConfigs['image_url']['height'] }} px
+                                                            ，格式：JPG, PNG, WebP"></i>
+                                                @endif
+                                            </label>
 
-                                    <div class="col-md-6 form-group">
-                                        <label for="is_visible">是否顯示</label>
-                                        <select id="is_visible" name="is_visible" class="form-control">
-                                            <option value="1"
-                                                {{ isset($isEdit) && $product->is_visible ? 'selected' : '' }}>
-                                                顯示</option>
-                                            <option value="0"
-                                                {{ isset($isEdit) && !$product->is_visible ? 'selected' : '' }}>隱藏
-                                            </option>
-                                        </select>
-                                    </div>
+                                            <div class="input-group">
+                                                <input type="file" id="image_url" name="image_url"
+                                                    class="form-control image-upload-input" accept="image/*">
 
-                                    <div class="col-md-6 form-group">
-                                        <label for="display_order">排序</label>
-                                        <input type="number" id="display_order" name="display_order" class="form-control"
-                                            @if (isset($isEdit)) value="{{ $product->display_order }}" @endif>
+                                                {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
+                                                <div class="input-group-append {{ $isEdit && $item->image_url ? '' : 'd-none' }}"
+                                                    id="image-action-group-image_url">
+                                                    @if ($isEdit && $item->image_url)
+                                                        <button type="button" class="btn btn-info js-open-preview"
+                                                            data-url="{{ asset('storage/' . $item->image_url) }}">
+                                                            瀏覽
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger btn-delete-image"
+                                                            data-url="{{ route('admin.product.delete-image', $item->product_id) }}"
+                                                            data-field="image_url">
+                                                            刪除
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- 分類下拉選單 --}}
+                                        <div class="col-md-6 form-group">
+                                            <label for="cat_id">分類</label>
+                                            <select id="cat_id" name="cat_id" class="form-control required-field">
+                                                <option value="">-- 無 --</option>
+                                                @foreach ($categories as $cat)
+                                                    <option value="{{ $cat->cat_id }}"
+                                                        {{ $isEdit && $cat->cat_id == $item->cat_id ? 'selected' : '' }}>
+                                                        {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- 排序與是否顯示 -->
+                                        <div class="col-md-6 form-group">
+                                            <label for="display_order">排序</label>
+                                            <input type="number" name="display_order" class="form-control"
+                                                id="display_order" value="{{ $isEdit ? $item->display_order : 0 }}">
+                                        </div>
+
+                                        <div class="col-md-3 form-group">
+                                            <label for="is_visible">是否顯示</label>
+                                            <div class="custom-control custom-switch mt-2">
+                                                <input type="checkbox" class="custom-control-input" id="is_visible"
+                                                    name="is_visible" value="1"
+                                                    {{ !$isEdit || $item->is_visible ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="is_visible"></label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 form-group">
+                                            <label for="is_visible_home">首頁顯示</label>
+                                            <div class="custom-control custom-switch mt-2">
+                                                <input type="checkbox" class="custom-control-input" id="is_visible_home"
+                                                    name="is_visible_home" value="1"
+                                                    {{ !$isEdit || $item->is_visible_home ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="is_visible_home"></label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 內容頁籤 -->
-                    <div class="tab-pane fade" id="content">
-                        <!-- 語系內容的分頁 -->
-                        <ul class="nav nav-tabs mt-2" role="tablist">
-                            @foreach ($langs as $lang)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
-                                        href="#content-{{ $lang->lang_id }}">{{ $lang->name }}
-                                        ({{ $lang->code }})
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <div class="tab-content mt-3">
-                            @foreach ($langs as $lang)
-                                @php $d = $descMap[$lang->lang_id] ?? null; @endphp
-                                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                                    id="content-{{ $lang->lang_id }}">
-                                    <div class="form-group">
-                                        <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $d->content ?? '' }}</textarea>
-                                    </div>
+                        {{-- 內容頁籤 --}}
+                        <div class="tab-pane fade" id="tab-content" role="tabpanel">
+                            {{-- 語言切換內容 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}" data-toggle="tab"
+                                                href="#lang-cnt-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                <div class="tab-content mt-3">
+                                    @foreach ($langs as $lang)
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-cnt-{{ $lang->lang_id }}" role="tabpanel">
+                                            <textarea name="desc[{{ $lang->lang_id }}][content]" class="form-control summernote">{{ $descMap[$lang->lang_id]->content ?? '' }}</textarea>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- 提交按鈕 -->
-            <div class="text-right mt-3">
-                <a href="{{ route('admin.product.index') }}" class="btn btn-secondary">返回</a>
-                <button type="submit" class="btn btn-success">{{ isset($isEdit) ? '更新' : '新增' }}</button>
+                        {{-- SEO頁籤 --}}
+                        <div class="tab-pane fade" id="tab-seo" role="tabpanel">
+                            {{-- 語言切換內容 --}}
+                            <div class="sub-language-wrapper p-3">
+                                <ul class="nav sub-language-tabs" role="tablist">
+                                    @foreach ($langs as $lang)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                                id="lang-{{ $lang->lang_id }}-tab" data-toggle="tab"
+                                                href="#lang-{{ $lang->lang_id }}" role="tab">
+                                                {{ $lang->name }} ({{ $lang->code }})
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+
+                                <div class="tab-content mt-3">
+                                    @foreach ($langs as $lang)
+                                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                            id="lang-{{ $lang->lang_id }}" role="tabpanel">
+                                            <div class="form-group">
+                                                <label for="seo_h1_{{ $lang->lang_id }}">網頁 H1</label>
+                                                <input type="text" id="seo_h1_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][seo_h1]" class="form-control"
+                                                    value="{{ $descMap[$lang->lang_id]->seo_h1 ?? '' }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="meta_title_{{ $lang->lang_id }}">網頁標題</label>
+                                                <input type="text" id="meta_title_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][meta_title]" class="form-control"
+                                                    value="{{ $descMap[$lang->lang_id]->meta_title ?? '' }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <x-admin.tag-input label="網頁關鍵字 (SEO Keywords)"
+                                                    name="desc[{{ $lang->lang_id }}][meta_keyword][]" :value="$descMap[$lang->lang_id]->meta_keyword ?? []" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="meta_description_{{ $lang->lang_id }}">網頁簡短描述</label>
+                                                <input type="text" id="meta_description_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][meta_description]"
+                                                    class="form-control"
+                                                    value="{{ $descMap[$lang->lang_id]->meta_description ?? '' }}">
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                    </x-slot:content>
+
+                    {{-- 底部按鈕區 --}}
+                    <x-slot:footer>
+                        <a href="{{ $backUrl ?? route('admin.product.index') }}" class="btn btn-secondary">返回</a>
+                        <button type="submit" class="btn btn-success js-submit-btn">{{ $isEdit ? '更新' : '新增' }}</button>
+                    </x-slot:footer>
+                </x-admin.card-tabs>
             </div>
         </form>
     </x-admin.page-message>
 
-    <!-- 圖片預覽彈出視窗 -->
-    @if (isset($isEdit))
-        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="imageModalLabel">封面圖片預覽</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <img src="{{ asset('storage/' . $product->image) }}" class="img-fluid" alt="封面圖片">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
 @stop
 
+{{-- 這裡放第三方套件的 CDN 資源 --}}
+@push('js')
+    {{-- 這裡我們依然建議用 @include 抽離，保持頁面乾淨 --}}
+    @include('components.admin.summernote._summernote')
+@endpush
+
 @section('js')
-    <!-- Summernote -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-
-    <!-- Summernote 繁體中文語系 -->
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-zh-TW.min.js"></script>
-
-    <!-- 引入自訂的 Summernote 初始化檔 -->
-    <script src="{{ asset('js/admin/summernote-init.js') }}"></script>
-
     <script>
-        const BASE_URL = "{{ url('/') }}";
-        console.log('BASE_URL defined:', BASE_URL); // 調試：檢查控制台
+        $(function() {
+            // 表單送出前的最後檢查與資料同步
+            $('form[name="the-form"]').on('submit', function(e) {
+                // 1. 驗證必填 (common.js)
+                if (typeof validateRequiredFields === "function" && !validateRequiredFields(this)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // 2. 同步內容 (common.js)
+                if (typeof syncSummernoteContent === "function") {
+                    syncSummernoteContent('form[name="the-form"]');
+                }
+            });
+        });
     </script>
 @stop

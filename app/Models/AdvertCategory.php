@@ -45,7 +45,7 @@ class AdvertCategory extends Model
     /**
      * 關聯：目前語系的描述 (用於列表顯示)
      */
-    public function desc()
+    public function currentDesc()
     {
         $langId = session('lang_id') ?? 1;
         return $this->hasOne(AdvertCategoryDesc::class, 'cat_id', 'cat_id')
@@ -69,6 +69,6 @@ class AdvertCategory extends Model
     public function getTitleAttribute()
     {
         // 如果已經 eager load 了 desc，就從裡面拿，避免重複查資料庫
-        return $this->desc->cat_name ?? ($this->descs->first()->cat_name ?? '未命名分類');
+        return $this->currentDesc->cat_name ?? ($this->descs->first()->cat_name ?? '未命名分類');
     }
 }

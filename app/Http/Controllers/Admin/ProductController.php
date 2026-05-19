@@ -2,247 +2,376 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Product;
-use App\Models\ProductDesc;
-use App\Models\ProductCategory;
-use App\Models\Language;
-use Illuminate\Support\Facades\DB;
-use App\Helpers\ContentHelper;
-use App\Helpers\ImageHelper;
-use App\Http\Controllers\Admin\BaseAdminController;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Admin\ProductRequest;
+use App\Models\{Product, ProductDesc, ProductCategory};
+use Illuminate\Support\Facades\{DB, Log};
+use App\Helpers\{ContentHelper, ImageHelper, SummernoteImageHelper, TagHelper};
 
+/**
+ * 管理控制器
+ * 採用參數化配置，方便未來快速複製為其他文章模組（如：案例實績、活動花絮）
+ */
 class ProductController extends BaseAdminController
 {
-    protected $pageTitle = '最新消息';
+    /**
+     * 核心配置
+     */
+    protected $permissionName = 'product';             // 權限代碼
+    protected $modelClass     = Product::class;         // 主模型類別
+    protected $descClass      = ProductDesc::class;     // 語系模型類別
+    protected $catClass       = ProductCategory::class; // 分類模型類別
+    protected $routePrefix    = 'admin.product';       // 路由前綴
+    protected $primaryKey     = 'product_id';           // 資料表主鍵名稱
+    protected $logModuleName  = '產品管理';           // 日誌顯示名稱
 
-    // 列表：載入 product 主表與所有 desc（可在 view 選語系顯示）
+    /**
+     * 頁面相關配置
+     * 集中管理圖片路徑與規格，調整時只需修改此處
+     */
+    protected $pageCfg = [
+        'files' => [
+            'image_url' => [
+                'path'   => 'product',            // 圖片存放的資料夾名稱
+                'width'  => 600,               // 縮圖後的寬度
+                'height' => 400,               // 縮圖後的高度
+                'mode'   => 'center_crop',     // 裁切模式：從中心裁切
+                'useOriginalName' => false,    // 檔案名稱：自動生成隨機字串，避免中文檔名亂碼
+            ],
+        ],
+    ];
+
+    /**
+     * 顯示管理列表
+     *
+     * @param Request $request 包含搜尋關鍵字 search
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
-        // 加入每頁筆數參數，預設 8
-        $perPage = $request->input('per_page', 8);
-        // 獲取搜尋關鍵字
+        // 抓取搜尋關鍵字
         $search = $request->input('search');
 
-        // 資料查詢與關聯載入
-        $productList = Product::with(['descs', 'category'])
-            ->orderBy('display_order', 'desc')
-            ->orderBy('product_id', 'desc');
+        // 取得統一的分頁數量（由父類別 BaseAdminController 定義）
+        $perPage = $this->getPerPage($request);
 
-        // 如果有搜尋關鍵字，則加入篩選條件
-        if ($search) {
-            $productList->whereHas('descs', function ($query) use ($search) {
-                // 搜尋 ProductDesc 表中的 title 欄位
-                $query->where('title', 'like', '%' . $search . '%');
-            });
-        }
+        /**
+         * 【效能優化重點：解決 N+1 問題】
+         * 使用 with() 預先載入關聯資料。
+         * 1. 'descs'：載入各語系標題。
+         * 2. 'category.descs'：這是最關鍵的調整！
+         *    不只載入分類(category)，連分類裡面的語系描述(descs)也一併載入。
+         *    這樣在列表顯示「分類：春季餅乾」時，就不會重複觸發資料庫查詢。
+         */
+        $list = $this->modelClass::with(['descs', 'category.descs'])
+            ->when($search, function ($query) use ($search) {
+                // 搜尋各語系標題中包含關鍵字的資料
+                $query->whereHas('descs', fn($q) => $q->where('title', 'like', "%{$search}%"));
+            })
+            ->orderByDesc('display_order') // 優先依照手動排序值
+            ->orderByDesc($this->primaryKey) // 排序相同時，以編號由大到小排序
+            ->paginate($perPage);
 
-        // 套用每頁筆數和分頁
-        $productList = $productList->paginate($perPage);
+        // 取得類別名稱（不含命名空間），例如：News
+        // class_basename 是 Laravel 內建函式，可以把 "App\Models\News" 轉成 "News"
+        $modelName = class_basename($this->modelClass);
 
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-
-        // 將搜尋關鍵字也傳遞給視圖，以便在搜尋框中保留
-        return $this->view('admin.product.index', compact('productList', 'langs', 'search'));
+        // 回傳視圖
+        return $this->view("{$this->routePrefix}.index", [
+            'items'  => $list,
+            'search' => $search,
+            'modelName' => $modelName // 將 Model 名稱傳給 Blade
+        ]);
     }
 
-    // 新增表單：需要分類與語系清單
+    /**
+     * 進入「新增」頁面
+     *
+     * @return \Illuminate\View\View
+     */
     public function create()
     {
-        $cats = ProductCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-        return $this->view('admin.product.form', compact('cats', 'langs'));
+        // 傳入空模型，維持 View 變數一致性
+        return $this->renderForm(new $this->modelClass);
     }
 
-    // 儲存
-    public function store(Request $request)
+    /**
+     * 儲存新增資料
+     *
+     * @param ProductRequest $request 驗證請求物件
+     */
+    public function store(ProductRequest $request)
     {
-        // 驗證主表欄位（desc 內容會以陣列方式在下方處理）
-        $request->validate([
-            'cat_id' => 'nullable|exists:product_category,cat_id',
-            'is_visible' => 'nullable|boolean',
-            'display_order' => 'nullable|integer',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:4096', // 4MB
-        ]);
-
-        // 圖片處理：中心裁切 600x400（coverDown 不會放大原圖）
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $saveDir = 'product'; // 儲存子目錄
-
+        // 使用資料庫交易機制，確保主表、圖片、語系三個步驟要麼全過，要麼全失敗回滾
+        return DB::transaction(function () use ($request) {
             try {
-                // 1. 處理圖片 (裁切/縮圖)
-                $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
+                $item = new $this->modelClass;
 
-                // 2. 生成唯一檔名
-                $filename = ImageHelper::generateUniqueFilename($file);
-                $fullPath = $saveDir . '/' . $filename;
+                // 填充基本欄位，自動排除 image_url 檔案欄位以便手動處理
+                $item->fill($request->safe()->except(['image_url']));
 
-                // 3. 儲存處理後的圖片
-                ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
-                $imagePath = $fullPath;
+                // 處理主圖上傳，並根據 $pageCfg 的設定自動裁切與縮圖
+                $this->handleFileUploads($request, $item);
+
+                // 處理開關欄位：如果有勾選才存為 true
+                $item->is_visible = $request->has('is_visible');
+                $item->is_visible_home = $request->has('is_visible_home');
+                $item->save();
+
+                // 呼叫編輯器助手，將上傳到暫存區的內文圖片移動到正式目錄
+                $editorId = $request->input('editor_id', 'default');
+                SummernoteImageHelper::commitTempImages($editorId);
+
+                // 儲存各語系的標題、SEO與內容
+                $this->saveTranslations($item, $request->desc);
+
+                // 紀錄操作紀錄
+                $item->writeLog('新增', $item->currentDesc->title ?? "未知名{$this->logModuleName}");
+
+                // 計算跳轉網址，優先回到列表頁
+                $backUrl = $request->input('back_url', route("{$this->routePrefix}.index"));
+
+                // 顯示成功提示視窗
+                $this->showMsg(0, '新增完成', [
+                    ['text' => '繼續新增', 'href' => route("{$this->routePrefix}.create")],
+                    ['text' => '繼續編輯', 'href' => route("{$this->routePrefix}.edit", $item->{$this->primaryKey})],
+                    ['text' => '返回列表', 'href' => $backUrl],
+                ]);
+
+                return redirect()->back();
             } catch (\Exception $e) {
-                // 圖片處理或儲存失敗，可以記錄日誌或返回錯誤訊息
-                return redirect()->back()->withInput()->with('error', '圖片處理或儲存失敗: ' . $e->getMessage());
+                // 若失敗則紀錄錯誤日誌，並把輸入資料塞回 Session
+                Log::error("{$this->logModuleName} Store Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '新增失敗：' . $e->getMessage());
             }
-        }
-
-        // 建立 product 主表
-        $product = Product::create([
-            'cat_id' => $request->cat_id,
-            'is_visible' => $request->is_visible ?? true,
-            'display_order' => $request->display_order ?? 0,
-            'image' => $imagePath,
-        ]);
-
-        // 建立 desc：前端應傳 desc[lang_id][title|content]
-        if ($request->has('desc') && is_array($request->desc)) {
-            foreach ($request->desc as $lang_id => $desc) {
-                // 若 title 為空則略過；若要強制每個語系必填可在驗證時加入 rules
-                if (!empty($desc['title'])) {
-                    ProductDesc::create([
-                        'product_id' => $product->product_id,
-                        'lang_id' => $lang_id,
-                        'title' => $desc['title'],
-                        'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
-                    ]);
-                }
-            }
-        }
-
-        $this->showMsg(
-            0,
-            '消息新增完成',
-            [
-                ['text' => '繼續新增', 'href' => route('admin.product.create')],
-                ['text' => '返回列表', 'href' => route('admin.product.index')],
-            ],
-            true
-        );
-        return redirect()->back();
+        });
     }
 
-    // 編輯表單
-    public function edit(Product $product)
+    /**
+     * 進入「編輯」頁面
+     *
+     * @return \Illuminate\View\View
+     */
+    public function edit($id)
     {
-        $cats = ProductCategory::with('descs')->where('is_visible', 1)->orderBy('display_order', 'desc')->get();
-        $langs = Language::where('enabled', 1)->orderBy('display_order', 'desc')->get();
-        $product->load('descs');
-        $isEdit = $product->exists;
+        $item = $this->modelClass::findOrFail($id);
+        return $this->renderForm($item);
+    }
 
-        // 轉成以 lang_id 為 key 的陣列，便於 blade 填值
+    /**
+     * 儲存修改後的資料
+     *
+     * @param ProductRequest $request
+     * @param mixed $id 路由傳入的主鍵 ID
+     */
+    public function update(ProductRequest $request, $id)
+    {
+        $item = $this->modelClass::findOrFail($id);
+
+        return DB::transaction(function () use ($request, $item) {
+            try {
+                // 更新主表，排除檔案欄位
+                $item->fill($request->safe()->except(['image_url']));
+
+                // 更新圖片，若有新圖會自動覆蓋並刪除舊圖
+                $this->handleFileUploads($request, $item);
+
+                $item->is_visible = $request->has('is_visible');
+                $item->is_visible_home = $request->has('is_visible_home');
+                $item->save();
+
+                // 更新語系資料，並自動清理內容中被刪除的圖片檔案
+                $this->saveTranslations($item, $request->desc);
+
+                // 紀錄操作日誌
+                $item->writeLog('編輯', $item->currentDesc->title ?? "未知名{$this->logModuleName}");
+
+                $backUrl = $request->input('back_url', route("{$this->routePrefix}.index"));
+
+                $this->showMsg(0, '編輯操作完成', [
+                    ['text' => '繼續編輯', 'href' => route("{$this->routePrefix}.edit", $item->{$this->primaryKey})],
+                    ['text' => '返回列表', 'href' => $backUrl],
+                ]);
+
+                return redirect()->back();
+            } catch (\Exception $e) {
+                Log::error("{$this->logModuleName} Update Error: " . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', '更新失敗');
+            }
+        });
+    }
+
+    /**
+     * 刪除單筆資料
+     *
+     * @param mixed $id 路由傳入的主鍵 ID
+     */
+    public function destroy($id)
+    {
+        $item = $this->modelClass::findOrFail($id);
+        $item->load('descs');
+        $title = $item->currentDesc->title ?? "未知名{$this->logModuleName}";
+
+        // 刪除前清理編輯器中的實體圖片檔案
+        foreach ($item->descs as $desc) {
+            SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($desc->content), null);
+        }
+
+        // 執行刪除，並觸發 Model 的刪除事件處理封面圖
+        $item->delete();
+
+        $item->writeLog('刪除', $title);
+
+        return redirect()->route("{$this->routePrefix}.index")->with('form_success_swal', '資料已刪除');
+    }
+
+    /**
+     * AJAX 刪除指定圖片欄位檔案
+     *
+     * @param Request $request
+     * @param mixed $id 路由傳入的主鍵 ID
+     */
+    public function deleteImageField(Request $request, $id)
+    {
+        $item = $this->modelClass::findOrFail($id);
+        return $item->deleteImageFieldGeneric($request);
+    }
+
+    /**
+     * 內部共用：準備表單所需的資料並渲染 View
+     *
+     * @param mixed $item 模型物件
+     */
+    private function renderForm($item)
+    {
+        $isEdit = (bool)$item->exists;
+
+        // 取得分類下拉選單需要的資料
+        $categories = $this->catClass::with('descs')->orderByDesc('display_order')->get();
+
+        // 防呆：進入表單時清理超過 24 小時的孤立暫存圖
+        SummernoteImageHelper::cleanAbandonedImages();
+
+        $langs = $this->getActiveLanguages();
+        $fileConfigs = $this->pageCfg['files'];
+
         $descMap = [];
-        foreach ($product->descs as $desc) {
-            $desc->content = ContentHelper::decodeSiteUrl($desc->content);
-            $descMap[$desc->lang_id] = $desc;
+        if ($isEdit) {
+            // 編輯時載入語系，將存於資料庫的縮減路徑還原成編輯器可顯示的完整路徑
+            $item->load('descs');
+            foreach ($item->descs as $desc) {
+                // 將內容中的縮減網址路徑還原成完整網址，方便編輯器顯示
+                $desc->content = ContentHelper::decodeSiteUrl($desc->content);
+                $descMap[$desc->lang_id] = $desc;
+            }
         }
-        return $this->view('admin.product.form', compact('product', 'isEdit', 'cats', 'langs', 'descMap'));
-    }
 
-    // 更新
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'cat_id' => 'nullable|exists:product_category,cat_id',
-            'is_visible' => 'nullable|boolean',
-            'display_order' => 'nullable|integer',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
-            'desc' => 'nullable|array',
+        $backUrl = $this->getBackUrl("{$this->routePrefix}.index");
+
+        return $this->view("{$this->routePrefix}.form", [
+            'item'        => $item,
+            'isEdit'      => $isEdit,
+            'categories'  => $categories,
+            'langs'       => $langs,
+            'descMap'     => $descMap,
+            'fileConfigs' => $fileConfigs,
+            'backUrl'     => $backUrl
         ]);
-
-        DB::beginTransaction();
-        try {
-            // 圖片處理
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $saveDir = 'product';
-
-                try {
-                    ImageHelper::deleteImage($product->image, 'public');
-                    $processedImage = ImageHelper::processImage($file, 600, 400, 'center_crop');
-                    $filename = ImageHelper::generateUniqueFilename($file);
-                    $fullPath = $saveDir . '/' . $filename;
-                    ImageHelper::saveProcessedImage($processedImage, $fullPath, 'public', 90, 'jpeg');
-                    $product->image = $fullPath;
-                } catch (\Throwable $e) {
-                    return redirect()->back()->withInput()->with('error', '圖片處理失敗: ' . $e->getMessage());
-                }
-            }
-
-            // 更新主表
-            $product->update([
-                'cat_id' => $request->cat_id,
-                'is_visible' => $request->is_visible ?? true,
-                'display_order' => $request->display_order ?? 0,
-            ]);
-
-            // 更新 desc
-            if ($request->filled('desc')) {
-                foreach ($request->desc as $lang_id => $desc) {
-                    if (empty($desc['title'])) {
-                        DB::table('product_desc')->where('product_id', $product->product_id)->where('lang_id', $lang_id)->delete();
-                        continue;
-                    }
-
-                    DB::table('product_desc')->updateOrInsert(
-                        ['product_id' => $product->product_id, 'lang_id' => $lang_id],
-                        [
-                            'title' => $desc['title'],
-                            'content' => ContentHelper::encodeSiteUrl($desc['content'] ?? ''),
-                            'updated_at' => now(),
-                            'created_at' => now(),
-                        ]
-                    );
-                }
-            }
-
-            DB::commit();
-
-            $this->showMsg(
-                0,
-                '編輯操作完成',
-                [
-                    ['text' => '繼續編輯', 'href' => route('admin.product.edit', $product->product_id)],
-                    ['text' => '返回列表', 'href' => route('admin.product.index')],
-                ],
-                true
-            );
-
-            return redirect()->back();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            $this->showMsg(
-                1, // 1 = 錯誤訊息
-                '更新失敗：' . $e->getMessage(),
-                [
-                    ['text' => '返回編輯', 'href' => route('admin.product.edit', $product->product_id)],
-                    ['text' => '返回列表', 'href' => route('admin.product.index')],
-                ],
-                false // 失敗不自動跳轉，讓使用者選擇
-            );
-
-            return redirect()->back()->withInput();
-        }
     }
 
-
-    // 刪除
-    public function destroy(Product $product)
+    /**
+     * 萬用檔案上傳處理：遍歷設定檔自動存檔
+     *
+     * @param Request $request
+     * @param mixed $item
+     */
+    private function handleFileUploads(Request $request, $item)
     {
-        // 刪除翻譯
-        ProductDesc::where('product_id', $product->product_id)->delete();
+        foreach ($this->pageCfg['files'] as $field => $config) {
+            if ($request->hasFile($field)) {
+                $item->$field = ImageHelper::handleUpload(
+                    $request->file($field),
+                    $config['path'],
+                    $item->$field,
+                    $config
+                );
+            }
+        }
+    }
+/**
+ * 儲存多語系描述資料
+ *
+ * @param mixed $item 主表模型
+ * @param array|null $descData 語系資料陣列
+ */
+private function saveTranslations($item, ?array $descData)
+{
+    if (!$descData) return;
 
-        // // 只有有圖片才刪除圖片
-        if (!empty($product->image)) {
-            ImageHelper::deleteImage($product->image, 'public');
+    foreach ($descData as $langId => $data) {
+        // 修正：確保變數名稱為 $langId
+        $oldDesc = $this->descClass::where($this->primaryKey, $item->{$this->primaryKey})
+            ->where('lang_id', $langId)
+            ->first();
+
+        // 若標題空白，執行刪除
+        if (empty($data['title'])) {
+            if ($oldDesc) {
+                SummernoteImageHelper::syncEditorImages(ContentHelper::decodeSiteUrl($oldDesc->content), null);
+                $oldDesc->delete();
+            }
+            continue;
         }
 
-        $product->delete();
+        $newContent = $data['content'] ?? '';
 
-        // 修改：重定向並帶上 'form_success_swal' session 訊息，以便前端 SweetAlert2 捕獲
-        return redirect()->route('admin.product.index')->with('form_success_swal', '消息已刪除');
+        // 比對圖片變化
+        SummernoteImageHelper::syncEditorImages(
+            $oldDesc ? ContentHelper::decodeSiteUrl($oldDesc->content) : null,
+            $newContent
+        );
+
+        // 處理 SEO
+        // 修正：原程式碼此處有定義 $metaKeyword 但下面沒用到
+        $metaKeyword = TagHelper::toString($data['meta_keyword'] ?? null);
+
+        // 執行資料更新或建立
+        $this->descClass::updateOrCreate(
+            [
+                $this->primaryKey => $item->{$this->primaryKey},
+                'lang_id' => $langId
+            ],
+            [
+                'title'            => $data['title'],
+                'description'      => $data['description'] ?? null,
+                'content'          => ContentHelper::encodeSiteUrl($newContent),
+                'meta_title'       => $data['meta_title'] ?? null,
+                'meta_description' => $data['meta_description'] ?? null,
+                'meta_keyword'     => $metaKeyword, // 修正：應使用處理過的字串
+                'seo_h1'           => $data['seo_h1'] ?? null,
+            ]
+        );
+    }
+}
+
+    /**
+     * 列表批次刪除功能
+     *
+     * @param Request $request
+     */
+    public function batchDestroy(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) return back()->with('error', "請選擇要刪除的{$this->logModuleName}");
+
+        $itemList = $this->modelClass::whereIn($this->primaryKey, $ids)->get();
+
+        foreach ($itemList as $item) {
+            $this->destroy($item->{$this->primaryKey});
+        }
+
+        $this->writeBatchDeleteLog($this->logModuleName, $itemList->count(), $ids);
+
+        return back()->with('form_success_swal', "已刪除 {$itemList->count()} 筆資料");
     }
 }

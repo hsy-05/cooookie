@@ -22,13 +22,13 @@ trait HasTagFields
         // 先取得資料庫最原始的屬性內容
         $value = parent::getAttribute($key);
 
-        /**
-         * 檢查配置：如果目前讀取的欄位有列在 Model 的 $tagFields 陣列中
-         * 則代表該欄位需要從「字串」轉回「陣列」顯示
-         */
-        if (isset($this->tagFields) && in_array($key, $this->tagFields)) {
-            // 透過 Helper 執行轉換邏輯
-            return TagHelper::toArray($value);
+        // 判斷邏輯：
+        // 1. 使用 property_exists 檢查物件是否有定義該屬性（不論 protected 或 private）
+        // 2. 確保該屬性是陣列，避免 in_array 報錯
+        if (property_exists($this, 'tagFields') && is_array($this->tagFields)) {
+            if (in_array($key, $this->tagFields)) {
+                return TagHelper::toArray($value);
+            }
         }
 
         // 若不是標籤欄位，則依照原本的邏輯回傳

@@ -23,7 +23,7 @@ class AdvertCategoryController extends BaseAdminController
         // 使用 Base 的 getPerPage，這會自動記憶使用者的分頁選擇 (8, 20, 50...)
         $perPage = $this->getPerPage($request);
 
-        $list = AdvertCategory::with(['desc'])
+        $list = AdvertCategory::with(['currentDesc'])
             ->orderByDesc('display_order')
             ->orderByDesc('cat_id')
             ->paginate($perPage);

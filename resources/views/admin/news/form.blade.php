@@ -8,7 +8,7 @@
     <x-admin.page-message>
         @include('components.admin.summernote.template-modal')
 
-        <form name="the-form" action="{{ $isEdit ? route('admin.news.update', $news->news_id) : route('admin.news.store') }}"
+        <form name="the-form" action="{{ $isEdit ? route('admin.news.update', $item->news_id) : route('admin.news.store') }}"
             method="POST" enctype="multipart/form-data">
             @csrf
             @if ($isEdit)
@@ -67,7 +67,7 @@
                                             <div class="form-group">
                                                 <label for="description_{{ $lang->lang_id }}">簡述</label>
                                                 <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
-                                                    maxlength="25" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
+                                                    maxlength="250" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
                                             </div>
 
                                             {{-- 🛡️ 開發者專用：僅 L1 Developer 可見，用於記錄系統 Debug 資訊 --}}
@@ -76,7 +76,7 @@
                                                     <label class="text-danger"><i class="fas fa-code"></i>
                                                         開發者專用：偵錯備註</label>
                                                     <input type="text" name="dev_notes" class="form-control"
-                                                        value="{{ $news->dev_notes }}">
+                                                        value="{{ $item->dev_notes ?? '' }}">
                                                 </div>
                                             @endif
 
@@ -87,14 +87,13 @@
                                                         內部管理專用：權重排序</label>
                                                     <select name="internal_priority" class="form-control">
                                                         <option value="0"
-                                                            {{ $news->internal_priority == 0 ? 'selected' : '' }}>一般
+                                                            {{ $item->internal_priority == 0 ? 'selected' : '' }}>一般
                                                         </option>
                                                         <option value="1"
-                                                            {{ $news->internal_priority == 1 ? 'selected' : '' }}>優先
+                                                            {{ $item->internal_priority == 1 ? 'selected' : '' }}>優先
                                                         </option>
                                                         <option value="2"
-                                                            {{ $news->internal_priority == 2 ? 'selected' : '' }}>最優先
-                                                            (置頂)
+                                                            {{ ($item->internal_priority ?? 0) == 2 ? 'selected' : '' }}>最優先 (置頂)
                                                         </option>
                                                     </select>
                                                 </div>
@@ -127,15 +126,15 @@
                                                     class="form-control image-upload-input" accept="image/*">
 
                                                 {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
-                                                <div class="input-group-append {{ $isEdit && $news->image_url ? '' : 'd-none' }}"
+                                                <div class="input-group-append {{ $isEdit && $item->image_url ? '' : 'd-none' }}"
                                                     id="image-action-group-image_url">
-                                                    @if ($isEdit && $news->image_url)
+                                                    @if ($isEdit && $item->image_url)
                                                         <button type="button" class="btn btn-info js-open-preview"
-                                                            data-url="{{ asset('storage/' . $news->image_url) }}">
+                                                            data-url="{{ asset('storage/' . $item->image_url) }}">
                                                             瀏覽
                                                         </button>
                                                         <button type="button" class="btn btn-danger btn-delete-image"
-                                                            data-url="{{ route('admin.news.delete-image', $news->news_id) }}"
+                                                            data-url="{{ route('admin.news.delete-image', $item->news_id) }}"
                                                             data-field="image_url">
                                                             刪除
                                                         </button>
@@ -151,7 +150,7 @@
                                                 <option value="">-- 無 --</option>
                                                 @foreach ($categories as $cat)
                                                     <option value="{{ $cat->cat_id }}"
-                                                        {{ $isEdit && $cat->cat_id == $news->cat_id ? 'selected' : '' }}>
+                                                        {{ $isEdit && $cat->cat_id == $item->cat_id ? 'selected' : '' }}>
                                                         {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
                                                     </option>
                                                 @endforeach
@@ -162,32 +161,31 @@
                                         <div class="col-md-6 form-group">
                                             <label for="display_order">排序</label>
                                             <input type="number" name="display_order" class="form-control"
-                                                id="display_order" value="{{ $isEdit ? $news->display_order : 0 }}">
+                                                id="display_order" value="{{ $isEdit ? $item->display_order : 0 }}">
                                         </div>
 
-                                        <div class="col-md-6 form-group">
+                                        <div class="col-md-3 form-group">
                                             <label for="is_visible">是否顯示</label>
                                             <div class="custom-control custom-switch mt-2">
                                                 <input type="checkbox" class="custom-control-input" id="is_visible"
                                                     name="is_visible" value="1"
-                                                    {{ !$isEdit || $news->is_visible ? 'checked' : '' }}>
+                                                    {{ !$isEdit || $item->is_visible ? 'checked' : '' }}>
                                                 <label class="custom-control-label" for="is_visible"></label>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6 form-group">
+                                        <div class="col-md-3 form-group">
                                             <label for="is_visible_home">首頁顯示</label>
                                             <div class="custom-control custom-switch mt-2">
                                                 <input type="checkbox" class="custom-control-input" id="is_visible_home"
                                                     name="is_visible_home" value="1"
-                                                    {{ !$isEdit || $news->is_visible_home ? 'checked' : '' }}>
+                                                    {{ !$isEdit || $item->is_visible_home ? 'checked' : '' }}>
                                                 <label class="custom-control-label" for="is_visible_home"></label>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
 
                         {{-- 內容頁籤 --}}
@@ -213,7 +211,6 @@
                                     @endforeach
                                 </div>
                             </div>
-
                         </div>
 
                         {{-- SEO頁籤 --}}

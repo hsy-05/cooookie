@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasTagFields; // 引入特徵
 
-class NewsDesc extends Model
+class ProductDesc extends Model
 {
     use HasTagFields; // 引入自動標籤轉換功能
 
-    protected $primaryKey = 'news_id';
+    protected $primaryKey = 'product_id';
 
-    protected $table = 'news_desc';
+    protected $table = 'product_desc';
 
     /**
-     * ❗由於 news_desc 沒有 id，也沒有 auto-increment，
-     *   只有 (news_id, lang_id) 當複合主鍵，
+     * ❗由於 product_desc 沒有 id，也沒有 auto-increment，
+     *   只有 (product_id, lang_id) 當複合主鍵，
      *   Laravel 不能正式支援複合主鍵，
      *   所以要手動關閉 incrementing。
      */
@@ -35,7 +35,7 @@ class NewsDesc extends Model
     protected $tagFields = ['meta_keyword'];
 
     protected $fillable = [
-        'news_id',
+        'product_id',
         'lang_id',
         'title',
         'description',
@@ -46,8 +46,8 @@ class NewsDesc extends Model
         'seo_h1'
     ];
 
-    public function news()
+    public function product()
     {
-        return $this->belongsTo(News::class, 'news_id', 'news_id');
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 }

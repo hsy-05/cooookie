@@ -87,7 +87,7 @@ class AdvertController extends BaseAdminController
                 $this->saveTranslations($advert, $request->desc);
 
                 // 5. 紀錄操作日誌
-                $advert->writeLog('新增', $advert->desc->adv_name ?? '未知名廣告');
+                $advert->writeLog('新增', $advert->currentDesc->adv_name ?? '未知名廣告');
 
                 $backUrl = $request->input('back_url', route('admin.advert.index'));
 
@@ -139,7 +139,7 @@ class AdvertController extends BaseAdminController
                 // 更新翻譯
                 $this->saveTranslations($advert, $request->desc);
 
-                $advert->writeLog('編輯', $advert->desc->adv_name ?? '未知名廣告');
+                $advert->writeLog('編輯', $advert->currentDesc->adv_name ?? '未知名廣告');
 
                 $backUrl = $request->input('back_url', route('admin.advert.index'));
 
@@ -162,8 +162,8 @@ class AdvertController extends BaseAdminController
      */
     public function destroy(Advert $advert)
     {
-        $advert->load('desc');
-        $name = $advert->desc->adv_name ?? '未知名廣告';
+        $advert->load('currentDesc');
+        $name = $advert->currentDesc->adv_name ?? '未知名廣告';
 
         // 呼叫 Model 內的 HasImageFields 特性自動清理檔案
         $advert->delete();
