@@ -225,9 +225,45 @@ window.addEventListener('load', () => {
      */
     initParallax();
     initFadeUp();
+    initAsideNavTitle();
 
     // 最終防呆：當頁面完全穩定後再次校正座標，解決頁尾多餘空白問題
     setTimeout(() => {
         ScrollTrigger.refresh();
     }, 500);
 });
+
+/**
+     * ==========================================
+     * ✨ 分類選單手機版優化 (已修正作用域問題)
+     * ==========================================
+     */
+    function initAsideNavTitle() {
+        // 抓取當前處於啟動狀態 (.current) 的 li 裡面的文字
+        let currentText = $('#js-aside-nav-list').find('li.current span').text().trim();
+
+        // 防呆機制：如果找不到任何選中的分類，就給予預設文字
+        if (currentText === '') {
+            currentText = '選擇分類';
+        }
+
+        // 將文字寫入手機版的提示大按鈕中
+        $('#js-aside-nav-current-text').text(currentText);
+    }
+
+    // 點擊手機版選單大按鈕時，控制選單展開或收合
+    $('#js-aside-nav-btn').on('click', function(event) {
+        event.stopPropagation();
+        $(this).toggleClass('is-on');
+        $('#js-aside-nav-list').slideToggle(300);
+    });
+
+    // 點擊網頁的其他任意空白處，自動收合選單
+    $(document).on('click', function() {
+        if ($(window).width() <= 991) {
+            if ($('#js-aside-nav-list').is(':visible')) {
+                $('#js-aside-nav-btn').removeClass('is-on');
+                $('#js-aside-nav-list').slideUp(300);
+            }
+        }
+    });

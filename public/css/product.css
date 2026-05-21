@@ -2,11 +2,11 @@
 |--------------------------------------------------------------------------
 | Product Module Stylesheet
 |--------------------------------------------------------------------------
-| 參考麥園烘焙坊 (Meyyiu) 視覺邏輯：
-| 1. 簡約白底，強調產品色彩。
-| 2. 列表頁使用 1:1 正方形佈局。
-| 3. 內頁主圖與縮圖側邊或下方聯動。
-| 4. 嚴格執行響應式斷點。
+| 核心設計原則：
+| 1. 延續最新消息的網格排版邏輯，維持全站一致的專業感。
+| 2. 產品列表採用嚴格的 1:1 正方形比例防呆，避免上傳不同形狀圖片時畫面崩壞。
+| 3. 滑過（Hover）時圖片精緻放大，文字與 DISCOVER MORE 覆蓋層進行柔和變色與位移，提升互動質感。
+| 4. 嚴格符合 4K 至 320px 全裝置響應式設計斷點。
 */
 
 /* --- 基礎共用變數與設定 --- */
@@ -14,9 +14,9 @@
     --p-bg-color: #ffffff;
     --p-text-main: #333333;
     --p-text-muted: #888888;
-    --p-accent-color: #8b6a4d; /* 麥園風格咖啡色系 */
+    --p-accent-color: #8b6a4d; /* 品牌核心咖啡色系 */
     --p-border-light: #eeeeee;
-    --p-transition: all 0.3s ease;
+    --p-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 採用更流暢的貝茲曲線動畫 */
 }
 
 main.p-product,
@@ -29,7 +29,7 @@ main.p-product-detail {
 
 .p-product-shell {
     width: 100%;
-    max-width: 1320px; /* 1440px 螢幕下的舒適寬度 */
+    max-width: 1320px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -74,184 +74,185 @@ main.p-product-detail {
     letter-spacing: 2px;
 }
 
-/* --- 工具欄 (Toolbar) --- */
-.p-product-toolbar {
-    border-bottom: 1px solid var(--p-border-light);
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+/* ==========================================================================
+   重構：產品列表網格與卡片區塊 (比照最新消息架構優化)
+   ========================================================================== */
 
-.p-product-toolbar__inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-}
-
-.p-product-filter {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.p-product-filter__button {
-    background: none;
-    border: 1px solid transparent;
-    padding: 8px 16px;
-    font-size: 16px;
-    cursor: pointer;
-    color: var(--p-text-muted);
-    transition: var(--p-transition);
-}
-
-.p-product-filter__button.is-active,
-.p-product-filter__button:hover {
-    color: var(--p-accent-color);
-    border-bottom: 2px solid var(--p-accent-color);
-}
-
-.p-product-search__field {
-    position: relative;
-    width: 240px;
-}
-
-.p-product-search__input {
-    width: 100%;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-}
-
-/* --- 產品列表頁 (Index) --- */
-.p-product-list {
-    padding: 60px 0;
-}
-
+/* 產品網格容器 */
 .p-product-grid {
     display: grid;
-    /* 預設 4 欄式布局 (2560px - 1440px) */
+    /* 預設桌機版：4欄式版面 */
     grid-template-columns: repeat(4, 1fr);
-    gap: 40px 20px;
+    gap: 50px 30px;
+    margin-bottom: 100px;
 }
 
+/* 單一產品卡片外殼 */
+.p-product-item {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+    overflow: hidden;
+}
+
+/* 產品外連超連結 */
 .p-product-item__link {
     text-decoration: none;
     color: inherit;
     display: block;
 }
 
+/* 產品圖片容器：嚴格 1:1 正方形防呆比例，並為 Hover 擴充做準備 */
 .p-product-item__img-box {
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1; /* 嚴格 1:1 不跑版 */
+    aspect-ratio: 1 / 1;
     overflow: hidden;
-    background-color: #f9f9f9;
-    margin-bottom: 15px;
+    background-color: #fcfbfa; /* 微暖白底，襯托餅乾甜點 */
+    margin-bottom: 20px;
+    border: 1px solid #f5f2eb;
 }
 
+/* 產品圖片本體 */
 .p-product-item__img {
     width: 100%;
     height: 100%;
-    /* object-fit: contain; /* 確保產品完整顯示不被裁切，背景留白 */
-    transition: transform 0.5s ease;
+    object-fit: cover; /* 改為 cover 滿版填充，視覺張力大於 contain */
+    transition: var(--p-transition);
 }
 
-.p-product-item:hover .p-product-item__img {
-    transform: scale(1.05);
-}
-
-
-/* 滑過圖片縮放與文字覆蓋層 */
+/* 產品精緻動態覆蓋層 (DISCOVER MORE) */
 .p-product-item__overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.2);
+    background: rgba(139, 106, 77, 0.15); /* 輕量品牌色遮罩 */
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: var(--transition-base);
+    transition: var(--p-transition);
+    backdrop-filter: blur(2px); /* 精品感微模糊特效 */
 }
 
-.p-product-item:hover .p-product-item__overlay {
-    opacity: 1;
-}
-
+/* 覆蓋層內的文字標籤 */
 .view-text {
-    background: rgba(0,0,0,0.7);
+    background: rgba(51, 51, 51, 0.9);
     color: #fff;
-    padding: 8px 20px;
-    font-size: 13px;
-    border-radius: 20px;
-}
-
-.p-product-item__info {
-    text-align: center;
-}
-
-.p-product-item__cat {
-    font-size: 14px;
-    color: var(--p-text-muted);
-}
-
-.p-product-item__title {
-    font-size: 18px;
-    margin: 8px 0;
+    padding: 10px 24px;
+    font-size: 0.8rem;
     font-weight: 500;
+    letter-spacing: 0.1em;
+    border-radius: 40px;
+    transform: translateY(15px); /* 初始下移，建立上浮動畫感 */
+    transition: var(--p-transition);
 }
 
-.p-product-item__price {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--p-accent-color);
-}
-
-
-/* 標籤樣式 */
+/* 商品狀態標籤 (如：人氣熱銷) */
 .p-product-item__badge {
     position: absolute;
     top: 15px;
-    right: 15px;
-    background: var(--primary-color);
+    left: 15px; /* 改至左上角，更符合一般視覺閱讀流向 */
+    background: var(--p-accent-color);
     color: #fff;
     padding: 4px 12px;
-    font-size: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
     z-index: 10;
+    box-shadow: 0 4px 10px rgba(139, 106, 77, 0.2);
 }
 
-/* --- 產品內頁 (Detail) --- */
+/* 產品文字資訊區 */
+.p-product-item__info {
+    text-align: left; /* 改為靠左對齊，比照最新消息，視覺排版更俐落穩定 */
+    padding: 0 5px;
+}
+
+/* 商品分類文字 */
+.p-product-item__cat {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: var(--p-text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+}
+
+/* 商品品名標題 */
+.p-product-item__title {
+    font-size: 1.15rem;
+    color: var(--p-text-main);
+    margin: 0 0 10px 0;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: var(--p-transition);
+    /* 雙行防呆裁切，防止客戶名字打太長撐破版面 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 商品售價 */
+.p-product-item__price {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--p-accent-color);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   商品卡片滑過互動特效 (Hover Effects)
+   -------------------------------------------------------------------------- */
+.p-product-item:hover .p-product-item__img {
+    transform: scale(1.06); /* 圖片精細放大 */
+}
+
+.p-product-item:hover .p-product-item__overlay {
+    opacity: 1; /* 遮罩顯現 */
+}
+
+.p-product-item:hover .view-text {
+    transform: translateY(0); /* 文字流暢上浮 */
+}
+
+.p-product-item:hover .p-product-item__title {
+    color: var(--p-accent-color); /* 品名優雅變色 */
+    transform: translateX(5px); /* 拷貝最新消息的品名右移微特效，增加全站呼應感 */
+}
+
+
+/* --- 產品內頁 (Detail) *維持原樣不調整* --- */
 .p-product-detail {
     padding: 80px 0;
 }
 
 .p-product-detail__main {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 左右佈局 */
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-bottom: 80px;
 }
 
-/* 相簿區域 */
 .p-product-detail__visual {
     width: 100%;
-    min-width: 0; /* 防止 Swiper 爆開 */
+    min-width: 0;
 }
 
 .p-product-slider-main {
     width: 100%;
-    max-width: 500px;    /* 限制最大寬度為 500px */
-    max-height: 500px;   /* 限制最大高度為 500px */
-    aspect-ratio: 1 / 1; /* 保持 1:1 正方形 */
+    max-width: 500px;
+    max-height: 500px;
+    aspect-ratio: 1 / 1;
     border: 1px solid var(--p-border-light);
     margin-bottom: 15px;
-    margin-left: auto;   /* 如果希望在左側區塊靠右、靠左或居中，可調整 margin */
-    margin-right: auto;  /* 加上這兩行可在左側大框內水平置中 */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .p-product-slider-main .swiper-slide img {
@@ -368,44 +369,56 @@ main.p-product-detail {
     letter-spacing: 2px;
 }
 
-/* --- 全方位響應式斷點 (Breakpoints) --- */
+/* ==========================================================================
+   3. 嚴格執行全方位響應式斷點 (RWD 全規格覆蓋)
+   ========================================================================== */
 
-/* 4K - 2560px (保持 4 欄) */
-@media (min-width: 1441px) {
-    .p-product-grid { grid-template-columns: repeat(4, 1fr); }
+/* 尺寸 1：4K 超大型螢幕 (2560px) */
+@media (min-width: 2560px) {
+    .p-product-shell { max-width: 2200px; }
+    .p-product-grid { grid-template-columns: repeat(4, 1fr); gap: 60px 40px; }
+    .p-product-item__title { font-size: 1.4rem; }
+    .p-product-item__price { font-size: 1.25rem; }
 }
 
-/* 大型筆記型電腦 - 1440px */
+/* 尺寸 2：大型筆記型電腦 (1440px) */
 @media (max-width: 1440px) {
     .p-product-shell { max-width: 1200px; }
+    .p-product-grid { gap: 40px 24px; }
 }
 
-/* 筆記型電腦 - 1024px */
+/* 尺寸 3：筆記型電腦 (1024px) */
 @media (max-width: 1024px) {
-    .p-product-grid { grid-template-columns: repeat(3, 1fr); }
-    .p-product-detail__main { gap: 30px; }
-    .detail-title { font-size: 26px; }
+    .p-product-grid { grid-template-columns: repeat(3, 1fr); gap: 35px 20px; }
+    .p-product-item__title { font-size: 1.05rem; }
 }
 
-/* 平板電腦 - 768px */
+/* 尺寸 4：平板電腦 (768px) */
 @media (max-width: 768px) {
-    .p-product-grid { grid-template-columns: repeat(2, 1fr); }
-    .p-product-toolbar__inner { flex-direction: column; gap: 15px; }
-    .p-product-search__field { width: 100%; }
-    .p-product-detail__main { grid-template-columns: 1fr; }
-    .p-product-slider-main { aspect-ratio: 1/1; }
+    .p-product-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 15px; margin-bottom: 60px; }
+    .p-product-item__img-box { margin-bottom: 12px; }
+    .p-product-item__title { font-size: 1rem; }
+    /* 觸控裝置隱藏桌機版 Hover 覆蓋層文字避免干擾 */
+    .p-product-item__overlay { display: none !important; }
 }
 
-/* 大型手機 - 425px */
+/* 尺寸 5：大型手機 (425px) */
 @media (max-width: 425px) {
-    .p-product-grid { grid-template-columns: 1fr; }
-    .p-product-filter { justify-content: center; }
-    .detail-actions { flex-direction: column; }
-    .qty-control { width: 100%; justify-content: center; }
+    .p-product-grid { grid-template-columns: repeat(2, 1fr); gap: 25px 12px; }
+    .p-product-item__badge { top: 8px; left: 8px; padding: 2px 8px; font-size: 0.65rem; }
+    .p-product-item__title { font-size: 0.95rem; margin-bottom: 6px; }
+    .p-product-item__price { font-size: 0.95rem; }
 }
 
-/* 中小型手機 - 375px / 320px */
+/* 尺寸 6：中型手機 (375px) */
 @media (max-width: 375px) {
-    .c-banner-title { font-size: 28px; }
-    .p-product-list { padding: 30px 0; }
+    .p-product-grid { grid-template-columns: 1fr; gap: 30px 0; } /* 窄螢幕改直排單欄，大圖展示視覺效果最舒服 */
+    .p-product-item__img-box { aspect-ratio: 1 / 1; }
+    .p-product-item__title { font-size: 1.05rem; }
+}
+
+/* 尺寸 7：小型手機 (320px) */
+@media (max-width: 320px) {
+    .c-banner-title { font-size: 24px; }
+    .p-product-item__title { font-size: 1rem; }
 }

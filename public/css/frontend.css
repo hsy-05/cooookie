@@ -1220,3 +1220,199 @@ b, strong { font-weight: 700; }
     .c-banner-title { font-size: 1.4rem; }
     .c-banner-subtitle { font-size: 0.75rem; letter-spacing: 0.2em; }
 }
+
+/**
+ * 全站共用內頁分類導覽樣式表
+ * 採用 Desktop-First（桌機優先）並在 991px 以下切換為下拉選單樣式
+ */
+
+/* ==========================================================================
+   1. 基礎設定與桌機版（電腦版）預設樣式
+   ========================================================================== */
+.aside-nav {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 40px;
+}
+
+/* 橫排容器基底 */
+.aside-nav .flex {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+}
+
+/* 電腦版隱藏手機專用的下拉觸發鈕 */
+.aside-nav__btn {
+    display: none;
+}
+
+/* 電腦版按鈕的基本外觀（繼承你原本的樣式風格） */
+.aside-nav__tab > li > a {
+    display: block;
+    padding: 10px 24px;
+    border-radius: 40px;
+    border: 1px solid var(--c-primary, #8c6239);
+    color: var(--c-primary, #8c6239);
+    background: #fff;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+/* 滑鼠懸停與當前點選狀態 */
+.aside-nav__tab > li > a:hover,
+.aside-nav__tab > li.current > a {
+    background: var(--c-primary, #8c6239);
+    border-color: var(--c-primary, #8c6239);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(140, 106, 75, 0.25);
+}
+
+/* ==========================================================================
+   2. 嚴格符合要求的響應式斷點分流 (4K 下降至手機)
+   ========================================================================== */
+
+/* 尺寸 1：4K 超大型螢幕 (2560px) */
+@media (min-width: 2560px) {
+    .aside-nav { margin-bottom: 60px; }
+    .aside-nav__tab > li > a { font-size: 1.2rem; padding: 14px 32px; }
+}
+
+/* 尺寸 2：大型筆記型電腦 (1440px) */
+@media (max-width: 1440px) {
+    .aside-nav__tab > li > a { font-size: 1rem; }
+}
+
+/* 尺寸 3：筆記型電腦 (1024px) */
+@media (max-width: 1024px) {
+    .aside-nav__tab > li > a { font-size: 0.9rem; padding: 8px 20px; }
+}
+
+/* 尺寸 4：平板電腦與行動裝置分水嶺 (小於 991px 時，全面轉為下拉選單樣式) */
+@media (max-width: 991px) {
+    .aside-nav {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+
+    /* 顯示手機版專用的大按鈕外殼 */
+    .aside-nav.slide .aside-nav__btn {
+        display: block;
+        position: relative;
+        padding: 12px 25px;
+        width: 100%;
+        color: #fff;
+        font-size: 1rem;
+        line-height: 1.4;
+        cursor: pointer;
+        border-radius: 40px;
+        background-color: var(--c-primary, #8c6239);
+        box-shadow: 0 4px 12px rgba(140, 106, 75, 0.15);
+    }
+
+    /* 右側加減號圖示基底 */
+    .aside-nav.slide .aside-nav__btn .icon {
+        position: absolute;
+        top: 50%;
+        right: 25px;
+        margin-top: -6px;
+        width: 12px;
+        height: 12px;
+    }
+
+    /* 用偽元素劃出十字架（加號） */
+    .aside-nav.slide .aside-nav__btn .icon::before,
+    .aside-nav.slide .aside-nav__btn .icon::after {
+        display: block;
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #fff;
+        transition: all 0.35s ease-in-out;
+    }
+    .aside-nav.slide .aside-nav__btn .icon::after {
+        transform: rotate(90deg);
+    }
+
+    /* 當下拉選單被打開時 (.is-on)，加號要旋轉變成減號 */
+    .aside-nav.slide .aside-nav__btn.is-on .icon::after {
+        transform: rotate(0deg);
+    }
+    .aside-nav.slide .aside-nav__btn.is-on .icon::before {
+        opacity: 0;
+    }
+
+    /* 將原本橫排的 ul 改造成絕對定位的下拉清單 */
+    .aside-nav.slide .aside-nav__tab {
+        display: none; /* 預設隱藏，由 jQuery 動態控制 slideToggle */
+        margin: 8px 5px 0;
+        border-radius: 12px;
+        background-color: #fff;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        position: absolute;
+        left: 15px;
+        right: 15px;
+        z-index: 99;
+    }
+
+    /* 強制將 flex 橫排轉回直排 */
+    .aside-nav .flex {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    /* 手機版清單項目的橫線與間距修正 */
+    .aside-nav__tab > li {
+        display: block;
+        width: 100%;
+    }
+    .aside-nav__tab > li:not(:last-child) {
+        border-bottom: rgba(73, 67, 56, 0.1) solid 1px;
+    }
+
+    /* 手機版清單內的超連結外觀重設（取消原本的膠囊形狀，改為整列點擊） */
+    .aside-nav__tab > li > a {
+        display: block;
+        padding: 14px 20px;
+        border: none !important;
+        border-radius: 0 !important;
+        color: #494338;
+        text-align: left;
+        background: #fff;
+        font-size: 1rem;
+    }
+
+    /* 手機版滑動與當前選中狀態 */
+    .aside-nav__tab > li > a:hover {
+        background-color: #fdfbf7;
+        color: var(--c-primary, #8c6239);
+        transform: none;
+        box-shadow: none;
+    }
+    .aside-nav__tab > li.current > a {
+        color: #fff !important;
+        background-color: var(--c-primary, #8c6239) !important;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* 尺寸 5：平板電腦 (768px) */
+@media (max-width: 768px) {
+    /* 繼承 991px 的下拉樣式 */
+}
+
+/* 尺寸 6：大型手機 (425px) / 中型手機 (375px) / 小型手機 (320px) */
+@media (max-width: 425px) {
+    .aside-nav.slide .aside-nav__btn { padding: 10px 20px; font-size: 0.95rem; }
+    .aside-nav__tab > li > a { padding: 12px 15px; font-size: 0.95rem; }
+}

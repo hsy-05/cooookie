@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\ContentHelper;
+use App\Http\Controllers\Admin\BaseAdminController;
 
 class CheckBackendPermission
 {
@@ -30,7 +31,7 @@ class CheckBackendPermission
 
             // 1. 呼叫 Helper 把訊息存入 Session (Flash)
             // 這裡的 $links 我們帶入剛剛算出來的 $url
-            $this->showMsg(
+            BaseAdminController::showMsg(
                 1,
                 '對不起，您沒有執行此項操作的權限！',
                 [['text' => '返回', 'href' => $url]],

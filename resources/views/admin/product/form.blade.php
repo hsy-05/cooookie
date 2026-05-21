@@ -109,11 +109,45 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="form-row">
-                                        {{-- 圖片上傳區塊 --}}
+
+                                        {{-- ========================================== --}}
+                                        {{-- 第一排：分類 與 價格                         --}}
+                                        {{-- ========================================== --}}
+
+                                        {{-- 分類下拉選單 --}}
+                                        <div class="col-md-6 form-group">
+                                            <label for="cat_id">分類</label>
+                                            <select id="cat_id" name="cat_id" class="form-control required-field">
+                                                <option value="">-- 無 --</option>
+                                                @foreach ($categories as $cat)
+                                                    <option value="{{ $cat->cat_id }}"
+                                                        {{ $isEdit && $cat->cat_id == $item->cat_id ? 'selected' : '' }}>
+                                                        {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        {{-- 💰 商品價格輸入框 --}}
+                                        <div class="col-md-6 form-group">
+                                            <label for="price">商品價格 (元)</label>
+                                            <input type="number" name="price" id="price" class="form-control required-field"
+                                                min="0" placeholder="請輸入商品定價" data-label="商品價格"
+                                                value="{{ $isEdit ? $item->price : 0 }}">
+                                        </div>
+
+
+                                        {{-- 🧱 強制斷行牆：確保圖片一定在第二排開始 --}}
+                                        <div class="w-100"></div>
+
+
+                                        {{-- ========================================== --}}
+                                        {{-- 第二排：封面圖片 (保持 col-md-6 半寬精緻感)   --}}
+                                        {{-- ========================================== --}}
+
                                         <div class="col-md-6 form-group">
                                             <label for="image_url">
                                                 封面圖片
-                                                {{-- 這裡動態抓取 Controller 設定的建議尺寸 --}}
                                                 @if (isset($fileConfigs['image_url']))
                                                     <i class="fas fa-question-circle text-muted" data-toggle="tooltip"
                                                         title="建議尺寸：{{ $fileConfigs['image_url']['width'] }} x {{ $fileConfigs['image_url']['height'] }} px
@@ -125,7 +159,6 @@
                                                 <input type="file" id="image_url" name="image_url"
                                                     class="form-control image-upload-input" accept="image/*">
 
-                                                {{-- 操作按鈕組：包含預覽與刪除 (AJAX 刪除功能需對應後端路由) --}}
                                                 <div class="input-group-append {{ $isEdit && $item->image_url ? '' : 'd-none' }}"
                                                     id="image-action-group-image_url">
                                                     @if ($isEdit && $item->image_url)
@@ -143,27 +176,23 @@
                                             </div>
                                         </div>
 
-                                        {{-- 分類下拉選單 --}}
-                                        <div class="col-md-6 form-group">
-                                            <label for="cat_id">分類</label>
-                                            <select id="cat_id" name="cat_id" class="form-control required-field">
-                                                <option value="">-- 無 --</option>
-                                                @foreach ($categories as $cat)
-                                                    <option value="{{ $cat->cat_id }}"
-                                                        {{ $isEdit && $cat->cat_id == $item->cat_id ? 'selected' : '' }}>
-                                                        {{ optional($cat->descs->first())->name ?? 'ID-' . $cat->cat_id }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
 
-                                        <!-- 排序與是否顯示 -->
+                                        {{-- 🧱 強制斷行牆：確保第三排不會跑上來補圖片右邊的空位 --}}
+                                        <div class="w-100"></div>
+
+
+                                        {{-- ========================================== --}}
+                                        {{-- 第三排：排序、是否顯示、首頁顯示              --}}
+                                        {{-- ========================================== --}}
+
+                                        {{-- 排序 --}}
                                         <div class="col-md-6 form-group">
                                             <label for="display_order">排序</label>
                                             <input type="number" name="display_order" class="form-control"
                                                 id="display_order" value="{{ $isEdit ? $item->display_order : 0 }}">
                                         </div>
 
+                                        {{-- 是否顯示 --}}
                                         <div class="col-md-3 form-group">
                                             <label for="is_visible">是否顯示</label>
                                             <div class="custom-control custom-switch mt-2">
@@ -174,6 +203,7 @@
                                             </div>
                                         </div>
 
+                                        {{-- 首頁顯示 --}}
                                         <div class="col-md-3 form-group">
                                             <label for="is_visible_home">首頁顯示</label>
                                             <div class="custom-control custom-switch mt-2">
@@ -183,6 +213,7 @@
                                                 <label class="custom-control-label" for="is_visible_home"></label>
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>

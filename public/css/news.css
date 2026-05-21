@@ -33,33 +33,6 @@
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
-/* --- 2. Filter Tabs (分類篩選) --- */
-.news-filter {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 50px;
-    flex-wrap: wrap;
-}
-.filter-btn {
-    padding: 10px 24px;
-    border-radius: 40px;
-    border: 1px solid var(--c-primary);
-    color: var(--c-primary);
-    background: #fff;
-    font-size: 0.9rem;
-    transition: 0.3s;
-}
-.filter-btn:hover,
-.filter-btn.active {
-    background: var(--c-primary);
-    border-color: var(--c-primary);
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(140, 106, 75, 0.25);
-}
-
-
 /* --- 3. News Grid (列表頁設計) --- */
 .news-grid {
     display: grid;

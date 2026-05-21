@@ -46,7 +46,8 @@ class Product extends Model
         'is_visible',
         'is_visible_home',
         'display_order',
-        'image_url'
+        'image_url',
+        'price'
     ];
 
     /**
