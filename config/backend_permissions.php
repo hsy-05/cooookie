@@ -79,7 +79,7 @@ return [
         'subs' => [
             'contact' => [
                 'label' => '聯絡單列表',
-                'actions' => ['view' => '瀏覽', 'create' => '回覆', 'delete' => '刪除'],
+                'actions' => ['view' => '瀏覽', 'edit' => '回覆', 'delete' => '刪除'],
             ],
         ]
     ],

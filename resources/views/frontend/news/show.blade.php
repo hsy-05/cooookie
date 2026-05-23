@@ -7,6 +7,7 @@
 @section('content')
 
     {{-- 頁面橫幅標題區 --}}
+    {{-- 建議 Banner 圖片尺寸：1920px * 450px --}}
     <section class="page-banner">
         <div class="banner-img-wrap">
             <img src="https://images.unsplash.com/photo-1622170456996-eb5bdf4eb5e8?q=80&w=1920&auto=format&fit=crop" alt="News Banner" class="banner-img js-parallax-img">
@@ -18,55 +19,52 @@
     </section>
 
     <div class="container-1600">
-        {{-- 麵包屑 --}}
+        {{-- 麵包屑組件 --}}
         @include('components.frontend.breadcrumb')
 
+        {{-- 文章主結構 --}}
         <article class="article-section">
-            <div class="container">
+            <div class="article-container">
 
+                {{-- 文章標頭區 --}}
                 <header class="article-header js-fade-up">
-                    {{-- 移除 inline style，使用 detail-meta-wrapper 類名控制 --}}
                     <div class="detail-meta-wrapper">
                         <time class="n-date">{{ $news->created_at->format('Y / m / d') }}</time>
                         @if ($news->category)
                             <span class="n-cat-label">{{ $news->category->descs->firstWhere('lang_id', $langId)->name ?? '' }}</span>
                         @endif
                     </div>
-                    <div class="article-main-title">{{ $desc->title ?? '無標題' }}</div>
+                    <h1 class="article-main-title">{{ $desc->title ?? '無標題' }}</h1>
                 </header>
 
+                {{-- 文章主要內文區（承接 Summernote 編輯器） --}}
                 <div class="article-content-wrapper js-fade-up">
-                    <div class="editor-content">
+                    <div class="g__edit-wrap">
                         {!! $desc->content ?? '內容編輯中...' !!}
                     </div>
                 </div>
 
-                {{-- 文章導覽：整合 SEO 與結構化排版 --}}
+                {{-- 文章底部導覽：上一頁、返回列表、下一頁 --}}
                 <nav class="article-footer-nav js-fade-up">
 
-                    {{-- 上一則：若無資料則渲染佔位 div 以維持佈局 --}}
                     @if ($prevNews)
-                        @php $prevTitle = $prevNews->descs->firstWhere('lang_id', $langId)->title ?? ''; @endphp
-                        <a href="{{ route('news.show', ['news' => $prevNews->news_id]) }}" class="nav-btn prev"
-                            title="上一篇：{{ $prevTitle }}">
+                        <a href="{{ route('news.show', ['news' => $prevNews->news_id]) }}" class="nav-btn prev" title="上一篇：{{ $prevNews->descs->firstWhere('lang_id', $langId)->title ?? '' }}">
                             <span class="arrow"><i class="fas fa-chevron-left"></i></span>
-                            <span class="nav-title text-limit-1">PREV：{{ $prevTitle }}</span>
+                            <span class="nav-title text-limit-1">PREV：{{ $prevNews->descs->firstWhere('lang_id', $langId)->title ?? '' }}</span>
                         </a>
                     @else
                         <div class="nav-btn disabled"></div>
                     @endif
 
-                    {{-- 返回列表：純文字設計感按鈕 --}}
-                    <a href="{{ session('last_news_list_url', route('news.index')) }}" class="back-to-list">
-                        返回列表
-                    </a>
+                    <div class="back-box">
+                        <a href="{{ session('last_news_list_url', route('news.index')) }}" class="back-to-list">
+                            返回列表
+                        </a>
+                    </div>
 
-                    {{-- 下一則：若無資料則渲染佔位 div 以維持佈局 --}}
                     @if ($nextNews)
-                        @php $nextTitle = $nextNews->descs->firstWhere('lang_id', $langId)->title ?? ''; @endphp
-                        <a href="{{ route('news.show', ['news' => $nextNews->news_id]) }}" class="nav-btn next"
-                            title="下一篇：{{ $nextTitle }}">
-                            <span class="nav-title text-limit-1">NEXT：{{ $nextTitle }}</span>
+                        <a href="{{ route('news.show', ['news' => $nextNews->news_id]) }}" class="nav-btn next" title="下一篇：{{ $nextNews->descs->firstWhere('lang_id', $langId)->title ?? '' }}">
+                            <span class="nav-title text-limit-1">NEXT：{{ $nextNews->descs->firstWhere('lang_id', $langId)->title ?? '' }}</span>
                             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
                         </a>
                     @else
@@ -82,27 +80,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        /**
-         * 內頁內容強化處理
-         * 處理 Summernote 輸出的圖片與非預期標籤
-         */
-        (function() {
-            const initArticleContent = () => {
-                const editorContent = document.querySelector('.editor-content');
-                if (!editorContent) return;
-
-                const imgs = editorContent.querySelectorAll('img');
-                imgs.forEach(img => {
-                    // 專業做法：不直接寫 style，若需處理則設為屬性或類名
-                    img.loading = 'lazy';
-                    if (img.getAttribute('style')) {
-                        img.removeAttribute('style');
-                    }
-                });
-            };
-
-            document.addEventListener('DOMContentLoaded', initArticleContent);
-        })();
-    </script>
+    <script src="{{ asset('js/frontend/news.js') }}"></script>
 @endpush

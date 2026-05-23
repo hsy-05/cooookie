@@ -87,7 +87,7 @@
                                         </td>
                                         <td>{{ $item->subject }}</td>
                                         <td class="text-center">
-                                            @if($item->status == 'replied')
+                                            @if($item->status == '2')
                                                 <span class="badge badge-success px-2 py-1">已回覆</span>
                                             @else
                                                 <span class="badge badge-warning px-2 py-1">待處理</span>

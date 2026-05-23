@@ -3,6 +3,7 @@
         $msg = session('form_success');
         $msg = is_array($msg) ? $msg : ['title' => $msg];
         $links = $msg['links'] ?? [];
+        $fallbackUrl = $msg['fallback_url'] ?? route('admin.dashboard'); // 接收後端傳來的安全網址
 
         // 根據 msg_type 選擇 icon 與顏色
         switch ($msg['msg_type'] ?? 0) {
@@ -46,9 +47,18 @@
             {{-- 連結按鈕 --}}
             <div class="d-flex flex-column align-items-center mt-3">
                 @foreach ($links as $i => $link)
-                    <a href="{{ $link['href'] }}" class="btn {{ $i === 0 ? 'btn-primary' : 'btn-secondary' }} w-100 mb-3">
-                        {{ $link['text'] }}
-                    </a>
+                    @if ($link['href'] === '#goback')
+                        {{-- 當遇到智慧返回標記時，直接將判斷邏輯綁定在 onclick 事件中，完美的原生 JS 不會被 HTML 轉義 --}}
+                        <a href="javascript:void(0);"
+                           onclick="if(document.referrer && document.referrer.includes(window.location.hostname)){ history.go(-1); }else{ window.location.href='{{ $fallbackUrl }}'; }"
+                           class="btn {{ $i === 0 ? 'btn-primary' : 'btn-secondary' }} w-100 mb-3">
+                            {{ $link['text'] }}
+                        </a>
+                    @else
+                        <a href="{{ $link['href'] }}" class="btn {{ $i === 0 ? 'btn-primary' : 'btn-secondary' }} w-100 mb-3">
+                            {{ $link['text'] }}
+                        </a>
+                    @endif
                 @endforeach
             </div>
         </div>
@@ -60,13 +70,30 @@
             (function() {
                 let countdown = 3;
                 const el = document.getElementById('redirect-countdown');
-                const target = "{{ $links[0]['href'] ?? '#' }}";
+
+                // 定義自動跳轉的智慧執行函式
+                const handleAutoRedirect = () => {
+                    const targetHref = "{{ $links[0]['href'] ?? '#' }}";
+                    const fallback = "{{ $fallbackUrl }}";
+
+                    // 如果第一個選項是智慧返回標記，執行與按鈕相同的防卡死判斷，否則直接走原本的網址跳轉
+                    if (targetHref === '#goback') {
+                        if (document.referrer && document.referrer.includes(window.location.hostname)) {
+                            history.go(-1);
+                        } else {
+                            window.location.href = fallback;
+                        }
+                    } else {
+                        window.location.href = targetHref;
+                    }
+                };
+
                 const timer = setInterval(() => {
                     countdown--;
                     if (el) el.textContent = countdown;
                     if (countdown <= 0) {
                         clearInterval(timer);
-                        window.location.href = target;
+                        handleAutoRedirect(); // 倒數結束，觸發智慧跳轉
                     }
                 }, 1000);
             })();

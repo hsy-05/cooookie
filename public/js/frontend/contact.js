@@ -1,6 +1,6 @@
 /**
  * 聯絡我們頁面整合模組
- * 整合功能：AOS 動畫刷新、圖形驗證碼切換、Google reCAPTCHA v3 驗證、表單異步提交
+ * 整合功能：AOS 動畫刷新、Google reCAPTCHA v3 驗證安全標記、表單異步提交
  */
 const ContactModule = (() => {
 
@@ -8,8 +8,6 @@ const ContactModule = (() => {
     const nodes = {
         form: document.querySelector('#form_contact'),
         submitBtn: document.querySelector('#btn-submit'),
-        captchaImg: document.querySelector('#captcha-img'),
-        refreshBtn: document.querySelector('#refresh-captcha'),
         recaptchaInput: document.querySelector('#recaptcha_token')
     };
 
@@ -31,34 +29,21 @@ const ContactModule = (() => {
     };
 
     /**
-     * 獲取新的圖形驗證碼
-     * 透過加掛時間戳記，強制瀏覽器繞過緩存重新載入圖片
-     * @param {HTMLImageElement} img - 驗證碼圖片的 DOM 物件
-     */
-    const getNewCaptcha = (img) => {
-        if (!img) return;
-        const srcUrl = img.src.split('?')[0];
-        img.src = `${srcUrl}?t=${new Date().getTime()}`;
-    };
-
-    /**
      * 取得 Google reCAPTCHA v3 Token
      * 每次送出表單前都重新獲取，確保 Token 不會因逾時而失效
      * @returns {Promise<string|null>} 返回驗證 Token 或 null
      */
     const getRecaptchaToken = async () => {
         try {
-            // 檢查全域環境是否有載入 Google API
             if (typeof grecaptcha === 'undefined') {
                 throw new Error('Google 驗證服務載入失敗，請檢查網路連線');
             }
 
-            // 等待 reCAPTCHA 載入完成並執行驗證
             return await new Promise((resolve, reject) => {
                 grecaptcha.ready(async () => {
                     try {
-                        // 這裡的 Site Key 是從 Blade 傳遞過來的全域變數或配置
-                        const siteKey = document.querySelector('meta[name="recaptcha-key"]')?.content;
+                        // 從表單節點的 data-site-key 屬性中動態獲取網站金鑰
+                        const siteKey = nodes.form?.getAttribute('data-site-key');
                         if (!siteKey) return reject('找不到 reCAPTCHA Site Key');
 
                         const token = await grecaptcha.execute(siteKey, { action: 'contact_form' });
@@ -82,36 +67,44 @@ const ContactModule = (() => {
     const onFormSubmit = async (e) => {
         e.preventDefault();
 
-        // 基礎前端 HTML5 欄位規則驗證 (required, email 格式等)
         if (!nodes.form.checkValidity()) {
             nodes.form.reportValidity();
             return;
         }
 
-        // 進入提交狀態：鎖定按鈕防止重複點擊
+        // 讀取由後端 Blade 輸出的實體提交網址，確保路徑在任何部署環境下皆自動對齊
+        const submitUrl = nodes.form.getAttribute('data-action');
+        if (!submitUrl) {
+            Swal.fire({ icon: 'error', title: '系統設定錯誤', text: '找不到表單提交路徑。' });
+            return;
+        }
+
         nodes.submitBtn.disabled = true;
         const btnOriginalText = nodes.submitBtn.innerText;
         nodes.submitBtn.innerText = '安全驗證中...';
 
         try {
-            // 執行 Google 隱形驗證獲取 Token
             const token = await getRecaptchaToken();
             if (!token) {
                 throw new Error('安全驗證失敗，請重新整理頁面再試一次');
             }
 
-            // 將 Token 填入隱藏欄位供後端校驗
             nodes.recaptchaInput.value = token;
             nodes.submitBtn.innerText = '傳送中...';
 
             const formData = new FormData(nodes.form);
 
-            // 發送 AJAX 請求至伺服器
-            const response = await fetch('/contact/store', {
+            // 發送 AJAX 請求至動態配置的伺服器接收端點
+            const response = await fetch(submitUrl, {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
+
+            // 如果回傳非 200 狀態碼（例如依舊發生 IIS 404），直接拋出狀態異常
+            if (!response.ok) {
+                throw new Error(`伺服器回應錯誤 (${response.status})。請確認網頁伺服器 URL 重寫規則配置。`);
+            }
 
             const data = await response.json();
 
@@ -124,7 +117,6 @@ const ContactModule = (() => {
                 });
                 nodes.form.reset();
             } else {
-                // 如果後端回傳 success: false，拋出錯誤訊息
                 throw new Error(data.message || '請確認輸入資訊是否正確');
             }
         } catch (err) {
@@ -134,10 +126,8 @@ const ContactModule = (() => {
                 text: err.message
             });
         } finally {
-            // 回復按鈕狀態並更新圖形驗證碼
             nodes.submitBtn.disabled = false;
             nodes.submitBtn.innerText = btnOriginalText;
-            getNewCaptcha(nodes.captchaImg);
         }
     };
 
@@ -146,26 +136,13 @@ const ContactModule = (() => {
      * 負責掛載所有監聽事件
      */
     const init = () => {
-        // 表單提交監聽
         if (nodes.form) {
             nodes.form.addEventListener('submit', onFormSubmit);
         }
-
-        // 圖形驗證碼手動刷新
-        if (nodes.refreshBtn) {
-            nodes.refreshBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                getNewCaptcha(nodes.captchaImg);
-            });
-        }
-
-        // 當頁面資源完整加載後，啟動並刷新 AOS 動畫
         window.addEventListener('load', refreshAOS);
     };
 
-    // 暴露 boot 接口供外部呼叫
     return { boot: init };
 })();
 
-// 當 DOM 樹準備完成後執行初始化
 document.addEventListener('DOMContentLoaded', ContactModule.boot);

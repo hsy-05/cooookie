@@ -25,7 +25,7 @@ class MailSettingsSeeder extends Seeder
             ['key' => 'mail_username', 'title' => '使用者帳號 (Username)', 'value' => '', 'desc' => 'SMTP 登入帳號'],
             ['key' => 'mail_password', 'title' => '使用者密碼 (Password)', 'value' => '', 'desc' => 'SMTP 登入密碼'],
             ['key' => 'mail_encryption', 'title' => '加密方式 (Encryption)', 'value' => 'tls', 'desc' => 'tls 或 ssl'],
-            ['key' => 'mail_from_address', 'title' => '寄件者信箱', 'value' => 'noreply@yourdomain.com', 'desc' => '客戶收信時看到的寄件者信箱'],
+            ['key' => 'mail_from_address', 'title' => '寄件者信箱', 'value' => 'noreply@mail.com', 'desc' => '客戶收信時看到的寄件者信箱'],
             ['key' => 'mail_from_name', 'title' => '寄件者名稱', 'value' => '官方網站客服中心', 'desc' => '客戶收信時看到的寄件人名稱'],
         ];
 

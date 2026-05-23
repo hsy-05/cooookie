@@ -42,7 +42,7 @@
         {{-- Footer Section --}}
     @section('footer')
         <div class="footer-content">
-            <p>© 2023 My Custom Footer. All rights reserved.</p>
+            <p>© {{ date('Y') }} My Custom Footer. All rights reserved.</p>
         </div>
     @endsection
 

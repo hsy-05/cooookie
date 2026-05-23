@@ -31,7 +31,7 @@ class ProductController extends Controller
             $q->where('lang_id', $langId);
         }])->where('is_visible', 1)->orderByDesc('display_order')->get();
 
-        // 建立查詢基底：最新消息本身要顯示 (is_visible = 1)
+        // 資料本身要顯示 (is_visible = 1)
         // 並增加關鍵邏輯：使用 whereHas 檢查「所屬分類」也必須是 is_visible = 1
         $query = Product::with(['descs', 'category.descs'])
             ->where('is_visible', 1)
@@ -53,12 +53,12 @@ class ProductController extends Controller
         }
 
         // 執行分頁查詢：先按排序欄位，再按時間排序
-        $items = $query->orderByDesc('display_order')
+        $products = $query->orderByDesc('display_order')
                           ->orderByDesc('created_at')
                           ->paginate(9);
 
         // 麵包屑設定
-        $crumbs = [['text' => '最新消息', 'href' => route('product.index')]];
+        $crumbs = [['text' => '產品介紹', 'href' => route('product.index')]];
         if ($currentCategory) {
             $catDesc = $currentCategory->descs->firstWhere('lang_id', $langId) ?? $currentCategory->descs->first();
             $crumbs[] = ['text' => $catDesc->name ?? '未分類', 'href' => null];
@@ -67,9 +67,9 @@ class ProductController extends Controller
         $this->setBreadcrumbs($crumbs);
 
         // 紀錄最後瀏覽的列表 URL，方便內頁點擊「回列表」時回到原本的分頁
-        session(['last_product_list_url' => request()->fullUrl()]);
+        $request->session()->put('last_product_list_url', $request->fullUrl());
 
-        return view('frontend.product.index', compact('items', 'catList', 'langId', 'categoryId'));
+        return view('frontend.product.index', compact('products', 'catList', 'langId', 'categoryId'));
     }
 
     /**
@@ -97,7 +97,7 @@ class ProductController extends Controller
         $catDesc = $product->category->descs->firstWhere('lang_id', $langId) ?? $product->category->descs->first();
 
         $this->setBreadcrumbs([
-            ['text' => '最新消息', 'href' => route('product.index')],
+            ['text' => '產品介紹', 'href' => route('product.index')],
             ['text' => $catDesc->name ?? '未分類', 'href' => route('product.index', ['category' => $product->cat_id])],
             ['text' => $desc->title, 'href' => null],
         ]);

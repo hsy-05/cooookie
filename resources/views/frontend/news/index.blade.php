@@ -7,6 +7,7 @@
 @section('content')
 
     {{-- 頁面橫幅標題區 --}}
+    {{-- 建議 Banner 圖片尺寸：1920px * 450px --}}
     <section class="page-banner news-page">
         <div class="banner-img-wrap">
             <img src="https://images.unsplash.com/photo-1622170456996-eb5bdf4eb5e8?q=80&w=1920" alt="News Banner"
@@ -26,73 +27,66 @@
             <div class="container">
 
                 {{-- 分類選單 --}}
-                {{-- 使用語意化 <nav> 標籤，並透過 data-attributes 處理動畫特效 --}}
                 <nav class="aside-nav slide js-fade-up" data-delay="0.2">
 
-                    {{-- 行動裝置（平板與手機）專用的下拉選單觸發按鈕，預設在電腦版會被 CSS 隱藏 --}}
+                    {{-- 行動裝置專用下拉選單觸發鈕 --}}
                     <div class="aside-nav__btn" id="js-aside-nav-btn">
-                        {{-- 這裡會透過 jQuery 自動檢查哪一個分類有 .active，並將其名稱動態塞入 --}}
                         <span class="word" id="js-aside-nav-current-text">選擇分類</span>
-                        {{-- 右側的加減號或箭頭圖示 --}}
                         <span class="icon"></span>
                     </div>
 
-                    {{-- 分類連結清單，電腦版與手機版共用此單一結構，不重複執行 foreach --}}
+                    {{-- 分類連結清單 --}}
                     <ul class="aside-nav__tab flex reset" id="js-aside-nav-list">
-                        {{-- 「全部消息」按鈕 --}}
                         <li class="{{ !$categoryId ? 'current' : '' }}">
                             <a href="{{ route('news.index') }}" title="全部消息">
                                 <span>全部消息</span>
                             </a>
                         </li>
 
-                        {{-- 迴圈跑出其餘資料庫分類 --}}
                         @foreach ($catList as $cat)
-                            @php
-                                // 預先取得語系名稱，若沒有則給予預設值，確保 Blade 乾淨
-                                $catName = $cat->descs->first()->name ?? '未命名';
-                                // 檢查當前頁面是否為該分類
-                                $isCurrent = $categoryId == $cat->cat_id ? 'current' : '';
-                            @endphp
-                            <li class="{{ $isCurrent }}">
-                                <a href="{{ route('news.category', $cat->cat_id) }}" title="{{ $catName }}">
-                                    <span>{{ $catName }}</span>
+                            <li class="{{ $categoryId == $cat->cat_id ? 'current' : '' }}">
+                                <a href="{{ route('news.category', $cat->cat_id) }}" title="{{ $cat->descs->first()->name ?? '未命名' }}">
+                                    <span>{{ $cat->descs->first()->name ?? '未命名' }}</span>
                                 </a>
                             </li>
                         @endforeach
                     </ul>
                 </nav>
 
-                {{-- 消息網格 --}}
+                {{-- 消息網格 - 已整合手繪線條與職人背景 --}}
                 <div class="news-grid">
-                    @forelse ($items as $item)
+                    @forelse ($newsList as $news)
                         <article class="news-card js-fade-up" data-delay="0.2">
-                            <a href="{{ route('news.show', ['news' => $item->news_id]) }}"
-                                title="{{ $item->currentDesc->title ?? '' }}">
-                                {{-- 圖片區 500*360 --}}
+                            <a href="{{ route('news.show', ['news' => $news->news_id]) }}"
+                                title="{{ $news->currentDesc->title ?? '' }}">
+
+                                {{-- 圖片與手繪遮罩複合區（建議上傳圖片尺寸：500px * 360px） --}}
                                 <div class="n-img-box">
-                                    <img src="{{ $item->image_url ? asset('storage/' . $item->image_url) : asset('images/default-news.jpg') }}"
-                                        alt="{{ $item->currentDesc->title ?? '' }}" class="n-img" loading="lazy">
+                                    <img src="{{ $news->image_url ? asset('storage/' . $news->image_url) : asset('images/default/defult-500X360.png') }}"
+                                        alt="{{ $news->currentDesc->title ?? '' }}" class="n-img" loading="lazy">
+
+                                    {{-- 自產品模組移植而來之精緻感手繪遮罩層 --}}
+                                    <div class="p-product-item__overlay">
+                                        <span class="view-text">VIEW MORE</span>
+                                    </div>
                                 </div>
 
-                                {{-- 資訊區 --}}
+                                {{-- 資訊文字區 --}}
                                 <div class="n-info">
                                     <div class="n-meta">
-                                        @if ($item->category)
-                                            <span class="n-cat-label">{{ $item->category->currentDesc->name }}</span>
+                                        @if ($news->category)
+                                            <span class="n-cat-label">{{ $news->category->currentDesc->name }}</span>
                                         @endif
-                                        <time class="n-date" datetime="{{ $item->created_at->format('Y-m-d') }}">
-                                            {{ $item->created_at->format('Y.m.d') }}
+                                        <time class="n-date" datetime="{{ $news->created_at->format('Y-m-d') }}">
+                                            {{ $news->created_at->format('Y.m.d') }}
                                         </time>
                                     </div>
-                                    <h2 class="n-title">{{ $item->currentDesc->title ?? 'Untitled' }}</h2>
-                                    <p class="n-desc">{{ Str::limit(strip_tags($item->currentDesc->content ?? ''), 80) }}
-                                    </p>
+                                    <h2 class="n-title">{{ $news->currentDesc->title ?? 'Untitled' }}</h2>
+                                    <p class="n-desc">{{ Str::limit(strip_tags($news->currentDesc->content ?? ''), 80) }}</p>
                                 </div>
                             </a>
                         </article>
                     @empty
-                        {{-- 替代 inline style，使用 CSS 控制無資料狀態 --}}
                         <div class="no-data-wrapper">
                             <p>目前尚無相關消息</p>
                         </div>
@@ -100,19 +94,19 @@
                 </div>
 
                 {{-- 分頁器 --}}
-                @if ($items->hasPages())
+                @if ($newsList->hasPages())
                     <nav class="pagination-wrap js-fade-up">
-                        @if (!$items->onFirstPage())
-                            <a href="{{ $items->previousPageUrl() }}" class="page-btn" rel="prev">&larr;</a>
+                        @if (!$newsList->onFirstPage())
+                            <a href="{{ $newsList->previousPageUrl() }}" class="page-btn" rel="prev">&larr;</a>
                         @endif
 
-                        @foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) as $page => $url)
+                        @foreach ($newsList->getUrlRange(max(1, $newsList->currentPage() - 2), min($newsList->lastPage(), $newsList->currentPage() + 2)) as $page => $url)
                             <a href="{{ $url }}"
-                                class="page-btn {{ $page == $items->currentPage() ? 'active' : '' }}">{{ $page }}</a>
+                                class="page-btn {{ $page == $newsList->currentPage() ? 'active' : '' }}">{{ $page }}</a>
                         @endforeach
 
-                        @if ($items->hasMorePages())
-                            <a href="{{ $items->nextPageUrl() }}" class="page-btn" rel="next">&rarr;</a>
+                        @if ($newsList->hasMorePages())
+                            <a href="{{ $newsList->nextPageUrl() }}" class="page-btn" rel="next">&rarr;</a>
                         @endif
                     </nav>
                 @endif
@@ -121,3 +115,7 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/frontend/news.js') }}"></script>
+@endpush

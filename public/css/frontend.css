@@ -165,7 +165,7 @@ p {
 }
 
 ul, ol, dl { margin: 0; padding: 0; list-style: none; }
-img { display: block; max-width: 100%; height: auto; object-fit: cover; }
+/* img { display: block; max-width: 100%; height: auto; object-fit: cover; } */
 a { transition: var(--transition-time); text-decoration: none; color: inherit; }
 a:hover { text-decoration: none; color: var(--c-primary); }
 
@@ -1097,36 +1097,33 @@ b, strong { font-weight: 700; }
     html { font-size: 15px; } /* 稍微縮小基底字體 */
 }
 
-
 /* ==========================================================================
-   全站共用橫幅基礎 (Common Base Banner)
-   用途：定義最基本的容器高度、文字置中與底圖填滿邏輯
+   網頁橫幅區塊 (Banner) - 供最新消息頁與產品網頁共用
    ========================================================================== */
 
-/* 基礎容器：負責高度與置中 */
+/* 橫幅主容器：控制整體高度與內部元素置中 */
 .page-banner {
     position: relative;
-    width: 100%;
-    height: 45vh;
-    min-height: 400px;
+    height: 40vh;
+    min-height: 300px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    background-color: #1a1a1a;
+    background-color: #f5f5f5; /* 預設背景色，防止圖片載入失敗時一片空白 */
 }
 
-/* 圖片包裝層：確保圖片能撐滿並定位 */
+/* 圖片外層包裝：滿版絕對定位，當作背景底圖 */
 .banner-img-wrap {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: 1;
 }
 
-/* 共用遮罩：確保白色文字在任何圖片上都清晰 */
+/* 橫幅黑底遮罩：利用偽元素加上一層半透明黑，確保白色文字絕對看得見 */
 .banner-img-wrap::after {
     content: "";
     position: absolute;
@@ -1134,91 +1131,105 @@ b, strong { font-weight: 700; }
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
-    z-index: 1;
+    background: rgba(0, 0, 0, 0.4); /* 透明度 0.4 的黑色遮罩 */
+    z-index: 2;
 }
 
-/* 橫幅圖片本體 */
+/* 橫幅背景圖片本體 */
 .banner-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
+    object-fit: cover; /* 確保圖片不變形並填滿容器 */
+    object-position: center; /* 圖片置中對齊 */
 }
 
-/* 文字區塊容器 */
+/* 橫幅文字內容容器 */
 .c-banner-block {
     position: relative;
-    z-index: 2;
+    z-index: 3; /* 層級必須大於遮罩的 2，文字才不會被壓在黑色遮罩下面 */
     text-align: center;
     color: #ffffff;
-    padding: 0 20px; /* 這裡原本用 var(--gutter)，新手建議先改回具體數值避免報錯 */
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* 文字陰影，提升閱讀清晰度 */
+    padding: 0 20px;
 }
 
-/* 副標題 (英文名稱) */
+/* 橫幅副標題 (英文標題) */
 .c-banner-subtitle {
     display: block;
     font-size: 1rem;
     font-weight: 500;
-    letter-spacing: 0.4em;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 8px;
 }
 
-/* 主標題 (中文名稱) */
+/* 橫幅主標題 (中文大標) */
 .c-banner-title {
-    font-size: var(--fs-h1);
     color: #ffffff;
+    font-size: clamp(32px, 5vw, 48px); /* 智慧型字型大小：在 32px 到 48px 之間隨螢幕寬度自動縮放 */
+    font-weight: 600;
+    letter-spacing: 2px;
     margin: 0;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* -----------------------------------------
-   全斷點響應式調整 (Responsive Design)
+    響應式調整：Site Header (精準分層)
    ----------------------------------------- */
-
-/* 4K (2560px) */
+/* 尺寸 1：4K 超大型螢幕 (2560px) */
 @media (min-width: 2560px) {
-    .page-banner { height: 35vh; min-height: 600px; }
-    .c-banner-title { font-size: 4.5rem; }
+    .page-banner { height: 35vh; min-height: 500px; }
+    .p-product-shell { max-width: 2200px; }
+    .p-product-grid { grid-template-columns: repeat(4, 1fr); gap: 60px 40px; }
+    .p-product-item__title { font-size: 1.4rem; }
+    .p-product-item__price { font-size: 1.25rem; }
 }
 
-/* 大型筆記型電腦 (1440px) */
+/* 尺寸 2：大型筆記型電腦 (1440px) */
 @media (max-width: 1440px) {
-    .page-banner { height: 40vh; min-height: 450px; }
+    .page-banner { height: 40vh; min-height: 400px; }
+    .p-product-shell { max-width: 1200px; }
+    .p-product-grid { gap: 40px 24px; }
 }
 
-/* 筆記型電腦 (1024px) */
+/* 尺寸 3：筆記型電腦 (1024px) */
 @media (max-width: 1024px) {
-    .page-banner { height: 35vh; min-height: 380px; }
-    .c-banner-title { font-size: 2.8rem; }
+    .page-banner { height: 35vh; min-height: 350px; }
+    .p-product-grid { grid-template-columns: repeat(3, 1fr); gap: 35px 20px; }
+    .p-product-item__title { font-size: 1.05rem; }
 }
 
-/* 平板電腦 (768px) */
+/* 尺寸 4：平板電腦 (768px) */
 @media (max-width: 768px) {
-    .page-banner { height: 30vh; min-height: 320px; }
-    .c-banner-title { font-size: 2.2rem; }
+    .page-banner { height: 30vh; min-height: 300px; }
+    .p-product-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 15px; margin-bottom: 60px; }
+    .p-product-item__img-box { margin-bottom: 12px; }
+    .p-product-item__title { font-size: 1rem; }
+    .p-product-item__overlay { display: none !important; }
 }
 
-/* 大型手機 (425px) */
+/* 尺寸 5：大型手機 (425px) */
 @media (max-width: 425px) {
-    .page-banner { height: 280px; }
-    .c-banner-title { font-size: 1.8rem; }
+    .page-banner { height: 260px; }
+    .p-product-grid { grid-template-columns: repeat(2, 1fr); gap: 25px 12px; }
+    .p-product-item__badge { top: 8px; left: 8px; padding: 2px 8px; font-size: 0.65rem; }
+    .p-product-item__title { font-size: 0.95rem; margin-bottom: 6px; }
+    .p-product-item__price { font-size: 0.95rem; }
 }
 
-/* 中型手機 (375px) */
+/* 尺寸 6：中型手機 (375px) */
 @media (max-width: 375px) {
-    .page-banner { height: 240px; }
-    .c-banner-title { font-size: 1.6rem; }
+    .page-banner { height: 220px; }
+    .p-product-grid { grid-template-columns: 1fr; gap: 30px 0; }
+    .p-product-item__img-box { aspect-ratio: 1 / 1; }
+    .p-product-item__title { font-size: 1.05rem; }
 }
 
-/* 小型手機 (320px) */
+/* 尺寸 7：小型手機 (320px) */
 @media (max-width: 320px) {
-    .c-banner-title { font-size: 1.4rem; }
-    .c-banner-subtitle { font-size: 0.75rem; letter-spacing: 0.2em; }
+    .page-banner { height: 180px; }
+    .c-banner-title { font-size: 24px; }
+    .p-product-item__title { font-size: 1rem; }
 }
 
 /**

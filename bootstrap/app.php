@@ -3,8 +3,9 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request; // 引入 Request
-use Symfony\Component\HttpKernel\Exception\HttpException; // 引入 HttpException
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException; // 引入基礎 HttpException 即可
+use App\Http\Controllers\Admin\BaseAdminController;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -34,12 +35,28 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // 渲染異常時的邏輯
+
+        // 統一攔截所有 HTTP 相關異常 (包含 404, 419, 403 等)
         $exceptions->render(function (HttpException $e, Request $request) {
-            // 如果狀態碼是 419 (CSRF 過期)
+
+            // 情況 1：狀態碼是 419 (CSRF 過期)
             if ($e->getStatusCode() === 419) {
-                // 專業做法：導回登入頁，並帶上一個閃存訊息 (Flash Message)
                 return redirect()->route('login')->with('warning', '頁面已過期，請重新登入。');
             }
+
+            // 情況 2：狀態碼是 404 (找不到網頁) 且屬於後台網址
+            if ($e->getStatusCode() === 404 && ($request->is('admin') || $request->is('admin/*'))) {
+
+                // 1. 呼叫你的提示視窗 function (寫入 Session Flash)
+                BaseAdminController::showMsg(
+                    1, // 錯誤類型: 1=錯誤
+                    '很抱歉，找不到您請求的後台網頁或該頁面已不存在。'
+                );
+
+                // 2. 轉向到後台儀表板首頁 (名稱為 admin.dashboard)
+                // 這樣轉過去後，後台首頁就會抓到 session 快閃訊息並跳出提示窗
+                return redirect()->route('admin.dashboard');
+            }
         });
+
     })->create();

@@ -18,6 +18,8 @@
     <meta property="og:url" content="{{ request()->fullUrl() }}">
     <meta property="og:image" content="{{ asset('images/og-default.jpg') }}">
 
+    @yield('meta')
+
     <link rel="icon" href="{{ asset('favicons/favicon.ico') }}">
    {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">

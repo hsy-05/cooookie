@@ -31,7 +31,7 @@ class NewsController extends Controller
             $q->where('lang_id', $langId);
         }])->where('is_visible', 1)->orderByDesc('display_order')->get();
 
-        // 建立查詢基底：最新消息本身要顯示 (is_visible = 1)
+        // 資料本身要顯示 (is_visible = 1)
         // 並增加關鍵邏輯：使用 whereHas 檢查「所屬分類」也必須是 is_visible = 1
         $query = News::with(['descs', 'category.descs'])
             ->where('is_visible', 1)
@@ -53,7 +53,7 @@ class NewsController extends Controller
         }
 
         // 執行分頁查詢：先按排序欄位，再按時間排序
-        $items = $query->orderByDesc('display_order')
+        $newsList = $query->orderByDesc('display_order')
                           ->orderByDesc('created_at')
                           ->paginate(9);
 
@@ -67,22 +67,21 @@ class NewsController extends Controller
         $this->setBreadcrumbs($crumbs);
 
         // 紀錄最後瀏覽的列表 URL，方便內頁點擊「回列表」時回到原本的分頁
-        session(['last_news_list_url' => request()->fullUrl()]);
+        $request->session()->put('last_news_list_url', $request->fullUrl());
 
-        return view('frontend.news.index', compact('items', 'catList', 'langId', 'categoryId'));
+        return view('frontend.news.index', compact('newsList', 'catList', 'langId', 'categoryId'));
     }
 
     /**
      * 消息內頁顯示
      *
      * @param News $news 透過自動綁定取得的消息模型
-     * @param Request $request
+     * @param Request $request 包含請求資訊的物件
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function show(News $news, Request $request)
     {
         // 安全防呆：檢查「消息本身」或「所屬分類」是否被隱藏
-        // 如果其中一個隱藏，即便有直接連結也不給看
         if (!$news->is_visible || !$news->category || !$news->category->is_visible) {
             return redirect()->route('news.index');
         }
@@ -96,9 +95,11 @@ class NewsController extends Controller
 
         $catDesc = $news->category->descs->firstWhere('lang_id', $langId) ?? $news->category->descs->first();
 
+        // 【修正核心】：將原先的 news.index 改為呼叫 news.category，並精確帶入分類 ID
+        // 這樣 Laravel 才會根據路由設定，將網址漂亮地組合為 /news/category/3
         $this->setBreadcrumbs([
             ['text' => '最新消息', 'href' => route('news.index')],
-            ['text' => $catDesc->name ?? '未分類', 'href' => route('news.index', ['category' => $news->cat_id])],
+            ['text' => $catDesc->name ?? '未分類', 'href' => route('news.category', ['category' => $news->cat_id])],
             ['text' => $desc->title, 'href' => null],
         ]);
 

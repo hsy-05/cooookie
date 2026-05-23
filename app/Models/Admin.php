@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\Loggable; // 引入 Trait
+use App\Helpers\{PermissionHelper};
 
 class Admin extends Authenticatable
 {
@@ -118,9 +119,22 @@ class Admin extends Authenticatable
     /**
      * 統一權限判斷方法
      * Controller / Blade 一律呼叫這個
+     * @param string $permission 傳入的簡短權限字串，如 'contact.create'
+     * @return bool 是否允許操作
      */
     public function canDo(string $permission): bool
     {
+        // 【防呆機制】檢查這張權限通行證，有沒有登記在全站權限地圖字典檔中
+        if (str_contains($permission, '.')) {
+            // 呼叫 Helper 取回全站合法的點記法權限清單 (此方法自帶 Static Cache，極度輕量不佔效能)
+            $validList = PermissionHelper::getValidPermissions();
+
+            // 如果系統根本沒定義這個操作（例如 contact 下面沒有 create），直接在第 0 關攔截回傳 false
+            if (!in_array($permission, $validList)) {
+                return false;
+            }
+        }
+
         // 1. Developer：全部可做
         if ($this->isDeveloper()) {
             return true;
@@ -149,11 +163,9 @@ class Admin extends Authenticatable
         return in_array($permission, $this->permissions ?? []);
     }
 
-
     /* =========================
      | AdminLTE 與介面設定
      ========================= */
-
     /**
      * 取得個人化設定 (Helper)
      * @param string $key 設定鍵名

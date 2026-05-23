@@ -70,6 +70,9 @@ Route::group(['prefix' => 'product', 'as' => 'product.'], function () {
 // 關於我們
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 
+// 專門用來預覽聯絡信件樣式的測試路由
+Route::get('/preview-contact-mail', [FrontendContactController::class, 'previewMail'])->name('preview.contact.mail');
+
 // 聯絡我們：對應前台表單提交與 reCAPTCHA 驗證
 Route::group(['prefix' => 'contact', 'as' => 'contact.'], function () {
     Route::get('/', [FrontendContactController::class, 'index'])->name('index');

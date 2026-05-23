@@ -1,40 +1,37 @@
 @extends('frontend.layouts.app')
 
 @push('styles')
-    {{-- AOS 動畫庫 CSS --}}
+    {{-- AOS 元素滾動動畫庫 CSS --}}
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    {{-- 聯絡我們專用 CSS --}}
+    {{-- 聯絡我們頁面專屬版面樣式 --}}
     <link rel="stylesheet" href="{{ asset('css/contact.css') }}">
 @endpush
 
-{{-- 在 head 區域加入 meta 供 JS 讀取 reCAPTCHA 金鑰 --}}
-@section('meta')
-    <meta name="recaptcha-key" content="{{ env('RECAPTCHA_SITE_KEY') }}">
-@endsection
-
 @section('content')
     <main id="contact-page">
-        {{-- 頁面固定背景與遮罩層 --}}
+        {{-- 頁面固定背景深色遮罩層 --}}
         <div class="page-fixed-bg">
             <div class="overlay-dark"></div>
         </div>
 
-        {{-- 主標題 --}}
+        {{-- 頁面主標題區塊 --}}
         <div class="c-banner-block" data-aos="fade-down">
             <h2 class="c-banner-title">聯絡我們</h2>
             <span class="c-banner-subtitle js-fade-up">Contact Us</span>
         </div>
 
-        {{-- 表單內容區域 --}}
+        {{-- 表單輸入主要區域 --}}
         <section class="form-area" data-aos="fade-up">
             <header class="section-header text-center">
-                {{-- <span class="section-tag">REACH OUT TO US</span> --}}
                 <h3 class="section-title-text">感謝您對我們的支持，若有任何問題，歡迎與我們聯繫<br/>我們將盡快與您回覆，謝謝!</h3>
             </header>
 
-            <form class="c-form" id="form_contact" autocomplete="off">
+            {{-- 防呆與彈性優化：將後端路由與金鑰透過 data 屬性傳遞給 JavaScript 讀取，避免前端硬編碼網址 --}}
+            <form class="c-form" id="form_contact" autocomplete="off"
+                  data-action="{{ route('contact.store') }}"
+                  data-site-key="{{ config('services.recaptcha.site_key') }}">
                 @csrf
-                {{-- reCAPTCHA 隱藏 Token 欄位 --}}
+                {{-- 存放 Google reCAPTCHA 驗證成功後生成的動態安全憑證 Token --}}
                 <input type="hidden" name="recaptcha_token" id="recaptcha_token">
 
                 <div class="group-wrap">
@@ -46,7 +43,7 @@
                         </div>
                     </div>
 
-                    {{-- 姓名與性別 --}}
+                    {{-- 姓名與性別勾選 --}}
                     <div class="group-half" data-aos="fade-up" data-aos-delay="200">
                         <label class="group-title">姓名 <span class="important">*</span></label>
                         <div class="group-main-flex">
@@ -97,17 +94,15 @@
                             <textarea name="content" class="group-textarea" placeholder="請詳細描述您的諮詢事項..." required></textarea>
                         </div>
                     </div>
-
                 </div>
 
-                {{-- 控制按鈕 --}}
+                {{-- 表單動作控制按鈕 --}}
                 <div class="btn-box" data-aos="fade-up" data-aos-delay="350">
                     <button type="reset" class="button-style yellow2">重填資料</button>
                     <button type="submit" class="button-style black" id="btn-submit">確認送出</button>
                 </div>
 
-
-                {{-- Google 規定：隱藏 Badge 時必須顯示的替代文案 --}}
+                {{-- 隱藏 reCAPTCHA 標籤時，根據 Google 規範必須揭露的隱私權條款文案 --}}
                 <div class="recaptcha-policy-text" data-aos="fade-up" data-aos-delay="400">
                     This site is protected by reCAPTCHA and the Google
                     <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
@@ -119,13 +114,13 @@
 @endsection
 
 @push('scripts')
-    {{-- 第三方資源：AOS 動畫、SweetAlert2 對話框 --}}
+    {{-- 第三方資源：動態效果與彈出式對話視窗套件 --}}
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    {{-- Google reCAPTCHA v3 SDK (動態由環境變數決定 Key) --}}
-    <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
+    {{-- 安全寫法：動態由配置設定檔讀取驗證金鑰，加載 Google reCAPTCHA V3 服務腳本 --}}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
 
-    {{-- 專案自定義業務邏輯 --}}
+    {{-- 聯絡我們頁面專屬前端邏輯控制腳本 --}}
     <script src="{{ asset('js/frontend/contact.js') }}"></script>
 @endpush

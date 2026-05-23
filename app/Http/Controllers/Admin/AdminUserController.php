@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Models\{Admin, AdminRole};
 use Illuminate\Support\Facades\{DB, Hash, Auth, Log};
-use App\Helpers\{ContentHelper, ImageHelper};
+use App\Helpers\{ContentHelper, ImageHelper, PermissionHelper};
 
 class AdminUserController extends BaseAdminController
 {
@@ -345,7 +345,7 @@ class AdminUserController extends BaseAdminController
             'parents'         => $parents,
             'isEdit'          => $isEdit,
             'pageTitle'       => $isSelf ? '個人資料設定' : ($isEdit ? '編輯管理員' : '新增管理員'),
-            'permissions'     => $this->preparePermissions($admin),
+            'permissions'     => PermissionHelper::preparePermissionsForForm($admin),
             'adminPrefs'       => $adminPrefs,
             'showPermissions' => !$isSelf,
             'showPersonal'    => $isSelf,

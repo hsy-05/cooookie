@@ -253,34 +253,41 @@ class BaseAdminController extends Controller
         return $backUrl;
     }
 
-
-    /**
+/**
      * 顯示提示訊息
-     ** @param int    $msgType      消息類型: 0=消息, 1=錯誤, 2=詢問
-     * @param string $msgContent   訊息內容
-     * @param array  $links        連結選項 [['text' => '...', 'href' => '...']]
-     * @param bool   $autoRedirect 是否自動跳轉
+     *
+     * @param int $msgType 消息類型：0=一般消息, 1=錯誤通知, 2=詢問確認
+     * @param string $msgContent 畫面上要顯示的標題或主要訊息內容
+     * @param array $links 按鈕連結清單，格式為 [['text' => '按鈕文字', 'href' => '網址或特定標記']]
+     * @param bool $autoRedirect 是否開啟秒數倒數並自動跳轉
      */
     public static function showMsg(int $msgType = 0, string $msgContent = '', array $links = [], bool $autoRedirect = true)
     {
-        // 如果沒有提供任何連結，預設給予「返回上一頁」
+        // 當使用者直接輸入錯誤網址，導致沒有上一頁歷史紀錄時的預設防卡死首頁
+        $fallbackUrl = route('admin.dashboard');
+
+        // 偵測是否未設定任何按鈕，若沒有則啟動智慧型防呆按鈕機制
         if (empty($links)) {
+
+            // 預設建立一個帶有特殊標記 '#goback' 的按鈕，交由前端 Blade 判斷並執行智慧退回
             $links[] = [
-                'text' => '返回上一頁',
-                'href' => 'javascript:history.go(-1);'
+                'text' => '確認並返回',
+                'href' => '#goback'
             ];
+
         } else {
-            // 依照鍵名進行排序 (數值越負，代表排序順序越後面)
+
+            // 重新整理外部傳入的按鈕陣列索引，確保前端元件讀取時排序正確
             $links = array_values($links);
         }
 
-        // 對應你的 admin.page-message 元件所需的格式
+        // 將所有設定值打包寫入快閃 Session，並補上安全備用網址，供頁面訊息元件偵測並渲染
         session()->flash('form_success', [
             'msg_type'     => $msgType,
             'title'        => $msgContent,
             'links'        => $links,
             'autoRedirect' => $autoRedirect,
+            'fallback_url' => $fallbackUrl, // 傳遞給前端的備用安全網址
         ]);
     }
-
 }

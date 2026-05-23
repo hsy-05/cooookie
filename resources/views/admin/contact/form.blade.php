@@ -128,16 +128,18 @@
                                         placeholder="請輸入欲回覆給客戶的詳細內容..."></textarea>
                                 </div>
 
-                                <div class="form-group mb-0">
-                                    {{-- 使用 Switch 樣式開關取代傳統 Checkbox，提升介面現代感 --}}
-                                    <div
-                                        class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
-                                        <input type="checkbox" class="custom-control-input" id="send_mail" name="send_mail"
-                                            value="1" checked>
-                                        <label class="custom-control-label font-weight-normal" for="send_mail">
-                                            同步發送 Email 通知客戶 <span class="text-xs text-muted">(系統將自動寄送副本至客戶信箱)</span>
-                                        </label>
-                                    </div>
+<div class="form-group mb-0">
+    {{-- 使用 Switch 樣式開關取代傳統 Checkbox，提升介面現代感 --}}
+    <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
+        {{-- 防呆優化：當 Checkbox 未勾選時，表單會自動送出此處定義的 "0"，確保後端不漏收欄位 --}}
+        <input type="hidden" name="send_mail" value="0">
+
+        <input type="checkbox" class="custom-control-input" id="send_mail" name="send_mail"
+            value="1" checked>
+        <label class="custom-control-label font-weight-normal" for="send_mail">
+            同步發送 Email 通知客戶 <span class="text-xs text-muted">(系統將自動寄送副本至客戶信箱)</span>
+        </label>
+    </div>
                                 </div>
                             </div>
 

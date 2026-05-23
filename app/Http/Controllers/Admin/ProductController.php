@@ -33,8 +33,8 @@ class ProductController extends BaseAdminController
         'files' => [
             'image_url' => [
                 'path'   => 'product',            // 圖片存放的資料夾名稱
-                'width'  => 600,               // 縮圖後的寬度
-                'height' => 400,               // 縮圖後的高度
+                'width'  => 500,               // 縮圖後的寬度
+                'height' => 500,               // 縮圖後的高度
                 'mode'   => 'center_crop',     // 裁切模式：從中心裁切
                 'useOriginalName' => false,    // 檔案名稱：自動生成隨機字串，避免中文檔名亂碼
             ],

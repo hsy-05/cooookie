@@ -1,251 +1,376 @@
-/* =========================================
-   News Module - Professional Editorial Edition
-   ========================================= */
+/**
+|--------------------------------------------------------------------------
+| News Module Stylesheet - Hand-drawn Craftsmanship Style
+|--------------------------------------------------------------------------
+| 核心設計原則：
+| 1. news-grid 繼承職人手繪鉛筆 SVG 邊框線，底色採用一致的烘焙手作白。
+| 2. 承接原產品卡片的 __overlay 手繪遮罩，提供 VIEW MORE 精緻懸停動態。
+| 3. 全裝置 7 大響應式斷點精準設定，符合 4K 至 320px 邊界安全。
+*/
 
-/* 基礎設定與變數 */
+/* --- 最新消息模組變數管理區 --- */
 :root {
-    --news-primary: var(--c-primary);
-    --news-text-dark: #222222;
-    --news-text-gray: #666666;
-    --news-bg-light: #f9f9f9;
-    --news-transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    --news-border-color: #eeeeee;
+    --news-craft-bg: #fdfbf7; /* 精緻的職人微暖手作白 */
+    --news-text-main: var(--c-secondary, #2c2420); /* 核心深咖啡色 */
+    --news-text-muted: #8a7a71; /* 帶有灰色調的暖文字色 */
+    --news-accent: var(--c-primary, #8c6a4b); /* 品牌識別餅乾金棕 */
+    --news-smooth-curve: cubic-bezier(0.34, 1.56, 0.64, 1); /* 具彈性的手感動畫曲線 */
 }
 
 /* ==========================================================================
-   最新消息分頁微調 (News Page Styles)
-   用途：繼承 frontend.css 後，針對 news 頁面進行視覺優化
+   1. Banner 橫幅與全域容器樣式（烘焙紙質感基底延伸）
    ========================================================================== */
-
-/* 覆蓋圖片透明度，讓層次感更好 */
-.page-banner .banner-img {
-    opacity: 0.7;
-    /* 這裡原本有 height: 120% 是為了視差效果，建議保留 */
-    height: 120%;
-    top: 50%;
-    left: 50%;
-    position: absolute;
-    transform: translate(-50%, -50%);
-}
-
-/* 針對最新消息的 Banner 增加特定遮罩漸層 */
-.page-banner::after {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
-}
-
-/* --- 3. News Grid (列表頁設計) --- */
-.news-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 60px 40px;
-    margin-bottom: 100px;
-}
-
-/* 無資料時的包裝區塊 */
-.no-data-wrapper {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 100px 0;
-    color: #999;
-}
-
-.news-card {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    outline: none;
+.page-banner {
+    position: relative;
     overflow: hidden;
 }
 
-/* 圖片容器：固定 500*360 比例 */
+.page-banner .banner-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    opacity: 0.7;
+    transform: translate(-50%, -50%);
+}
+
+.page-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(44, 36, 32, 0.1) 0%, rgba(44, 36, 32, 0.4) 100%);
+    pointer-events: none;
+}
+
+.article-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+/* ==========================================================================
+   2. 列表頁網格結構（同步繼承產品手繪線框與質感底面）
+   ========================================================================== */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 標準一排三格 */
+    gap: 70px 40px;
+    padding: 40px;
+    background-color: var(--news-craft-bg);
+    position: relative;
+    z-index: 1;
+    border: 3px solid transparent;
+    /* 精準對齊產品網格，套用不規則雙線鉛筆手繪 SVG 框線 */
+    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M2,3 C30,2 70,4 98,2 C97,35 99,65 98,97 C65,98 35,96 2,98 C3,65 1,35 2,3 Z' fill='none' stroke='rgba(44, 36, 32, 0.4)' stroke-width='1.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 12 repeat;
+    box-shadow: 0 15px 35px rgba(44, 36, 32, 0.04);
+    margin-bottom: 120px;
+}
+
+.no-data-wrapper {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 0;
+    color: var(--news-text-muted);
+}
+
+/* ==========================================================================
+   3. 最新消息卡片與全新移植之手繪遮罩層
+   ========================================================================== */
+.news-card {
+    display: block;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.4s var(--news-smooth-curve);
+}
+
+/* 消息圖片容器 - 完美維持 500x360 比例不變形 */
 .n-img-box {
     position: relative;
     overflow: hidden;
     aspect-ratio: 500 / 360;
-    margin-bottom: 25px;
-    background-color: #f0f0f0;
+    margin-bottom: 24px;
+    background-color: var(--c-light);
 }
 
+/* 消息圖片本體 - 遵照指示：Hover時維持原尺寸大小，不執行放大動作 */
 .n-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s ease;
+    display: block;
+    transition: transform 0.6s var(--news-smooth-curve);
 }
 
-/* 列表資訊區 */
+/* 外部手繪邊緣線 - 蓋在圖片最表層 */
+.n-img-box::after {
+    content: '';
+    position: absolute;
+    /* 🛠 調整為 0 或 1px，避免被父層的 overflow: hidden 砍掉 */
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+    border: 12px solid transparent;
+
+    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M4,4 C30,2 65,5 96,3 C95,35 97,65 96,96 C65,95 35,97 4,95 C3,65 5,35 4,4 Z' fill='none' stroke='rgba(44, 36, 32, 0.85)' stroke-width='2' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M2,6 C35,3 60,4 97,2 C94,38 98,62 95,97 C62,94 38,98 3,94 C5,60 2,38 2,6 Z' fill='none' stroke='rgba(44, 36, 32, 0.4)' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 16 stretch;
+
+    transition: transform 0.4s var(--news-smooth-curve);
+}
+
+/* 自產品頁移植而來的精緻手繪遮罩層 */
+.p-product-item__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(44, 36, 32, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(1px);
+    z-index: 4;
+}
+
+/* 遮罩內的 VIEW MORE 職人質感標籤 */
+.view-text {
+    background: var(--c-secondary);
+    color: var(--news-craft-bg);
+    padding: 12px 28px;
+    font-size: var(--fs-small);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: scale(0.9) translateY(10px);
+    transition: all 0.4s var(--news-smooth-curve);
+}
+
+/* ==========================================================================
+   4. 卡片文字內容精緻排版
+   ========================================================================== */
 .n-info {
     padding: 0 5px;
 }
 
-/* 分類與日期 */
 .n-meta {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 18px;
-    font-size: 0.8rem;
+    margin-bottom: 12px;
+    font-size: var(--fs-small);
 }
 
-/* 分類標籤：更具設計感的膠囊造型 */
+/* 最新消息分類標籤 */
 .n-cat-label {
     display: inline-block;
-    color: var(--news-primary);
-    border: 1px solid var(--news-primary);
+    color: var(--news-accent);
+    border: 1px solid var(--news-accent);
     padding: 2px 12px;
-    border-radius: 20px;
-    font-weight: 500;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
     letter-spacing: 0.05em;
-    transition: var(--news-transition);
 }
 
 .n-date {
-    color: #999;
+    color: var(--news-text-muted);
     font-family: 'Inter', sans-serif;
     letter-spacing: 0.05em;
 }
 
-/* 標題與描述 */
+/* 卡片主標題 */
 .n-title {
-    font-size: 1.3rem;
+    font-size: var(--fs-h4);
     line-height: 1.5;
-    font-weight: 500;
-    color: var(--news-text-dark);
-    margin-bottom: 15px;
-    transition: var(--news-transition); /* 為了 Hover 產生的位移效果 */
+    font-weight: 600;
+    color: var(--news-text-main);
+    margin: 0 0 10px 0;
+    transition: color 0.3s ease;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
+/* 內文摘要簡介 */
 .n-desc {
-    font-size: 0.95rem;
-    color: var(--news-text-gray);
-    line-height: 1.8;
+    font-size: var(--fs-body);
+    color: var(--news-text-muted);
+    line-height: 1.7;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin: 0;
 }
 
-/* 列表 Hover 變化 (參考 eatdrink.fun) */
-.news-card:hover .n-img {
-    transform: scale(1.08);
+/* --------------------------------------------------------------------------
+   最新消息卡片滑過互動特效 (Hover Effects)
+   -------------------------------------------------------------------------- */
+.news-card:hover {
+    transform: translateY(-4px);
+}
+
+/* 懸停時，手繪線框產生精細的錯位立體手感 */
+.news-card:hover .n-img-box::after {
+    transform: scale(1.01) rotate(0.2deg);
+}
+
+/* 觸發產品移植過來的遮罩浮現 */
+.news-card:hover .p-product-item__overlay {
+    opacity: 1;
+}
+
+.news-card:hover .view-text {
+    transform: scale(1) translateY(0);
 }
 
 .news-card:hover .n-title {
-    color: var(--news-primary);
-    transform: translateX(10px); /* 標題向右微移 */
+    color: var(--news-accent);
 }
 
-.news-card:hover .n-cat-label {
-    background-color: var(--news-primary);
-    color: #fff;
-}
-
-/* --- 4. Pagination --- */
+/* ==========================================================================
+   5. 分頁器圓鈕設計 (Pagination)
+   ========================================================================== */
 .pagination-wrap {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin: 80px 0;
+    margin: 60px 0 100px;
 }
+
 .page-btn {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 1px solid var(--news-primary);
+    border: 1px solid var(--news-accent);
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: 0.3s;
-    color: var(--news-primary);
-    background: #fff;
-    text-decoration: none;
-}
-.page-btn:hover, .page-btn.active {
-    background: var(--news-primary);
-    color: #fff;
+    transition: all 0.3s ease;
+    color: var(--news-accent);
+    background: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
 }
 
-/* --- 5. Article Detail (內頁) --- */
+.page-btn:hover,
+.page-btn.active {
+    background: var(--news-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(140, 106, 75, 0.15);
+}
+
+/* ==========================================================================
+   6. 消息詳細內容頁專屬樣式（優化職人調性）
+   ========================================================================== */
 .article-section {
-    padding: 100px 0 150px;
-    background: #fff;
+    padding: 80px 0 0;
+    margin: 0 30px 40px;
+    background: var(--news-craft-bg);
+    border: 3px solid transparent;
+    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M2,3 C30,2 70,4 98,2 C97,35 99,65 98,97 C65,98 35,96 2,98 C3,65 1,35 2,3 Z' fill='none' stroke='rgba(44, 36, 32, 0.4)' stroke-width='1.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 12 repeat;
 }
 
 .article-header {
-    max-width: 900px;
-    margin: 0 auto 60px;
     text-align: center;
+    margin-bottom: 40px;
 }
 
 .detail-meta-wrapper {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    color: var(--news-primary);
-    font-weight: 500;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .article-main-title {
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-size: var(--fs-h1);
     line-height: 1.4;
-    color: var(--news-text-dark);
-    margin: 20px 0;
+    font-weight: 700;
+    color: var(--news-text-main);
+    margin: 0;
 }
 
 .article-content-wrapper {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 60px 0;
-    border-top: 1px solid var(--news-border-color);
+    padding-top: 40px;
+    border-top: 1px dashed rgba(44, 36, 32, 0.2);
 }
 
-.editor-content {
-    color: #444;
-    line-height: 2;
-    font-size: 1.1rem;
-    letter-spacing: 0.05em;
+/* 區塊 樣式設定 */
+.g__edit-wrap a, .g-edit a {
+  color: #c48343;
+  text-decoration: underline;
+}
+.g__edit-wrap a:hover, .g-edit a:hover {
+  color: #e45a0b;
+  text-decoration: underline;
+}
+.g__edit-wrap p, .g-edit p {
+  margin: 0;
+  padding: 5px 0;
+  word-break: normal;
+}
+.g__edit-wrap img, .g-edit img {
+  margin: 20px 0;
+  overflow: hidden;
+}
+.g__edit-wrap ul, .g__edit-wrap ol, .g-edit ul, .g-edit ol {
+  padding: 0 0 0 20px;
+}
+.g__edit-wrap ul li, .g__edit-wrap ol li, .g-edit ul li, .g-edit ol li {
+  line-height: 1.6;
+}
+.g__edit-wrap ul li:not(:last-child), .g__edit-wrap ol li:not(:last-child), .g-edit ul li:not(:last-child), .g-edit ol li:not(:last-child) {
+  margin-bottom: 5px;
 }
 
-/* --- 文章下方導覽容器 --- */
+/* 編輯器圖片響應式安全防呆 */
+.editor-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    width: auto !important;
+    margin: 20px auto;
+    display: inline-block;
+}
+
+/* 文章底部導覽排版（消滅絕對定位） */
 .article-footer-nav {
     display: flex;
-    justify-content: space-between; /* 確保三者分配在左、中、右 */
+    justify-content: space-between;
     align-items: center;
-    max-width: 1100px;
-    margin: 80px auto 0;
-    padding: 40px 0;
-    border-top: 1px solid var(--news-border-color);
-    position: relative; /* 供中間定位參考 */
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(44, 36, 32, 0.1);
 }
 
-/* 導覽按鈕基礎 (上一篇/下一篇) */
 .nav-btn {
     display: flex;
     align-items: center;
-    gap: 15px;
-    color: var(--news-text-dark);
-    text-decoration: none;
-    width: 35%; /* 固定寬度避免標題太長擠壓到中間 */
+    gap: 12px;
+    color: var(--news-text-main);
+    width: 38%;
     transition: color 0.3s;
 }
 
-/* 確保左側內容靠左，右側內容靠右 */
 .nav-btn.next {
     justify-content: flex-end;
 }
 
 .nav-btn:hover {
-    color: var(--news-primary);
+    color: var(--news-accent);
 }
 
 .nav-btn .arrow {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #ddd;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(44, 36, 32, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -255,111 +380,111 @@
 }
 
 .nav-btn:hover .arrow {
-    background: var(--news-primary);
-    border-color: var(--news-primary);
-    color: #fff;
+    background: var(--news-accent);
+    border-color: var(--news-accent);
+    color: #ffffff;
 }
 
-/* 佔位容器：當沒有上一篇或下一篇時，維持空間撐開以保證中間按鈕不動 */
+.nav-title {
+    font-size: var(--fs-small);
+    color: var(--news-text-muted);
+}
+
+.nav-btn:hover .nav-title {
+    color: var(--news-accent);
+}
+
 .nav-btn.disabled {
     visibility: hidden;
     pointer-events: none;
 }
 
-/* --- 返回列表：文字設計感 --- */
-.back-to-list {
-    position: absolute; /* 絕對定位確保永遠在父容器正中央 */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-
-    font-weight: 600;
-    letter-spacing: 0.2em; /* 增加字距提升設計感 */
-    color: var(--news-text-gray);
-    text-decoration: none;
-    padding: 10px 20px;
-    transition: var(--news-transition);
-    white-space: nowrap;
+.back-box {
+    width: 20%;
+    text-align: center;
 }
 
-/* 返回列表 Hover 效果：底線伸長或變色 */
+.back-to-list {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--news-text-main);
+    display: inline-block;
+    padding: 8px 0;
+}
+
 .back-to-list::after {
     content: '';
     display: block;
-    width: 20px; /* 初始底線短 */
+    width: 15px;
     height: 1px;
-    background: var(--news-primary);
-    margin: 5px auto 0;
-    transition: width 0.3s ease;
+    background: var(--news-text-main);
+    margin: 4px auto 0;
+    transition: all 0.3s ease;
 }
 
 .back-to-list:hover {
-    color: var(--news-primary);
-    letter-spacing: 0.3em; /* 稍微撐開，更有動態美感 */
+    color: var(--news-accent);
 }
 
 .back-to-list:hover::after {
-    width: 100%; /* 底線變長 */
+    width: 100%;
+    background: var(--news-accent);
 }
 
-/* 響應式調整 */
-@media (max-width: 767px) {
+/* ==========================================================================
+   7. 完整符合網頁全規格之 7 大響應式斷點 (RWD Media Queries)
+   ========================================================================== */
+
+/* 【斷點 1】4K 超高解析度大螢幕 (2560px) */
+@media screen and (min-width: 2560px) {
+    .article-container { max-width: 1440px; }
+    .news-grid { gap: 80px 48px; padding: 50px; }
+}
+
+/* 【斷點 2】大型筆記型電腦 (1440px) */
+@media screen and (max-width: 1440px) {
+    .news-grid { gap: 50px 32px; padding: 32px; }
+}
+
+/* 【斷點 3】一般筆記型電腦 (1024px) */
+@media screen and (max-width: 1024px) {
+    .news-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; padding: 24px; }
+}
+
+/* 【斷點 4】平板電腦 (768px) */
+@media screen and (max-width: 768px) {
+    .news-grid { gap: 32px 20px; padding: 20px; margin-bottom: 80px; }
+
     .article-footer-nav {
         flex-direction: column;
-        gap: 30px;
-        padding: 40px 20px;
+        gap: 25px;
+        padding-top: 25px;
     }
     .nav-btn {
         width: 100%;
-        max-width: 100%;
         justify-content: center !important;
     }
-    .back-to-list {
-        position: static; /* 手機版回歸自然排列 */
-        transform: none;
-        order: 2; /* 讓返回列表在中間 */
+    .back-box {
+        width: 100%;
+        order: -1; /* 讓返回列表按鈕在平板/手機優先置頂，符合動線 */
     }
-    .nav-btn.prev { order: 1; }
-    .nav-btn.next { order: 3; }
 }
 
-/* =========================================
-   6. Responsive Layouts
-   ========================================= */
-
-/* 4K - 2560px */
-@media (min-width: 1921px) {
-    .container { max-width: 1600px; }
-    .news-grid { gap: 80px 50px; }
+/* 【斷點 5】大型手機 (425px) */
+@media screen and (max-width: 425px) {
+    .news-grid { grid-template-columns: 1fr; gap: 36px 0; padding: 16px; margin-bottom: 60px; }
+    .article-section { padding-top: 40px; margin: 0 15px 30px; }
 }
 
-/* 大型筆記型電腦 - 1440px */
-@media (max-width: 1440px) {
-    .news-grid { gap: 50px 30px; }
+/* 【斷點 6】中型手機 (375px) */
+@media screen and (max-width: 375px) {
+    .n-img-box { margin-bottom: 16px; }
+    .n-title { font-size: 1.1rem; }
 }
 
-/* 筆記型電腦 - 1024px */
-@media (max-width: 1023px) {
-    .news-grid { grid-template-columns: repeat(2, 1fr); }
-    .article-content-wrapper, .article-footer-nav { padding: 40px 20px; }
-}
-
-/* 平板電腦 - 768px (一排兩則) */
-@media (min-width: 768px) and (max-width: 1023px) {
-    .news-grid { grid-template-columns: repeat(2, 1fr); gap: 30px; }
-}
-
-/* 手機版 (767px 以下一排一則) */
-@media (max-width: 767px) {
-    .news-grid { grid-template-columns: 1fr; gap: 40px; }
-    .page-banner { height: 30vh; min-height: 250px; }
-    .article-footer-nav { flex-direction: column; gap: 30px; text-align: center; }
-    .nav-btn { max-width: 100%; width: 100%; justify-content: center; }
-}
-
-/* 小型手機 */
-@media (max-width: 425px) {
-    .banner-title { font-size: 1.8rem; }
-    .n-title { font-size: 1.2rem; }
-    .filter-btn { padding: 8px 20px; font-size: 0.85rem; }
+/* 【斷點 7】極小型手機 (320px) */
+@media screen and (max-width: 320px) {
+    .news-grid { padding: 10px; }
+    .nav-title { font-size: 0.8rem; }
 }
