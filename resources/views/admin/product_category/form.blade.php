@@ -60,10 +60,17 @@
                                                     value="{{ $descMap[$lang->lang_id]->name ?? '' }}">
                                             </div>
                                             <div class="form-group">
+                                                <label for="description_{{ $lang->lang_id }}">標題</label>
+                                                <input type="text" id="description_{{ $lang->lang_id }}"
+                                                    name="desc[{{ $lang->lang_id }}][description]"
+                                                    class="form-control required-field"
+                                                    value="{{ $descMap[$lang->lang_id]->description ?? '' }}">
+                                            </div>
+                                            {{-- <div class="form-group">
                                                 <label for="description_{{ $lang->lang_id }}">簡述</label>
                                                 <textarea id="description_{{ $lang->lang_id }}" name="desc[{{ $lang->lang_id }}][description]" class="form-control"
                                                     maxlength="25" rows="3" placeholder="最多 25 個字">{{ $descMap[$lang->lang_id]->description ?? '' }}</textarea>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     @endforeach
                                 </div>

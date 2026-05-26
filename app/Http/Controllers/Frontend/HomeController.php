@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AdvertCategory, News};
+use App\Models\{AdvertCategory, News, ProductCategory}; // 引入產品分類模型
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    /** * 取得指定代碼的廣告列表
+    /**
+     * 取得指定代碼的廣告列表
      * @param string $code 分類代碼
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection 廣告資料集合
      */
     private function getAdvertsByCode($code)
     {
@@ -25,7 +26,10 @@ class HomeController extends Controller
         return $category ? $category->adverts : collect([]);
     }
 
-    /** 首頁 */
+    /**
+     * 首頁
+     * @return \Illuminate\View\View 前台首頁視圖
+     */
     public function index()
     {
         // 獲取橫幅廣告 (idx_banner)
@@ -42,9 +46,18 @@ class HomeController extends Controller
             ->latest()
             ->get();
 
+        // 獲取產品分類（真實後端資料）
+        // 效能優化：使用 with 預先載入目前語系描述，避免 N+1 查詢問題
+        // 防呆機制：只撈取後台設定為顯示(is_visible = 1)的分類
+        $productCategories = ProductCategory::where('is_visible', 1)
+            ->with(['currentDesc'])
+            ->orderBy('display_order', 'desc')
+            ->get();
+
         // 處理麵包屑與視圖返回
         $this->setBreadcrumbs([]);
 
-        return view('frontend.layouts.home', compact('banners', 'features', 'homeNews'));
+        // 將撈出來的 $productCategories 變數傳遞給前端 Blade 樣板
+        return view('frontend.layouts.home', compact('banners', 'features', 'homeNews', 'productCategories'));
     }
 }

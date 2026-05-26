@@ -1,40 +1,11 @@
 @extends('frontend.layouts.app')
 
-
 @push('styles')
     {{-- 改成專業的 Vite 引入方式 --}}
     {{-- @vite(['resources/css/home.scss']) --}}
 
     <link rel="stylesheet" href="{{ asset('css/home.css?v=1') }}">
 @endpush
-
-
-
-@php
-    /**
-     * 模擬後台傳入的最新消息資料
-     * 用途：在 Controller 尚未串接前，確保前端版面開發正常
-     * 格式：使用 stdClass 模擬資料庫 Eloquent Model 物件
-     */
-
-    $items = [
-        [
-            'title' => '經典原味',
-            'subtitle' => 'Classic Series',
-            'img' => 'https://images.unsplash.com/photo-1590080876102-9473629d7e23?q=80&w=600&auto=format&fit=crop',
-        ],
-        [
-            'title' => '濃厚黑巧',
-            'subtitle' => 'Chocolate Series',
-            'img' => 'https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?q=80&w=600&auto=format&fit=crop',
-        ],
-        [
-            'title' => '靜岡抹茶',
-            'subtitle' => 'Tea Series',
-            'img' => 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=600&auto=format&fit=crop',
-        ],
-    ];
-@endphp
 
 @section('content')
 {{-- 1. Hero Section: 輪播 + 視差文字 --}}
@@ -176,8 +147,9 @@
         </div>
     </div>
 </section>
-{{-- 產品系列 --}}
-@if (isset($items) && count($items) > 0)
+
+{{-- 5. 產品系列（已移除 @php 模擬區塊，完全抽離商業邏輯） --}}
+@if (isset($productCategories) && $productCategories->isNotEmpty())
     <section class="section-product-cat">
         <div class="container-1280">
             <header class="section-header js-fade-up">
@@ -188,24 +160,32 @@
             <div class="swiper-wrap js-fade-up">
                 <div class="swiper js-product-cat-swiper">
                     <div class="swiper-wrapper">
-                        @forelse ($items as $cat)
+                        @foreach ($productCategories as $cat)
                             <div class="swiper-slide">
-                                <a href="{{ url('/product') }}" class="product-cat-card" title="查看 {{ $cat['title'] }}">
+                                {{-- 路由防呆：點擊分類時，帶入該分類的 ID 作為網址參數 --}}
+                                <a href="{{ url('/products?cat_id=' . $cat->cat_id) }}" class="product-cat-card"
+                                   title="查看 {{ $cat->currentDesc->name ?? '未命名分類' }}">
                                     <article class="product-cat-img-box">
-                                        <img src="{{ $cat['img'] }}" alt="{{ $cat['title'] }}" class="product-cat-img" loading="lazy" onload="this.classList.add('is-loaded')">
+
+                                        {{-- 圖片防呆：若後台沒有上傳分類圖，自動顯示預設的餅乾替代圖，避免網頁破版 --}}
+                                        <img src="{{ $cat->image_url ? asset('storage/' . $cat->image_url) : asset('images/default-category.jpg') }}"
+                                             alt="{{ $cat->currentDesc->name ?? '產品分類' }}"
+                                             class="product-cat-img"
+                                             loading="lazy"
+                                             onload="this.classList.add('is-loaded')">
+
                                         <div class="product-cat-overlay">
                                             <div class="product-cat-glass-box">
-                                                <h3 class="product-cat-title">{{ $cat['title'] }}</h3>
-                                                <p class="product-cat-subtitle">{{ $cat['subtitle'] }}</p>
+                                                {{-- 語系防呆：利用 ?? 機制確保即使多語系關聯漏填資料，畫面也不會報錯或空白 --}}
+                                                <h3 class="product-cat-title">{{ $cat->currentDesc->name ?? '未命名分類' }}</h3>
+                                                <p class="product-cat-subtitle">{{ $cat->currentDesc->description ?? '' }}</p>
                                                 <span class="product-cat-more">VIEW MORE</span>
                                             </div>
                                         </div>
                                     </article>
                                 </a>
                             </div>
-                        @empty
-                            <p>尚無產品分類數據</p>
-                        @endforelse
+                        @endforeach
                     </div>
                 </div>
 
@@ -281,14 +261,14 @@
     <script src="{{ asset('js/frontend/home.js') }}"></script>
     <script>
         $(function() {
-
+            // 初始化產品分類的 Swiper 輪播組件
             var productCatSwiper = new Swiper('.js-product-cat-swiper', {
                 loop: true,
                 spaceBetween: 10,
                 slidesPerView: 1,
                 navigation: {
                     nextEl: ".section-product-cat .js-product-cat-next",
-                    prevEl: ".section-product-cat .js-product-cat-next"
+                    prevEl: ".section-product-cat .js-product-cat-prev" // 修正原先程式碼左右方向綁定同一個 class 的破版 Bug
                 },
                 pagination: {
                     el: '.js-product-cat-pagination',
@@ -301,10 +281,10 @@
                         return ('0' + number).slice(-2);
                     },
                     renderFraction: function (currentClass, totalClass, index) {
-                return `<span class="${currentClass}"></span>` +
-                            `<span class="gap"></span>` +
-                            `<span class="${totalClass}"></span>`;
-            }
+                        return `<span class="${currentClass}"></span>` +
+                               `<span class="gap"></span>` +
+                               `<span class="${totalClass}"></span>`;
+                    }
                 },
                 breakpoints: {
                     744: {
@@ -322,13 +302,14 @@
                 }
             });
 
+            // 初始化最新消息的 Swiper 輪播組件
             var newsSwiper = new Swiper('.js-news-swiper', {
                 loop: true,
                 spaceBetween: 10,
                 slidesPerView: 1,
                 navigation: {
                     nextEl: ".section-news .js-news-next",
-                    prevEl: ".section-news .js-news-next"
+                    prevEl: ".section-news .js-news-prev" // 同步修正最新消息的導覽按鈕監聽 Bug
                 },
                 pagination: {
                     el: '.js-news-pagination',
@@ -341,10 +322,10 @@
                         return ('0' + number).slice(-2);
                     },
                     renderFraction: function (currentClass, totalClass, index) {
-                return `<span class="${currentClass}"></span>` +
-                            `<span class="gap"></span>` +
-                            `<span class="${totalClass}"></span>`;
-            }
+                        return `<span class="${currentClass}"></span>` +
+                               `<span class="gap"></span>` +
+                               `<span class="${totalClass}"></span>`;
+                    }
                 },
                 breakpoints: {
                     744: {
@@ -361,7 +342,6 @@
                     }
                 }
             });
-
         });
     </script>
 @endpush

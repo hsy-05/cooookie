@@ -71,7 +71,16 @@ class NewsCategoryController extends BaseAdminController
             ->get();
         }
 
-        return $this->view("{$this->routePrefix}.index", compact('catItems', 'search'));
+        // 取得類別名稱（不含命名空間），例如：News
+        // class_basename 是 Laravel 內建函式，可以把 "App\Models\News" 轉成 "News"
+        $modelName = class_basename($this->modelClass);
+
+        // 回傳視圖
+        return $this->view("{$this->routePrefix}.index", [
+            'catItems'     => $catItems,
+            'search'    => $search,
+            'modelName' => $modelName // 將 Model 名稱傳給 Blade
+        ]);
     }
 
     /**

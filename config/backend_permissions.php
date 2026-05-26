@@ -54,6 +54,15 @@ return [
             ],
         ]
     ],
+    'contact_management' => [
+        'label' => '聯絡管理',
+        'subs' => [
+            'contact' => [
+                'label' => '聯絡單列表',
+                'actions' => ['view' => '瀏覽', 'edit' => '回覆', 'delete' => '刪除'],
+            ],
+        ]
+    ],
     'permission_setting' => [
         'label' => '權限設定',
         'subs' => [
@@ -71,15 +80,6 @@ return [
                 'label' => '網站管理員',
                 'actions' => ['view' => '瀏覽', 'create' => '新增', 'edit' => '編輯', 'delete' => '刪除'],
                 'dependencies' => ['create' => ['view'], 'edit' => ['view'], 'delete' => ['view']]
-            ],
-        ]
-    ],
-    'contact_management' => [
-        'label' => '聯絡管理',
-        'subs' => [
-            'contact' => [
-                'label' => '聯絡單列表',
-                'actions' => ['view' => '瀏覽', 'edit' => '回覆', 'delete' => '刪除'],
             ],
         ]
     ],

@@ -29,7 +29,7 @@
     <td class="text-center">
         <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input toggle-boolean-switch" id="newsSwitch{{ $cat->cat_id }}"
-                data-id="{{ $cat->cat_id }}" data-model="NewsCategory" data-field="is_visible"
+                data-id="{{ $cat->cat_id }}" data-model="{{ $modelName }}" data-field="is_visible"
                 {{ $cat->is_visible ? 'checked' : '' }}>
             <label class="custom-control-label" for="newsSwitch{{ $cat->cat_id }}"></label>
         </div>

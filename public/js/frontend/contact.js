@@ -98,15 +98,27 @@ const ContactModule = (() => {
             const response = await fetch(submitUrl, {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    // 防呆核心：明確告訴 Laravel，我只要 JSON 格式的回應，不准吐 HTML 網頁給我
+                    // 這樣就算後端驗證（ContactRequest）失敗，Laravel 也會乖乖回傳 422 錯誤原因 JSON，而不會吐網頁
+                    'Accept': 'application/json'
+                }
             });
 
-            // 如果回傳非 200 狀態碼（例如依舊發生 IIS 404），直接拋出狀態異常
-            if (!response.ok) {
-                throw new Error(`伺服器回應錯誤 (${response.status})。請確認網頁伺服器 URL 重寫規則配置。`);
-            }
-
+            // 讀取後端解析後的 JSON 資料
             const data = await response.json();
+
+            // 如果後端傳回非 200 到 299 的狀態碼（例如 422 欄位驗證失敗、500 伺服器出錯）
+            if (!response.ok) {
+                // 如果是 Laravel FormRequest 的欄位驗證錯誤，錯誤訊息通常包在 data.errors 裡面
+                if (response.status === 422 && data.errors) {
+                    // 把所有欄位的錯誤原因組合成一段文字交代清楚
+                    let errorMessages = Object.values(data.errors).flat().join('\n');
+                    throw new Error(errorMessages);
+                }
+                throw new Error(data.message || `伺服器回應錯誤 (${response.status})`);
+            }
 
             if (data.success) {
                 Swal.fire({

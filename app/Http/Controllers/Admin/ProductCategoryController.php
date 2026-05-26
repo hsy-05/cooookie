@@ -34,10 +34,11 @@ class ProductCategoryController extends BaseAdminController
         'files' => [
             'image_url' => [
                 'path'   => 'product_category',      // 圖片存儲資料夾
-                'width'  => 736,                 // 建議寬度
-                'height' => 736,                 // 建議高度
-                'mode'   => 'scale_fill',        // 處理模式：等比例填充
-                'bgColor'=> '#ffffff',           // 若圖片比例不符，填充的底色
+                'width'  => 400,                 // 建議寬度
+                'height' => 300,                 // 建議高度
+                'mode'   => 'center_crop',     // 裁切模式：從中心裁切
+                // 'mode'   => 'scale_fill',        // 處理模式：等比例填充
+                // 'bgColor'=> '#ffffff',           // 若圖片比例不符，填充的底色
                 'useOriginalName' => false,      // 是否使用原檔名
             ],
         ],
@@ -71,7 +72,16 @@ class ProductCategoryController extends BaseAdminController
             ->get();
         }
 
-        return $this->view("{$this->routePrefix}.index", compact('catItems', 'search'));
+        // 取得類別名稱（不含命名空間），例如：News
+        // class_basename 是 Laravel 內建函式，可以把 "App\Models\News" 轉成 "News"
+        $modelName = class_basename($this->modelClass);
+
+        // 回傳視圖
+        return $this->view("{$this->routePrefix}.index", [
+            'catItems'     => $catItems,
+            'search'    => $search,
+            'modelName' => $modelName // 將 Model 名稱傳給 Blade
+        ]);
     }
 
     /**

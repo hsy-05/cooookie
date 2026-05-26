@@ -204,7 +204,7 @@ window.addEventListener('load', () => {
                         trigger: el,
                         start: "top 90%",
                         toggleActions: "play none none reverse",
-                        markers: true // 完成除錯後改為 false
+                        markers: false // 完成除錯後改為 false
                     }
                 }
             );

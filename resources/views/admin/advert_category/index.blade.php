@@ -57,7 +57,7 @@
                                         <input type="checkbox" class="custom-control-input toggle-boolean-switch"
                                                id="advSwitch{{ $row->cat_id }}"
                                                data-id="{{ $row->cat_id }}"
-                                               data-model="AdvertCategory"
+                                               data-model="{{ $modelName }}"
                                                data-field="is_visible"
                                                {{ $row->is_visible ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="advSwitch{{ $row->cat_id }}"></label>

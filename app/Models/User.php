@@ -115,37 +115,35 @@ class User extends Authenticatable
     /* =========================
      | 統一權限入口（非常重要）
      ========================= */
-
     /**
      * 統一權限判斷方法
-     * Controller / Blade 一律呼叫這個
-     * @param string $permission 傳入的簡短權限字串，如 'contact.create'
+     * @param string $permission 傳入的權限字串，例如 'contact.index'
      * @return bool 是否允許操作
      */
     public function canDo(string $permission): bool
     {
-        // 【防呆機制】檢查這張權限通行證，有沒有登記在全站權限地圖字典檔中
+        // 優先權第 1 關：如果是最高開發者 (System)，直接放行，不開引擎蓋檢查後面的防呆
+        if ($this->isDeveloper()) {
+            return true;
+        }
+
+        // 優先權第 2 關：點記法合法性防呆檢查（搬到 System 判斷之後）
         if (str_contains($permission, '.')) {
-            // 呼叫 Helper 取回全站合法的點記法權限清單 (此方法自帶 Static Cache，極度輕量不佔效能)
+            // 取得系統目前所有註冊合法的權限清單
             $validList = PermissionHelper::getValidPermissions();
 
-            // 如果系統根本沒定義這個操作（例如 contact 下面沒有 create），直接在第 0 關攔截回傳 false
+            // 如果一般管理員誤點了系統未定義的權限，在此攔截
             if (!in_array($permission, $validList)) {
                 return false;
             }
         }
 
-        // 1. Developer：全部可做
-        if ($this->isDeveloper()) {
-            return true;
-        }
-
-        // 2. 內部最高管理員：不可做 system.*，其餘可
+        // 3. 內部最高管理員：不可做 system.*，其餘可
         if ($this->isInternalAdmin() && !str_starts_with($permission, 'system.')) {
             return true;
         }
 
-        // 3. 客戶最高管理員：不可做 system.* / internal.*
+        // 4. 客戶最高管理員
         if (
             $this->isCustomerAdmin()
             && !str_starts_with($permission, 'system.')
@@ -154,12 +152,12 @@ class User extends Authenticatable
             return true;
         }
 
-        // 4. 角色權限
+        // 5. 角色權限檢查
         if ($this->role && in_array($permission, $this->role->permissions ?? [])) {
             return true;
         }
 
-        // 5. 個人額外權限
+        // 6. 個人額外權限檢查
         return in_array($permission, $this->permissions ?? []);
     }
 
