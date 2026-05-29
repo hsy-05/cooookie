@@ -3,6 +3,48 @@
 本文件紀錄專案核心架構與功能邏輯，方便新手快速上手與面試說明。
 
 ---
+# 專案目錄結構
+```
+cooookie/
+├── app/                  # 應用程式核心目錄
+│   ├── Helpers/          # 輔助工具（自訂輔助函式）
+│   ├── Http/             # HTTP 請求相關（控制器、中介層、表單驗證）
+│   │   ├── Controllers/  # 控制器（業務邏輯進入點）
+│   │   ├── Middleware/   # 中介層（請求攔截/處理）
+│   │   └── Requests/     # 表單請求驗證
+│   ├── Listeners/        # 事件監聽器
+│   ├── Mail/             # 郵件通知
+│   ├── Models/           # Eloquent 資料模型
+│   ├── Providers/        # 服務提供者（註冊服務/事件）
+│   ├── Traits/           # Traits（可重用程式片段）
+│   └── View/             # 視圖元件（推測）
+├── bootstrap/            # 啟動與自動載入
+├── config/               # 設定檔
+├── database/             # 資料庫相關（migrations, seeders, factories）
+├── lang/                 # 語系檔
+├── public/               # 公開目錄（入口、靜態資源）
+├── resources/            # 前端資源（views, js, css, sass）
+├── routes/               # 路由定義
+├── storage/              # 檔案儲存
+├── tests/                # 測試
+├── vendor/               # Composer 依賴
+├── node_modules/         # npm 依賴
+└── 其他設定與說明檔案
+```
+## 主要資料夾用途說明
+app/：應用程式主體，包含 MVC 架構核心、輔助工具、服務提供者等。
+bootstrap/：啟動設定與快取。
+config/：所有系統設定檔。
+database/：資料庫遷移、工廠、播種器。
+lang/：多語系翻譯檔。
+public/：網站入口與靜態資源。
+resources/：前端資源與 Blade 視圖。
+routes/：路由定義。
+storage/：檔案、快取、日誌等儲存。
+tests/：自動化測試。
+vendor/、node_modules/：依賴套件。
+
+---
 
 # 架構設計核心原則
 
