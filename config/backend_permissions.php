@@ -83,4 +83,13 @@ return [
             ],
         ]
     ],
+    'system_management' => [
+        'label' => '系統管理',
+        'subs' => [
+            'system' => [
+                'label' => '系統紀錄',
+                'actions' => ['view' => '瀏覽'], // 對應產出的權限字串就是 system.view
+            ],
+        ]
+    ],
 ];

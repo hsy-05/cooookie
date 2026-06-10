@@ -130,7 +130,9 @@ Route::middleware(['auth', 'verified', 'admin.theme'])
         Route::put('system_settings/update-all', [SystemSettingController::class, 'updateAll'])->name('system_settings.update_all');
 
         // 伺服器與操作紀錄 (僅讀取與刪除)
-        Route::get('system-logs', [SystemLogController::class, 'index'])->name('system.logs');
+        Route::get('system-logs', [SystemLogController::class, 'index'])
+            ->name('system.logs')
+            ->middleware('admin.perm:system-logs.view');
         Route::delete('logs/batch', [ActionLogController::class, 'batchDestroy'])->name('logs.batch_destroy');
         Route::resource('logs', ActionLogController::class)->only(['index', 'destroy']);
 
@@ -165,10 +167,14 @@ Route::middleware(['auth', 'verified', 'admin.theme'])
         Route::post('advert/delete-image/{advert}', [AdvertController::class, 'deleteImageField'])->name('advert.delete-image');
         Route::resource('advert', AdvertController::class);
 
+        //廣告分類
+        Route::resource('advert_category', AdvertCategoryController::class)
+            ->middleware('admin.perm:system.advert_category.view');
+
         /**
          * 共用功能與編輯器 (Summernote) 支援
          */
-        Route::group(['as' => 'tools.'], function() {
+        Route::group(['as' => 'tools.'], function () {
             // Summernote 圖片上傳與移除
             Route::post('upload-editor-image', [UploadController::class, 'uploadEditorImage'])->name('upload.image');
             Route::post('delete-editor-image', [UploadController::class, 'deleteEditorImage'])->name('delete.image');

@@ -9,9 +9,17 @@ use App\Helpers\{ContentHelper, ImageHelper};
 
 class AdvertCategoryController extends BaseAdminController
 {
-    // 1. 基本配置：只要寫這兩行，BaseAdminController 就會幫你處理好權限檢查與頁面標題
-    protected $permissionName = 'advert_category';
-    protected $pageTitle = '廣告分類管理';
+    /**
+     * 核心配置：複製到其他分類功能時，只需修改這裡
+     */
+    protected $permissionName = 'advert_category';           // 權限代碼
+    protected $modelClass     = AdvertCategory::class;       // 主模型類別
+    protected $descClass      = AdvertCategoryDesc::class;   // 語系模型類別
+    protected $routePrefix    = 'admin.advert_category';     // 路由前綴
+    protected $primaryKey     = 'cat_id';                  // 資料表主鍵
+    protected $pageTitle      = '廣告分類管理';             // 頁面標題
+    protected $logModuleName  = '廣告分類';                 // 日誌顯示名稱
+    protected $configKey      = 'advert';                    // 對應 config/site.php 中的層級設定 Key
 
     /**
      * 廣告分類列表
@@ -23,12 +31,20 @@ class AdvertCategoryController extends BaseAdminController
         // 使用 Base 的 getPerPage，這會自動記憶使用者的分頁選擇 (8, 20, 50...)
         $perPage = $this->getPerPage($request);
 
-        $list = AdvertCategory::with(['currentDesc'])
+        $catItems = AdvertCategory::with(['currentDesc'])
             ->orderByDesc('display_order')
             ->orderByDesc('cat_id')
             ->paginate($perPage);
 
-        return $this->view('admin.advert_category.index', compact('list'));
+        // 取得類別名稱（不含命名空間），例如：advert
+        // class_basename 是 Laravel 內建函式，可以把 "App\Models\advert" 轉成 "advert"
+        $modelName = class_basename($this->modelClass);
+
+        // 回傳視圖
+        return $this->view("{$this->routePrefix}.index", [
+            'catItems'     => $catItems,
+            'modelName' => $modelName // 將 Model 名稱傳給 Blade
+        ]);
     }
 
     /**

@@ -316,6 +316,7 @@ return [
                     // 'route' => 'admin.advert_category',   // 優先使用 route（如果你有命名路由）
                     'url' => 'admin/advert_category',
                     'active' => ['regex:@^admin/advert_category($|/)@'], // 可用陣列 / 通配符
+                    'can'  => 'system.view',
                 ],
             ],
         ],
@@ -421,7 +422,7 @@ return [
                     'url'  => 'admin/system-logs',
                     // 'icon' => 'fas fa-bug',
                     'active' => ['regex:@^admin/system-logs($|/)@'], // 可用陣列 / 通配符
-                    'can'  => 'system',
+                    'can'  => 'system.view',
                 ],
             ],
         ],
